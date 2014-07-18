@@ -19,13 +19,20 @@ public class Memo implements Comparable<Memo>, Serializable{
 	private String desc;		//descrizione del compito
 	private Data end;
 	private boolean completion;
+	private String icon;
 	
+	/*											*
+	 * 											*
+	 * 				COSTRUTTORI                 *
+	 * 											*
+	 *											*/
 	public Memo(String desc, int year,int month, int day,int hour, int minute){
 		
 		this.desc=desc;
 		priority=Priority.NORMAL;
 		completion=false;
 		end=new Data(year,month,day,hour,minute);
+		icon="note.png";
 	}
 	
 	public Memo(String desc, String priority, int year, int month, int day, int hour, int minute){
@@ -34,6 +41,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.setPriority(priority);
 		completion=false;
 		end=new Data(year,month,day,hour,minute);
+		icon="note.png";
 	}
 	
 	public Memo(String desc, Data end){
@@ -42,6 +50,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		priority=Priority.NORMAL;
 		completion=false;
 		this.end=end;
+		icon="note.png";
 	}
 	
 	public Memo(String desc, int priority, Data end){
@@ -50,7 +59,31 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.setPriority(priority);
 		completion=false;
 		this.end=end;
+		icon="note.png";
 	}
+	
+	public Memo(String desc, int priority, Data end, String icon){
+		
+		this(desc,priority,end);
+		this.icon=icon;
+	}
+	
+	/**
+	 * Costruttore di copia
+	 * @param m
+	 */
+	public Memo(Memo m){
+		
+		this.desc=m.desc;
+		this.priority=m.priority;
+		this.end=m.end;
+		this.completion=m.completion;
+		this.icon=m.icon;
+	}
+	
+	
+	/*					Fine costruttori					*/
+	
 	
 	/**
 	 * Modifica il campo del memo, indicando che esso è stato completato
@@ -111,6 +144,15 @@ public class Memo implements Comparable<Memo>, Serializable{
 	public void setEnd(int year, int month, int day, int hour, int minute){
 		
 		this.end=new Data(year,month,day,hour,minute);
+	}
+	
+	/**
+	 * Cambia l'icona del memo
+	 * @param icon
+	 */
+	public void setIcon(String icon){
+		
+		this.icon=icon;
 	}
 	
 	public String StampaPriority(){
@@ -212,6 +254,21 @@ public class Memo implements Comparable<Memo>, Serializable{
 		return end;
 	}
 	
+	public String getIcon(){
+		
+		return icon;
+	}
+	
+	
+	public boolean equals(Memo m){
+		
+		if(!this.desc.trim().equals(m.desc.trim()))
+			return false;
+		if(!this.end.equals(m.end))
+			return false;
+		return true;
+	}
+	
 	@Override
 	public int compareTo(Memo arg0) {
 		
@@ -230,7 +287,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 			pr='A';
 		else if(priority()==0)
 			pr='C';	
-		return pr+"\t"+this.endDate()+"\t"+desc;
+		return pr+"\t"+this.endDate()+"  \t"+desc;
 	}
 	
 	public int hashCode(){

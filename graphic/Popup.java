@@ -29,7 +29,7 @@ public class Popup extends JDialog implements ActionListener{
 	 */
 	public static void main(String[] args) {
 		try {
-			Popup dialog = new Popup(true);
+			Popup dialog = new Popup(null,true);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -40,7 +40,8 @@ public class Popup extends JDialog implements ActionListener{
 	/**
 	 * Create the dialog. if modified is true, the popup is opened for a modification of an already existing memo
 	 */
-	public Popup(boolean modified) {
+	public Popup(JFrame owner,boolean modified){
+		super(owner,true);
 		this.modified=modified;
 		setBounds(100, 100, 450, 200);
 		setResizable(false);
@@ -259,7 +260,6 @@ public class Popup extends JDialog implements ActionListener{
 		Integer[] giorni;
 		String gdms=(String)mese.getSelectedItem();
 		int gdm=Data.daysOfMonth((Integer)anno.getSelectedItem(),Data.monthToInt(gdms));
-		//System.out.println(gdms+" ha "+gdm+" giorni");
 		giorni=new Integer[gdm];
 		for(int i=0;i<gdm;i++){
 			giorni[i]=new Integer(i+1);
@@ -342,7 +342,6 @@ public class Popup extends JDialog implements ActionListener{
 	public void actionPerformed(ActionEvent evt){
 		
 		if(evt.getSource().equals(okButton)){
-			System.out.println("ok è stato premuto");
 			okPressed=true;
 			String desc=descrizione.getText();
 			String pri1=(String)prior.getSelectedItem(),pri2;
@@ -357,8 +356,9 @@ public class Popup extends JDialog implements ActionListener{
 			int d=(Integer)giorno.getSelectedItem();
 			int o=(Integer)ora.getSelectedItem();
 			int mi=(Integer)minuto.getSelectedItem();
-			//System.out.println(desc+","+pri2+","+y+","+m+","+d+","+o+","+mi);
 			created=new Memo(desc,pri2,y,m,d,o,mi);
+			if(modified)
+				created.setIcon(old.getIcon());
 			setVisible(false);
 		}
 		else if(evt.getSource().equals(cancelButton)){

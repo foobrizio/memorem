@@ -3,19 +3,17 @@ package graphic;
 
 import net.miginfocom.swing.MigLayout;	//utilizzato da panel
 
-import java.util.LinkedList;
+import java.util.*;
 import java.util.Timer;
+
 import java.awt.*;
 import java.awt.event.*;
-
 import javax.swing.*;
 
 import graphic.MemPanel.MyMenuItem;
 import main.*;
 import util.Data;
 import util.MemoList;
-
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
 
 /*
@@ -25,19 +23,20 @@ import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationExceptio
 @SuppressWarnings("serial")
 public class Memorem extends JFrame{
 	
-	
 	private Timer timer;
 	private InnerClock orologio;
-	private ezioAuditore listener;
-	private desmondMiles watcher;
+	private EzioAuditore listener;
+	private DesmondMiles watcher;
 	/*
 	 * visualHandler gestisce il funzionamento del panel_2 (switch tra InternalFrame e CalendarFrame)
 	 * dataHandler gestisce la scelta della durata dei memo da visualizzare
 	 * innerVisualHandler gestisce la scelta del tipo di memo da visualizzare (scaduti o attivi)
 	 */
 	private Abbottonatore visualHandler, dataHandler, innerVisualHandler;
-	private JMenuItem mntmEsci,mntmNuova,mntmSalva,mntmLogin,mntmLogout,mntmAggiungi,mntmCancella;
-	private JMenu mnNuovo,mnStrumenti,mnVisualizza;
+	private JMenuItem mntmEsci,mntmNuova,mntmSalva,mntmLogin,mntmLogout,mntmAggiungi,mntmCancella,mntmReset,mntmRimuoviU,mntmAggiungiU,mntmModPass,mntmStatistiche;
+	private JMenu mnNuovo,mnStrumenti,mnVisualizza,mnUtente,mnRimuoviU;
+	private JCheckBox mntmHints;
+	private JList<String> utenti;
 	private Keeper k;
 	private JPanel panel;
 	private JInternalFrame panel_2;
@@ -46,10 +45,16 @@ public class Memorem extends JFrame{
 	private Popup p;
 	private PopItem completa,elimina,modifica,one,three,seven,custom;
 	private LoginDialog logD;
+	private ModPassDialog modPass;
 	private JProgressBar progressBar;
+	private SlidingTextPanel scorrevole;
 	private JRadioButtonMenuItem classicRadio,calendarRadio;
 	private JRadioButtonMenuItem[] vF=new JRadioButtonMenuItem[2],dF=new JRadioButtonMenuItem[5];
 	private JCheckBoxMenuItem[] pF=new JCheckBoxMenuItem[3];
+	private JButton okButton;
+	private JFileChooser jfc;
+	private JButton iconButton;
+	//private Image sfondo;
 	
 	private class InnerClock extends java.util.TimerTask{
 		
@@ -79,7 +84,6 @@ public class Memorem extends JFrame{
 		public void add(JRadioButtonMenuItem bottone){
 			
 			if(size==bottoni.length){
-				System.out.println("servono più buchi per questi bottoni");
 				JRadioButtonMenuItem[] nb=new JRadioButtonMenuItem[bottoni.length*2];
 				for(int i=0;i<bottoni.length;i++)
 					nb[i]=bottoni[i];
@@ -125,13 +129,13 @@ public class Memorem extends JFrame{
 			if(nome.equals("visual")){
 				Memorem.this.switchVisual();
 			}
-			else if(nome.equals("data") || nome.equals("visual") || nome.equals("inner")){
+			else if(nome.equals("data") || nome.equals("inner")){
 				Memorem.this.createQuery();
 			}
 		}
 	}
 	
-	private class desmondMiles extends WindowAdapter{
+	private class DesmondMiles extends WindowAdapter{
 		
 		public void windowDeactivated(WindowEvent arg0) {
 			
@@ -140,32 +144,52 @@ public class Memorem extends JFrame{
 			 *SCADUTO, OVVERO BISOGNA VEDERE SE IL p.getOld() È SCADUTO
 			 */
 			if(arg0.getSource()==p){	//se arriviamo qui significa che abbiamo ricevuto la notifica di modifica
-				System.out.println("grazie al Popup: "+p.hashCode());
 				if( p.getOk() && p.getModified()){	//e possiamo andare avanti solamente se è stato premuto il tasto ok
-					
-					System.out.println("captata una modifica");
-					mntmSalva.setEnabled(true);
-					Memo old=p.getOld();
-					//System.out.println(old.toString());
 					Memo memo=p.getCreated();
-					System.out.println("vecchio:\t"+old.toString());
-					System.out.println("nuovo:  \t"+memo.toString());
+					if(k.contains(memo)){
+						JOptionPane.showMessageDialog(Memorem.this, "Il memo esiste già");
+						return;
+					}
+					Memo old=p.getOld();
+					if(old.isScaduto()){					//si tratta di rinviare un memo scaduto
+						if(p.getCreated().getEnd().compareTo(new Data())<0){
+							JOptionPane.showMessageDialog(Memorem.this, "Impossibile rinviare. Il memo sarebbe comunque scaduto");
+							return;
+						}
+					}
+					mntmSalva.setEnabled(true);
 					k.modifica(old, memo);								//il Keeper è stato aggiornato
 					calendar.setMemolist(k.getTotalList());				//il Calendar è stato aggiornato
 					calendar.getCustomRenderer().refresh();
+					classic.remove(old);
+					//System.out.println("modifica:"+memo.getIcon());
+					MemPanel mp=new MemPanel(memo);
+					mp.setBridges(p, jfc, iconButton);
+					mp.getElimina().addActionListener(listener);
+					mp.getCompleta().addActionListener(listener);
+					mp.getArchivia().addActionListener(listener);
+					mp.getOneDay().addActionListener(listener);
+					mp.getThreeDays().addActionListener(listener);
+					mp.getOneWeek().addActionListener(listener);
+					classic.add(mp);
+					mntmSalva.setEnabled(true);
 					checkMemos();
 				}
 				else if(p.getOk() && !p.getModified()){	//qui invece gestiamo la notifica di un aggiunta di memo
-					System.out.println("aggiunta in corso..");
 					Memo m=p.getCreated();
-					if(m.getEnd().compareTo(new Data())<0){
+					if(k.contains(m)){
+						JOptionPane.showMessageDialog(Memorem.this, "Il memo esiste già");
+						return;
+					}
+					else if(m.getEnd().compareTo(new Data())<0){
 						JOptionPane.showMessageDialog(Memorem.this, "Impossibile aggiungere memo con scadenza nel passato");
 						p.dispose();
 						return;
 					}
 					k.add(m);							//il Keeper è stato aggiornato
 					calendar.add(m);					//il CalendarFrame è stato aggiornato
-					MemPanel mp=new MemPanel(m,p);
+					MemPanel mp=new MemPanel(m);
+					mp.setBridges(p, jfc, iconButton);
 					if(m.isCompleted()){
 						mp.completa();
 					}
@@ -178,49 +202,65 @@ public class Memorem extends JFrame{
 						mp.getOneWeek().addActionListener(listener);
 					}
 					classic.add(mp);	//l' InternalFrame è stato aggiornato
-					System.out.println("dimensione di k:"+k.getTotalList().size());
-					System.out.println("dimensione di calendar:"+calendar.getMemoList().size());
-					if(visualHandler.getSelected().equals(classicRadio)){
-						System.out.println("dopo l'aggiunta ci troviamo nell'internalFrame");
+					if(visualHandler.getSelected().equals(classicRadio))
 						panel_2=classic;
-					}
-					else{
-						System.out.println("dopo l'aggiunta ci troviamo nel calendarFrame");
+					else
 						panel_2=calendar;
-					}
+					mntmSalva.setEnabled(true);
 					panel_2.setVisible(false);
 					panel_2.setVisible(true);
 					p.dispose();
 				}
 			}//popup	
-			else if(arg0.getSource()==logD){
-				if(logD.isForRegistration() && logD.isOk()){	//abbiamo premuto "Nuova Sessione"
-					
+			else if(arg0.getSource()==logD){		//si è chiuso il LoginDialog
+				if(logD.isOk()){	//è stato premuto il tasto ok
 					String[] result=logD.result();
 					String nick=result[0],pass=result[1];
-					try{
-						if(k.signUp(nick,pass)){
-							System.out.println("Abbiamo registrato un utonto");
+					String name=null,surname=null;
+					char genre='m';
+					if(result.length==5){
+						name=result[2];
+						surname=result[3];
+						genre=result[4].charAt(0);
+						if(name.length()==0)
+							name=null;
+						if(surname.length()==0)
+							surname=null;
+					}
+					System.out.println("utente:"+k.getUser().getNickname());
+					if(!(k.getUser().getNickname().equals("none"))){
+						mntmLogout.doClick();
+					}
+					else
+						if(!mntmHints.isSelected()){
+							System.out.println("helooo");
+							mntmHints.doClick();
+						}
+					if(logD.isForRegistration() && logD.autologin()){	//abbiamo premuto "Nuova Sessione"
+						
+						int res=k.signUp(nick,pass,name,surname,genre);
+						if(res==0){
+							JOptionPane.showMessageDialog(Memorem.this, "Benvenuto , "+k.getUser().toString());
 							nuovo();
 						}
-					}catch(MySQLIntegrityConstraintViolationException e){
-						
-						JOptionPane.showMessageDialog(Memorem.this,"L'utente esiste già");
+						else if(res==1)
+							JOptionPane.showMessageDialog(Memorem.this,"L'utente esiste già");
+						else if(res==2)
+							JOptionPane.showMessageDialog(Memorem.this,"Errore durante la creazione dell'utente");
 					}
-				}
-				else if(!logD.isForRegistration() && logD.isOk()){				//abbiamo premuto "login"
-					
-					String[] result=logD.result();
-					String nick=result[0],pass=result[1];
-					int x=k.login(nick, pass);
-					if(x==0){
-						enableButtons();
-						System.out.println("stamu traseeendu");
-						login();
-						int cont=0;
-						for(Memo m: k){
-							if(visualHandler.getSelected().equals(classicRadio)){
-								MemPanel mp=new MemPanel(m,p);
+					else if(!logD.isForRegistration() && logD.autologin()){				//abbiamo premuto "login"
+						
+						int x=k.login(nick, pass);
+						if(x==0){
+							enableButtons();
+							login();
+							int cont=0;
+							int memos=0;
+							for(Memo m: k){
+								memos++;
+								//System.out.println("login:"+m.getIcon());
+								MemPanel mp=new MemPanel(m);
+								mp.setBridges(p, jfc, iconButton);
 								mp.getElimina().addActionListener(listener);
 								mp.getCompleta().addActionListener(listener);
 								mp.getArchivia().addActionListener(listener);
@@ -229,24 +269,36 @@ public class Memorem extends JFrame{
 								mp.getOneWeek().addActionListener(listener);
 								if(m.getEnd().compareTo(new Data())<0)
 									cont++;
-								((ClassicFrame)panel_2).add(mp);
+								classic.add(mp);
 								calendar.add(m);
 							}
+							if(cont==1){
+								JOptionPane.showMessageDialog(Memorem.this, "Un memo è scaduto!");
+								Toolkit.getDefaultToolkit().beep();
+							}
+							else if(cont>1){
+								JOptionPane.showMessageDialog(Memorem.this, cont+" memo sono scaduti");
+								Toolkit.getDefaultToolkit().beep();
+							}
+							//panel_2=classic;
+							if(memos>0)
+								classic.setVisible(true);
+							else{
+								panel_2.setVisible(true);
+								classic.setVisible(false);
+							}
 						}
-						if(cont==1){
-							JOptionPane.showMessageDialog(Memorem.this, "Un memo è scaduto!");
-							Toolkit.getDefaultToolkit().beep();
-						}
-						else if(cont>1){
-							JOptionPane.showMessageDialog(Memorem.this, cont+" memo sono scaduti");
-							Toolkit.getDefaultToolkit().beep();
+						else{
+							if(x==1)
+								JOptionPane.showMessageDialog(Memorem.this,"L'utente non esiste");
+							else
+								JOptionPane.showMessageDialog(Memorem.this,"Password sbagliata");
 						}
 					}
-					else{
-						if(x==1)
-							JOptionPane.showMessageDialog(Memorem.this,"L'utente non esiste");
-						else
-							JOptionPane.showMessageDialog(Memorem.this,"Password sbagliata");
+					else if(logD.isForRegistration() && !logD.autologin()){		//semplice aggiunta di un utente, senza autologin
+					
+						k.signUp(nick, pass, name, surname, genre);
+						utenti=new JList<String>(k.userList());
 					}
 				}
 			}
@@ -257,33 +309,34 @@ public class Memorem extends JFrame{
 	 * @author fabrizio
 	 *
 	 */
-	private class ezioAuditore implements ActionListener{
+	private class EzioAuditore implements ActionListener{
 		
 		
 		public void actionPerformed(ActionEvent evt){
 			
 			if(evt.getSource()==mntmEsci){					//premuto il tasto esci
-				/*if(mntmSalva.isEnabled())
-					k.salva();*/
-				
 				panel_2.dispose();
 				Memorem.this.dispose();
 				System.exit(0);
 			}
 			else if(evt.getSource()==mntmNuova){			//premuto il tasto nuovo
-				k=new Keeper();
-				logD=new LoginDialog(true);
+				logD=new LoginDialog(true,true);
 				logD.addWindowListener(watcher);
 				logD.setVisible(true);
 			}
-			else if(evt.getSource()==mntmLogin){			//premuto il tasto apri
+			else if(evt.getSource()==mntmLogin){			//premuto il tasto login
 				k=new Keeper();
-				logD=new LoginDialog(false);
+				panel.add(panel_2, "cell 0 0 7 26,grow");
+				logD=new LoginDialog(false,true);
 				logD.addWindowListener(watcher);
 				logD.setVisible(true);
 			}
-			else if(evt.getSource()==mntmLogout){
+			else if(evt.getSource()==mntmLogout){			//premuto il tasto logout
 				k.logout();
+				classic.clearMemos();
+				calendar.clear();
+				classic.setVisible(false);
+				panel.remove(panel_2);
 				mntmLogin.setEnabled(true);
 				progressBar.setValue(0);
 				setButtonsAtStart();
@@ -294,6 +347,37 @@ public class Memorem extends JFrame{
 				Memorem.this.aggiungi();
 			else if(evt.getSource()==mntmCancella)			//premuto il tasto cancella
 				Memorem.this.cancella();
+			else if(evt.getSource()==mntmReset)				//resetta il database
+				Memorem.this.reset();
+			else if(evt.getSource()==mntmRimuoviU)			//rimuove utente
+				Memorem.this.removeUser(k.getUser().getNickname());
+			else if(evt.getSource()==mntmAggiungiU){		//aggiunge un utente
+				logD=new LoginDialog(true,false);
+				logD.addWindowListener(watcher);
+				logD.setVisible(true);
+			}
+			else if(evt.getSource()==mntmModPass){
+				
+				modPass=new ModPassDialog(okButton);
+				modPass.setVisible(true);
+			}
+			else if(evt.getSource()==okButton){
+				
+				String[] passwords=modPass.getPasswords();
+				int res=k.modificaPassword(passwords[0],passwords[1]);
+				if(res==0)
+					modPass.dispose();
+				else if(res==2)
+					JOptionPane.showMessageDialog(Memorem.this, "La password dell'utente è errata");
+				else if(res==3)
+					JOptionPane.showMessageDialog(Memorem.this, "La nuova password deve essere diversa");
+				else
+					JOptionPane.showMessageDialog(Memorem.this, "Qualcosa è andato storto durante la modifica");
+			}
+			else if(evt.getSource()==mntmHints)
+				Memorem.this.attivaHints();
+			else if(evt.getSource()==mntmStatistiche)
+				new StatPanel(k).setVisible(true);
 			else if(evt.getSource().equals(pF[0]) || evt.getSource().equals(pF[1]) || evt.getSource().equals(pF[2]))
 				Memorem.this.createQuery();
 			else if(evt.getSource() instanceof MyMenuItem){		//qui gestiamo i tasti del MemPanel
@@ -346,17 +430,34 @@ public class Memorem extends JFrame{
 					p.setDay(x.getEnd().giorno());
 					p.setHour(x.getEnd().ora());
 					p.setMinute(x.getEnd().minuto());
-					
+					p.setVisible(true);
+				}
+			}//PopItems
+			else if(evt.getSource()==iconButton){
+				
+				MemPanel mp=(MemPanel)jfc.getAccessory();
+				MemPanel x=classic.get(mp.getMemo());
+				//System.out.println(x.getMemo());
+				if(x!=null && x.iconaCambiata()){
+					//System.out.println("Abbiamo catturato "+mp.getMemo().description());
+					String relativePath=jfc.getSelectedFile().getPath();
+					StringTokenizer st=new StringTokenizer(relativePath,"//", false);
+					while(st.hasMoreTokens())
+						relativePath=st.nextToken();
+					Memo nuovo=mp.getMemo();
+					Memo vecchio=new Memo(x.getMemo());
+					nuovo.setIcon(relativePath);
+					//System.out.println("nuovo:"+nuovo.getIcon());
+					//System.out.println("vecchio:"+vecchio.getIcon());
+					k.modifica(vecchio, nuovo);
+					mntmSalva.setEnabled(true);
 				}
 			}
-			
-					
-				
 		}
-		
-	}
+	}//EzioAuditore
+	
 	/**
-	 * Launch the application.
+	 * Lancia il programma
 	 */
 	public static void main(String[] args) {
 		
@@ -373,17 +474,18 @@ public class Memorem extends JFrame{
 	}
 
 	/**
-	 * Create the frame.
+	 * Costruttore di default
 	 */
 	public Memorem() {
 		
-		getContentPane().setBackground(new Color(0, 0, 0));		//colora lo sfondo di nero
 		setUndecorated(true);									//rimuove la title bar di Windows
 		setTitle("MemoRem 1.0");								//titolo del frame
+		
+		setDefaultLookAndFeelDecorated(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
-		listener=new ezioAuditore();							// ascoltatore pulsanti
-		watcher=new desmondMiles();								// ascoltatore finestra
+		listener=new EzioAuditore();							// ascoltatore pulsanti
+		watcher=new DesmondMiles();								// ascoltatore finestra
 		visualHandler=new Abbottonatore("visual");				// ascoltatore radioButton per tipo di visualizzazione
 		
 		JMenuBar menuBar = new JMenuBar();						//la barra dei menu in alto
@@ -398,35 +500,45 @@ public class Memorem extends JFrame{
 		manageStrumentiButtons();	//qui abbiamo creato e gestito i bottoni del 2° JMenu
 		
 		mnVisualizza= new JMenu("Visualizzazione");
-		classicRadio = new JRadioButtonMenuItem("Classica");
-		classicRadio.setSelected(true);
-		mnVisualizza.add(classicRadio);
-		visualHandler.add(classicRadio);
-		
-		calendarRadio = new JRadioButtonMenuItem("Calendario");
-		mnVisualizza.add(calendarRadio);
-		visualHandler.add(calendarRadio);
 		menuBar.add(mnVisualizza);
+		manageVisualizzaButtons();
 		
 		
-		JMenu mnHelp = new JMenu("Help");
-		menuBar.add(mnHelp);
+		mnUtente = new JMenu("Utente");
+		menuBar.add(mnUtente);
+		manageUtenteButtons();
 		
-		panel = new JPanel();
+		panel = new ColoredPanel("./src/graphic/wallpapers/wall5.jpg");
 		JPanel PBPanel=new JPanel();
 		setInternalFrameAtStart();
-		panel.setBackground(new Color(0, 0, 0));
 		panel.setLayout(new MigLayout("", "[][grow][grow][][][][grow]", "[grow][grow][grow][grow][grow][][][][][][][][][][][][][][][][][][][][][][grow][]"));
 		setContentPane(panel);
 		panel.add(panel_2, "cell 0 0 7 26,grow");
 		
 		PBPanel.setLayout(new BorderLayout(0, 0));
 		progressBar = new JProgressBar();
-		progressBar.setForeground(new Color(50, 205, 50));
+		scorrevole=new SlidingTextPanel();
+		//progressBar.setForeground(new Color(50, 205, 50));
+		progressBar.setForeground(new Color(150,200,255));
 		progressBar.setStringPainted(true);
-		PBPanel.add(progressBar);
+		scorrevole.setVisible(false);
+		scorrevole.setAlignmentY(Component.CENTER_ALIGNMENT);
+		PBPanel.setAlignmentY(Component.CENTER_ALIGNMENT);
+		PBPanel.add(progressBar,BorderLayout.NORTH);
+		PBPanel.add(scorrevole,BorderLayout.CENTER);
+		PBPanel.setOpaque(false);
 		panel.add(PBPanel, "cell 0 26 7 1,growx,aligny bottom");
+		okButton=new JButton();
+		iconButton=new JButton();
+		iconButton.addActionListener(listener); // QUESTI DUE BOTTONI IN REALTA'
+		okButton.addActionListener(listener);   // SONO INVISIBILI
+		okButton.setActionCommand("Ok");
 		setButtonsAtStart();
+		//UIManager UI=new UIManager();
+		//UI.put("OptionPane.background",new Color(255,255,150));
+		//UI.put("Panel.background", new Color(255,255,150));
+		//sfondo=Toolkit.getDefaultToolkit().createImage("/home/fabrizio/workspace/MemoRem/src/graphic/wallpapers/wall3");
+		
 	}
 	
 	/**
@@ -467,7 +579,7 @@ public class Memorem extends JFrame{
 		vF[0]= radioAttivi; vF[1]= radioScaduti; //creiamo vF
 		classic=new ClassicFrame(vF,pF,dF);
 		panel_2=classic;
-		panel_2.setVisible(false);
+		//panel_2.setVisible(false);
 		
 	}
 	/**
@@ -477,6 +589,7 @@ public class Memorem extends JFrame{
 		
 		mnVisualizza.setEnabled(false);
 		mnStrumenti.setEnabled(false);
+		mnUtente.setEnabled(false);
 		mntmSalva.setEnabled(false);
 		mntmLogout.setEnabled(false);
 		completa=new PopItem("Completa");
@@ -493,7 +606,8 @@ public class Memorem extends JFrame{
 		three.addActionListener(listener);
 		seven.addActionListener(listener);
 		custom.addActionListener(listener);
-	
+		if(visualHandler.getSelected().equals(calendarRadio))
+			classicRadio.doClick();
 	}
 	
 	/**
@@ -504,6 +618,7 @@ public class Memorem extends JFrame{
 		mnVisualizza.setEnabled(true);
 		mnStrumenti.setEnabled(true);
 		mntmLogout.setEnabled(true);
+		mnUtente.setEnabled(true);
 	}
 	
 	/*
@@ -551,31 +666,75 @@ public class Memorem extends JFrame{
 		mntmCancella = new JMenuItem("Cancella");
 		mntmCancella.addActionListener(listener);
 		mnStrumenti.add(mntmCancella);
+	}
+	
+	private void manageVisualizzaButtons(){
+		
+		classicRadio = new JRadioButtonMenuItem("Classica");
+		classicRadio.setSelected(true);
+		mnVisualizza.add(classicRadio);
+		visualHandler.add(classicRadio);
+		
+		calendarRadio = new JRadioButtonMenuItem("Calendario");
+		mnVisualizza.add(calendarRadio);
+		visualHandler.add(calendarRadio);
+		mnVisualizza.add(new JSeparator());
+		mntmHints=new JCheckBox("Aiuti");
+		mntmHints.addActionListener(listener);
+		mntmHints.setSelected(false);
+		mnVisualizza.add(mntmHints);
+	}
+	
+	private void manageUtenteButtons(){
+		
+		mntmReset= new JMenuItem("Resetta il database");
+		mntmReset.addActionListener(listener);
+		mnUtente.add(mntmReset);
+		
+		mntmRimuoviU= new JMenuItem("Rimuovi Utente");
+		mntmRimuoviU.addActionListener(listener);
+		mnUtente.add(mntmRimuoviU);
+		
+		mnRimuoviU=new JMenu("Rimuovi utente:");
+		mnUtente.add(mnRimuoviU);
+		
+		mntmAggiungiU= new JMenuItem("Aggiungi Utente");
+		mntmAggiungiU.addActionListener(listener);
+		mnUtente.add(mntmAggiungiU);
+		
+		mntmModPass= new JMenuItem("Modifica password");
+		mntmModPass.addActionListener(listener);
+		mnUtente.add(mntmModPass);
+		mntmStatistiche= new JMenuItem("Statistiche");
+		mntmStatistiche.addActionListener(listener);
+		mnUtente.add(mntmStatistiche);
 		
 	}
 	
 	private void checkMemos(){
 		
-		Data ora=new Data();
-		//System.out.print(ora.toString()+". Check in corso..");
 		if(visualHandler.getSelected().equals(classicRadio)){
-			//System.out.println("El clasico");
-			if(((ClassicFrame)panel_2).updateMemos()){
-				JOptionPane.showMessageDialog(this, "Un memo è scaduto");
+			int res=classic.updateMemos();
+			if(res!=0){
+				if(res==1){
+					JOptionPane.showMessageDialog(this, "Un memo è scaduto");
+				}else
+					JOptionPane.showMessageDialog(this, res+" memo sono scaduti");
 				Toolkit.getDefaultToolkit().beep();
 			}
 		}
 		else{
-			//System.out.println("El calendario");
 			if(!calendar.getMemoList().equals(k.getTotalList())){
-				//System.out.println("Aggiorniamo il calendario :D");
 				((CalendarFrame)panel_2).getCustomRenderer().refresh();
+				//System.out.println("pop down2");
 			}
+			//System.out.println("pop down2");
+			
 		}
-		panel_2.setVisible(false);
-		panel_2.setVisible(true);
-		
-		
+		panel_2.repaint();
+		//panel_2.updateUI();
+		//panel_2.setVisible(false);
+		//panel_2.setVisible(true);
 	}
 	
 	/**
@@ -587,11 +746,19 @@ public class Memorem extends JFrame{
 		panel_2.dispose();
 		panel.remove(panel_2);
 		if(visualHandler.getSelected().equals(classicRadio)){ //passiamo da visualizzazione Calendario a Classica
-			System.out.println("quindi si passa alla visualizzazione Classica");
 			panel_2=classic;
+			if(k.getTotalList().size()==0){
+				System.out.println("toh...non hai un cazzo");
+				classic.setVisible(false);
+			}
+			else
+				classic.setVisible(true);
+			System.out.println("da calendario a classico");
 		}
-		else{ 	//passiamo da visualizzazione Classica a Calendario
-			System.out.println("quindi si passa alla visualizzazione Calendario");
+		else{												//passiamo da visualizzazione Classica a Calendario
+			System.out.println("da classico a calendario");
+			panel_2=calendar;
+			calendar.setVisible(true);
 			PopItem[] items=new PopItem[7];
 			items[0]=completa;
 			items[1]=modifica;
@@ -601,13 +768,25 @@ public class Memorem extends JFrame{
 			items[5]=seven;
 			items[6]=custom;
 			calendar.setPopItems(items);
+			calendar.setMemolist(k.getTotalList());
 			calendar.getCustomRenderer().refresh();
-			panel_2=calendar;
+			panel_2.setVisible(true);
 		}
 		panel.add(panel_2, "cell 0 0 7 26,grow");
-		panel_2.setVisible(true);
+		panel.setVisible(false);
+		panel.setVisible(true);
 	}
 	
+	private void attivaHints(){
+		
+		scorrevole.setString(k.aiuti());
+		if(mntmHints.isSelected()){
+			scorrevole.setVisible(true);
+			scorrevole.start();
+		}
+		else
+			scorrevole.setVisible(false);
+	}
 	private void createQuery(){
 		
 		String data="always";
@@ -625,16 +804,16 @@ public class Memorem extends JFrame{
 			data="year";
 		LinkedList<String> prioritatibus=new LinkedList<String>();
 		for(int i=0;i<3;i++)
-			if(pF[i].isSelected()){
-				System.out.println(pF[i].getText());
+			if(pF[i].isSelected())
 				prioritatibus.add(pF[i].getText());
-			}
 		k.formaQuery(data, visual, prioritatibus);
 		MemoList nuova=k.getTotalList();
 		calendar.setMemolist(nuova);
 		classic.clearMemos();
 		for(Memo m:nuova){
-			MemPanel mp=new MemPanel(m,p);
+			//System.out.println("memorem:"+m.getIcon());
+			MemPanel mp=new MemPanel(m);
+			mp.setBridges(p, jfc, iconButton);
 			if(visual=="scaduti")
 				mp.completa();
 			else{
@@ -647,8 +826,48 @@ public class Memorem extends JFrame{
 			}
 			classic.add(mp);	//l' InternalFrame è stato aggiornato
 		}
-		panel_2.setVisible(false);
-		panel_2.setVisible(true);
+		panel_2.validate();
+		panel_2.repaint();
+		//panel_2.setVisible(false);
+		//panel_2.setVisible(true);
+	}
+	
+	/**
+	 * Metodo che viene richiamato quando l'admin si connette o si disconnette, fornendogli comandi che gli altri utenti
+	 * non possono vedere
+	 * @param abilita: se true l'admin si è connesso, se false l'admin si è disconnesso
+	 */
+	private void enableSpecialPowers(boolean abilita){
+		
+		if(abilita){
+			mnRimuoviU.setVisible(true);
+			DefaultListModel<String> dlm=new DefaultListModel<String>();
+			String[] ics=k.userList();
+			for(int i=0 ; i<ics.length ; i++)
+				dlm.addElement(ics[i]);
+			utenti=new JList<String>(dlm);
+			utenti.addMouseListener(new MouseAdapter(){
+				
+				public void mouseClicked(MouseEvent evt0){
+					String uten=utenti.getSelectedValue();
+					//System.out.println(utenti.getModel().getElementAt(utenti.getSelectedIndex())+"    size:"+utenti.getModel().getSize());
+					((DefaultListModel<String>)utenti.getModel()).remove(utenti.getSelectedIndex());
+					utenti.clearSelection();
+					k.removeUser(uten);
+					
+				}
+			});
+			mnRimuoviU.add(utenti);
+			mntmRimuoviU.setVisible(false);
+			mntmReset.setVisible(true);
+			mntmAggiungiU.setVisible(true);
+		}
+		else{
+			mnRimuoviU.setVisible(false);
+			mntmRimuoviU.setVisible(true);
+			mntmReset.setVisible(false);
+			mntmAggiungiU.setVisible(false);
+		}
 	}
 	/* .___________________________________________________________________________________________		*
 	 * |¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|	*
@@ -661,7 +880,10 @@ public class Memorem extends JFrame{
 	public void nuovo(){
 		
 		k=new Keeper();
-		p=new Popup(false);
+		panel_2=classic;
+		jfc=new JFileChooser();
+		jfc.addActionListener(listener); //aggiusta ezio
+		p=new Popup(this,false);
 		p.addWindowListener(watcher);
 		panel_2.setVisible(true);
 		timer=new Timer();
@@ -676,17 +898,23 @@ public class Memorem extends JFrame{
 	
 	public void login(){
 		
-		p=new Popup(false);
+		p=new Popup(this,false);
+		jfc=new JFileChooser();
+		jfc.addActionListener(listener); //aggiusta ezio
 		p.addWindowListener(watcher);
+		if(k.getUser().getNickname().equals("admin"))
+			enableSpecialPowers(true);
+		else 
+			enableSpecialPowers(false);
 		timer=new Timer();
-		panel_2.setVisible(true);
+		panel_2=classic;
 		orologio=new InnerClock();
 		calendar=new CalendarFrame(new MemoList());
 		calendar.setListener(p);
 		timer.schedule(orologio, 0,5000);
 		progressBar.setValue(k.percentualeCompletati());
 		mntmLogin.setEnabled(false);
-		JOptionPane.showMessageDialog(this, "Buongiorno, "+k.getUser());
+		JOptionPane.showMessageDialog(this, "Buongiorno, "+k.getUser().toString());
 	}
 	
 	public void salva(){
@@ -713,7 +941,6 @@ public class Memorem extends JFrame{
 		int choice=JOptionPane.showConfirmDialog(this, "I cambiamenti saranno irreversibili. Continuare?");
 		if(choice==JOptionPane.OK_OPTION){
 			k.clear();
-			System.out.println("cancelliamo");
 			panel_2.setVisible(false);
 			calendar=new CalendarFrame(k.getTotalList());
 			calendar.setListener(p);
@@ -727,9 +954,32 @@ public class Memorem extends JFrame{
 		}
 	}
 	
+	public void reset(){
+		
+		if(!(k.getUser().getNickname().equals("admin"))){
+			JOptionPane.showMessageDialog(Memorem.this, "Tu non puoi passare!!!");
+			return;
+		}
+		k.reset();
+		classic.clearMemos();
+		calendar.setMemolist(new MemoList());
+	}
+	
+	public void removeUser(String utente){
+		
+		int choice=JOptionPane.OK_OPTION;
+		if(k.getUser().getNickname()!="admin")
+			choice=JOptionPane.showConfirmDialog(Memorem.this,"Attenzione. Verranno eliminati tutti i dati relativi all'utente '"+utente+"'. Continuare?");
+		if(choice==JOptionPane.OK_OPTION){
+			k.removeUser(utente);
+			if(k.getUser().getNickname()!="admin"){
+				mntmLogout.doClick();
+				JOptionPane.showMessageDialog(Memorem.this, "Utente '"+utente+"' eliminato");
+			}
+		}	
+	}
 	public void elimina(Memo m){
 		
-		System.out.println("eliminiamo: "+m.toString());
 		k.remove(m);					//il Keeper è stato aggiornato
 		mntmSalva.setEnabled(true);	
 		//progressBar.setValue(k.percentualeCompletati());
@@ -737,8 +987,11 @@ public class Memorem extends JFrame{
 		calendar.remove(m);				//il CalendarFrame è stato aggiornato
 		if(visualHandler.getSelected().equals(calendarRadio))
 			panel_2=calendar;
-		else
+		else{
 			panel_2=classic;
+			if(k.getTotalList().size()==0)
+				classic.setVisible(false);
+		}
 	}
 	
 	public void completa(Memo m,boolean completato){
@@ -775,15 +1028,13 @@ public class Memorem extends JFrame{
 		if(k.contains(m)){
 			calendar.remove(m);
 			classic.remove(m);
-			/*if(visualHandler.getSelected().equals(classicRadio))
-				((ClassicFrame)panel_2).remove(m);
-				*/
 		}
 		if(tasto instanceof MyMenuItem)
 			((MyMenuItem)tasto).apochiudira();
 		Memo nuovo=new Memo(m.description(),nuova.anno(),nuova.mese(),nuova.giorno(),nuova.ora(),nuova.minuto());
 		nuovo.setPriority(m.priority());
-		MemPanel mp=new MemPanel(nuovo,p);
+		MemPanel mp=new MemPanel(nuovo);
+		mp.setBridges(p, jfc, iconButton);
 		//panel_2.add(mp);
 		k.modifica(m, nuovo);
 		//k.add(nuovo);

@@ -29,25 +29,6 @@ class ModelloTable extends AbstractTableModel{
 			for(int j=0;j<7;++j)
 				calendar[i][j]=" ";
 	}
-	/*
-	private String getMese(int mese){
-		
-		switch(mese){
-		case 1: return "January";
-		case 2: return "February";
-		case 3: return "March";
-		case 4: return "April";
-		case 5: return "May";
-		case 6: return "June";
-		case 7: return "July";
-		case 8: return "August";
-		case 9: return "September";
-		case 10: return "October";
-		case 11: return "November";
-		case 12: return "December";
-		default: return "eeeh??";
-		}
-	}*/
 	
 	/**
 	 * Ritorna il numero di colonne della tabella
@@ -92,12 +73,9 @@ class ModelloTable extends AbstractTableModel{
 	    int dayOfWeek = Data.dayOfWeek(year, month, 1)-1;
 	    if(dayOfWeek<0)
 	    	dayOfWeek+=7;
-	   // System.out.println("day Of Week: "+dayOfWeek);
 	    dayOfWeek+=7;
 	    int daysInMonth=Data.daysOfMonth(year, month);
-	    //System.out.println(getMese(month)+" ha "+daysInMonth+" giorni");
 	    for(int i=1;i<=daysInMonth;i++){
-	    	//System.out.println("dayOfWeek/7="+dayOfWeek/7);
 	    	calendar[dayOfWeek/7][dayOfWeek%7]=Integer.toString(i);
 	    	dayOfWeek++;
 	    }
@@ -125,7 +103,7 @@ class PopItem extends JMenuItem{
 }
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class CalendarFrame extends JInternalFrame implements MouseListener{
+public class CalendarFrame extends JInternalFrame{
 	/**
 	 * 
 	 */
@@ -144,8 +122,116 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 	private final static Color myBlue=new Color(150,200,255);
 	private final static Color myRed=new Color(255,120,100);
 	private CustomRenderer renderer;
+	private Tom thecat;
+	private Motion motion;
 	private int[] cellaSelezionata;
+	private int curMonth,curYear;
 	
+	class Motion implements MouseMotionListener{
+		
+		private int rowSelected=-1;
+		private int columnSelected=-1;
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			
+			
+			rowSelected=table.rowAtPoint(e.getPoint());
+			columnSelected=table.columnAtPoint(e.getPoint());
+			String giorno=(String)table.getValueAt(rowSelected, columnSelected);
+			if(giorno.trim().length()!=0){	//in questo modo siamo sicuri di prendere soltanto le celle non vuote
+				int day=0;
+				if(giorno.length()<=2)
+					day=Integer.parseInt(giorno);
+				StringBuilder text=new StringBuilder(100);
+				int mese=comboMonth.getSelectedIndex()+1;
+				int anno=comboBox.getSelectedIndex()+oggi.anno();
+				int cont=0;
+				for(Memo m: ml){
+					if(m.getEnd().hasSameDay(new Data(anno,mese,day,0,0))){
+						Data delMemo=m.getEnd();
+						if(cont>0)
+							text.append(",   ");
+						text.append(m.description()+"     "+delMemo.ora()+":"+delMemo.minuto());
+						cont++;
+					}
+				}
+				table.setToolTipText(text.toString());
+			}
+		}
+		
+	}
+	/**
+	 * Classe Adapter per il mouse
+	 */
+	class Tom extends MouseAdapter{
+		
+		public void mouseEntered(MouseEvent evt){
+			
+			cellaSelezionata[0]=table.rowAtPoint(evt.getPoint());
+			cellaSelezionata[1]=table.columnAtPoint(evt.getPoint());
+			//table.setCell
+			setBackground(new Color(0,0,0,0));
+			setOpaque(false);
+			//String valore=(String)table.getValueAt(cellaSelezionata[0], cellaSelezionata[1]);
+			//table.setToolTipText(valore);
+		}
+		@Override
+		public void mouseClicked(MouseEvent click) {
+			
+			cellaSelezionata[0]=table.rowAtPoint(click.getPoint());
+			cellaSelezionata[1]=table.columnAtPoint(click.getPoint());
+			String valore=(String)table.getValueAt(cellaSelezionata[0], cellaSelezionata[1]);
+			if(valore.trim().length()!=0){	//in questo modo siamo sicuri di prendere soltanto le celle non vuote
+				
+				int giorno=0;
+				if(valore.length()<=2)
+					giorno=Integer.parseInt(valore);
+				int mese=comboMonth.getSelectedIndex()+1;
+				int anno=comboBox.getSelectedIndex()+oggi.anno();
+				if(click.getButton()==MouseEvent.BUTTON3){
+					giorno=Integer.parseInt((String)riccardino.getValueAt(cellaSelezionata[0], cellaSelezionata[1]));
+					Data curicazzi=new Data(anno,mese,giorno,0,0);
+					MemoList delGiorno=new MemoList();
+					for(Memo m: ml){
+						Data end=m.getEnd();
+						if(end.hasSameDay(curicazzi))
+							delGiorno.add(m);
+					}	//abbiamo finito di scandire i memo per il giorno cliccato
+					if(delGiorno.size()!=0){
+						//il menu a tendina si apre con il JPopupMenu
+						po=new Popopo(delGiorno.get(0));
+						po.show(click.getComponent(), click.getX(), click.getY());
+					}
+				}//fine delle funzionalità col tasto destro
+				//PERSONALIZZIAMO IL NOSTRO POPUP PER LA DATA RICHIESTA
+				else if(click.getButton()==MouseEvent.BUTTON1 && click.getClickCount()==2){		//doppio click
+					Data cliccata=new Data(anno,mese,giorno,0,0);
+					boolean esiste=false;
+					giorno=Integer.parseInt((String)riccardino.getValueAt(cellaSelezionata[0], cellaSelezionata[1]));
+					for(Memo m: ml)
+						if(m.getEnd().hasSameDay(cliccata)){
+							p.setDesc(m.description());
+							p.setOld(m);
+							esiste=true;
+						}
+					p.setModified(esiste);	//setModified deve stare in pole, perchè può modificare i valori dei parametri
+					p.setMonth(comboMonth.getSelectedIndex());
+					p.setYear(comboBox.getSelectedIndex()+oggi.anno());
+					p.setDay(giorno-1);		//setDay va richiamato sempre dopo setMonth, perchè setMonth modifica il giorno
+					p.setPrior(1);
+					p.setHour(p.getOld().getEnd().ora());
+					p.setMinute(p.getOld().getEnd().minuto());
+					p.setVisible(true);
+				}
+			}	
+		}
+	}
 	/**
 	 * Classe interna che serve per gestire graficamente la tabella
 	 * @author fabrizio
@@ -166,7 +252,6 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 	    {
 			JLabel c=(JLabel) super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
 			if(row==0){
-	        	//System.out.println("riga=="+row+",colonna=="+column);
 	        	c.setBackground(Color.DARK_GRAY);
 	        	if(column==6)
 	        		c.setForeground(Color.RED.brighter());
@@ -185,33 +270,27 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 		
 		public void refresh(){
 			
-			System.out.println("refreshed");
+			System.out.println("pop down");
 			griglia=new Color[table.getRowCount()][table.getColumnCount()];
-			MemoList forTheMonth=new MemoList();
-			System.out.println("Quanti memo contiene ml? "+ml.size());
+			MemoList forTheMonth=new MemoList();;
 			for( Memo m : ml){	//arrivati qui abbiamo la memolist aggiornata per il mese :D
-				//System.out.println();
 				Data end=m.getEnd();
 				int mese=end.mese();
-				//System.out.println("mese:"+mese);
 				int anno=end.anno();
-				if(mese==(comboMonth.getSelectedIndex()+1) && anno==(comboBox.getSelectedIndex()+oggi.anno()))
+				if(mese==curMonth && anno==curYear)
 					forTheMonth.add(m);
 			}
-			System.out.println("Quanti memo ci sono in questo mese? "+forTheMonth.size());
 			for( Memo m : forTheMonth){		//ora inseriamo nella tabella i memo del mese
 				
 				int riga=1;		//nella riga 0 ci sono i nomi dei giorni, la riga 1 invece non è quasi mai piena
 				int colonna=0;
 				int maximum=0;
 				while(maximum<50){	//finchè non viene trovata la posizione giusta
-					//System.out.print("riga:"+riga+",colonna:"+colonna+" ..");
 					int giorno=0;
 					String value=(String)table.getValueAt(riga, colonna);
 					if(value.trim().length()!=0){	//qui abbiamo una cella contenente un giorno
 						giorno=Integer.parseInt(value);
 						int memDay=m.getEnd().giorno();
-						//System.out.println("giorno:"+giorno+" ,memDay:"+memDay);
 						if(memDay==giorno){	//abbiamo trovato la posizione giusta
 							cellaSelezionata[0]=riga;
 							cellaSelezionata[1]=colonna;
@@ -225,8 +304,6 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 							}
 							else colonna++;
 						}
-						//CalendarFrame.this.setVisible(false);
-						//CalendarFrame.this.setVisible(true);
 					}//se abbiamo selezionato un giorno
 					else{
 						if(colonna==6){
@@ -253,11 +330,11 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 		super();
 		this.ml=ml;
 		//this.p=p;
+		this.setName("Calendar Frame");
 		cellaSelezionata=new int[2];
 		riccardino=new ModelloTable();
 		table=new JTable(riccardino);
 		renderer=new CustomRenderer(table);
-		setBackground(Color.BLACK);
 		this.oggi=new Data();
 		String[] years=new String[10];
 		for(int i=0;i<10;i++)
@@ -265,9 +342,12 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 		comboBox = new JComboBox(years);
 		comboMonth = new JComboBox(months);
 		
-		table.setBackground(Color.BLACK);
+		thecat=new Tom();
+		motion=new Motion();
+		table.addMouseMotionListener(motion);
+		table.setBackground(new Color(0,0,0,0));
 		table.setForeground(Color.WHITE);
-		table.addMouseListener(this);
+		table.addMouseListener(thecat);
 		//comboBox.addItemListener(new ComboHandler());
 		//comboMonth.addItemListener(new ComboHandler());
 		comboBox.addActionListener(new ComboHandler());
@@ -276,7 +356,10 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 		setBounds(100, 100, 450, 300);
 		setResizable(false);
 		setBorder(null);
+		
 		setOpaque(false);
+		setBackground(new Color(0,0,0,0));
+		
 		setClosable(false);
 		BasicInternalFrameUI ifui=(BasicInternalFrameUI)this.getUI();
 		BasicInternalFrameTitlePane tp=(BasicInternalFrameTitlePane)ifui.getNorthPane();
@@ -394,7 +477,15 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 		this.p=p;
 	}
 	
-	
+	@Override
+	public void setVisible(boolean aFlag){
+		
+		if(aFlag)
+			System.out.println("Calendario visibile");
+		else
+			System.out.println("Calendario invisibile");
+		super.setVisible(aFlag);
+	}
 	private void colorizeTable(){
 		
 		for(int i=0;i<7;i++)
@@ -411,81 +502,14 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 		
 	    public void actionPerformed(ActionEvent e) {
 	    	
-	    	riccardino.setMonth(comboBox.getSelectedIndex() + oggi.anno(), comboMonth.getSelectedIndex()+1);
+	    	curMonth=comboMonth.getSelectedIndex()+1;
+			curYear=comboBox.getSelectedIndex()+oggi.anno();
+	    	System.out.println("hop");
+	    	riccardino.setMonth(curYear, curMonth);
 	    	renderer.refresh();
 	    	table.repaint();
 	    }
 	}
-	/*private class ListHandler implements ListSelectionListener {
-		public void valueChanged(ListSelectionEvent e) {
-			System.out.println("hyeeeah");
-			riccardino.setMonth(comboBox.getSelectedIndex() + 1998, comboMonth.getSelectedIndex());
-				table.repaint();
-	    }
-	}
-	*/
-	@Override
-	public void mouseClicked(MouseEvent click) {
-		
-		cellaSelezionata[0]=table.rowAtPoint(click.getPoint());
-		cellaSelezionata[1]=table.columnAtPoint(click.getPoint());
-		String valore=(String)table.getValueAt(cellaSelezionata[0], cellaSelezionata[1]);
-		if(valore.trim().length()!=0){	//in questo modo siamo sicuri di prendere soltanto le celle non vuote
-			
-			int giorno=0;
-			if(valore.length()<=2)
-				giorno=Integer.parseInt(valore);
-			int mese=comboMonth.getSelectedIndex()+1;
-			int anno=comboBox.getSelectedIndex()+oggi.anno();
-			if(click.getButton()==MouseEvent.BUTTON3){
-				giorno=Integer.parseInt((String)riccardino.getValueAt(cellaSelezionata[0], cellaSelezionata[1]));
-				Data curicazzi=new Data(anno,mese,giorno,0,0);
-				MemoList delGiorno=new MemoList();
-				for(Memo m: ml){
-					Data end=m.getEnd();
-					if(end.hasSameDay(curicazzi))
-						delGiorno.add(m);
-				}	//abbiamo finito di scandire i memo per il giorno cliccato
-				if(delGiorno.size()!=0){
-					//il menu a tendina si apre con il JPopupMenu
-					po=new Popopo(delGiorno.get(0));
-					System.out.println(delGiorno.get(0));
-					po.show(click.getComponent(), click.getX(), click.getY());
-				}
-			}//fine delle funzionalità col tasto destro
-			//PERSONALIZZIAMO IL NOSTRO POPUP PER LA DATA RICHIESTA
-			else if(click.getButton()==MouseEvent.BUTTON1 && click.getClickCount()==2){		//doppio click
-				Data cliccata=new Data(anno,mese,giorno,0,0);
-				boolean esiste=false;
-				giorno=Integer.parseInt((String)riccardino.getValueAt(cellaSelezionata[0], cellaSelezionata[1]));
-				for(Memo m: ml)
-					if(m.getEnd().hasSameDay(cliccata)){
-						p.setDesc(m.description());
-						p.setOld(m);
-						esiste=true;
-					}
-				p.setModified(esiste);	//setModified deve stare in pole, perchè può modificare i valori dei parametri
-				p.setMonth(comboMonth.getSelectedIndex());
-				p.setYear(comboBox.getSelectedIndex()+oggi.anno());
-				p.setDay(giorno-1);		//setDay va richiamato sempre dopo setMonth, perchè setMonth modifica il giorno
-				System.out.println("Il giorno del memorem è "+giorno);
-				p.setPrior(1);
-				p.setHour(oggi.ora());
-				p.setMinute(oggi.minuto());
-				p.setVisible(true);
-			}
-			System.out.println(giorno+"-"+Data.monthToString(mese)+"-"+anno);	
-		}	
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent arg0) 	{		}
-	@Override
-	public void mouseExited(MouseEvent arg0) 	{		}
-	@Override
-	public void mousePressed(MouseEvent arg0) 	{		}
-	@Override
-	public void mouseReleased(MouseEvent arg0)	{		}
 	
 	/**
 	 * Aggiunge un memo al panel, colorando il calendario alla data di scadenza del memo
@@ -493,11 +517,6 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 	 */
 	public void add(Memo m){
 		
-		/*if(m.getEnd().compareTo(oggi)<0){
-			System.out.println("il memo è scaduto..nadaa");
-			return;
-		}*/
-		System.out.println("Aggiunta al calendario in corso");
 		ml.add(m);
 		Color c=null;
 		switch(m.priority()){
@@ -513,7 +532,7 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 	 * Rimuove un memo dal panel
 	 * @param m
 	 */
-	public synchronized void remove(Memo m){
+	public void remove(Memo m){
 		
 		ml.remove(m);
 		int mese=m.getEnd().mese();
@@ -523,7 +542,6 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 			int riga=1,colonna=0,memDay=m.getEnd().giorno();
 			boolean trovato=false;
 			while(true){
-				//System.out.println("while");
 				String value=((String)table.getValueAt(riga, colonna)).trim();
 				if(value.length()!=0){		//è un numero
 					int day=Integer.parseInt(value);
@@ -560,6 +578,17 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 				table.setVisible(true);
 			}
 		}
+	}
+	
+	/**
+	 * Elimina tutti i memo dal calendario. Va chiamato dopo un logout oppure dopo un reset del database
+	 */
+	public void clear(){
+		
+		ml.clear();
+		this.setVisible(false);
+		this.setVisible(true);
+		
 	}
 	
 	public void setPopItems(PopItem[] items){
@@ -655,7 +684,7 @@ public class CalendarFrame extends JInternalFrame implements MouseListener{
 				try {
 					JFrame f=new JFrame();
 					f.setBackground(Color.black);
-					Popup p=new Popup(false);
+					Popup p=new Popup(f,false);
 					MemoList ml=new MemoList();
 					CalendarFrame frame = new CalendarFrame(ml);
 					frame.setListener(p);

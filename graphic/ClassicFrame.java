@@ -12,8 +12,8 @@ import java.awt.*;		//per Color
 @SuppressWarnings("serial")
 public class ClassicFrame extends JInternalFrame{
 	
-	private Color sfondo=new Color(255,255,150);
 	private JPanel dynamic;
+	private JPanel jp;
 	private MemoList personal;
 	private JMenuBar menuBar;
 	/*
@@ -42,7 +42,6 @@ public class ClassicFrame extends JInternalFrame{
 	
 	public ClassicFrame(JRadioButtonMenuItem[] vF, JCheckBoxMenuItem[] pF,JRadioButtonMenuItem[] dF){
 		
-		setTitle("Finestra Contenitrice");
 		setResizable(false);		//il JInternalFrame non può cambiare forma
 		createContentPane();
 		//i prossimi tre passaggi servono per eliminare la barra in alto
@@ -53,15 +52,25 @@ public class ClassicFrame extends JInternalFrame{
 		//tp.add(menuBar);
 		//ifui.setNorthPane(tp);
 		//this.remove(tp);
-		this.setName("Internal Frame Container");
+		this.setName("Classic Frame");
+		jp.setLayout(new GridLayout(0, 1, 0, 0));
+		
+		dynamic=new JPanel();
 		dynamic.setName("dynamic");
+		dynamic.setLayout(new BoxLayout(dynamic, BoxLayout.PAGE_AXIS));
+		dynamic.setOpaque(false);
+		jp.add(dynamic);
 		setClosable(false);
-		setOpaque(true);
-		setVisible(true);
+		
+		setOpaque(false);
+		setBackground(new Color(0,0,0,0));
+		jp.setBackground(new Color(0,0,0,0));
+		
 		this.setBorder(null);
 		createButtons(vF,pF,dF);
 		setJMenuBar(menuBar);
 		this.menuBar.setVisible(true);
+		//setVisible(true);
 	}
 	/**
 	 * Crea la barra degli strumenti interna
@@ -92,51 +101,52 @@ public class ClassicFrame extends JInternalFrame{
 		menuBar.add(mnFiltraPerData);
 	}
 	
-	/*public MemPanel[] getPanels(){
-	 * 
-		dynamic.setVisible(false);
-		dynamic.setVisible(true);
-		Component[] comp=dynamic.getComponents();
-		MemPanel[] returning=new MemPanel[comp.length];
-		for(int i=0;i<comp.length;i++)
-			returning[i]=(MemPanel)comp[i];
-		for(int i=0;i<comp.length;i++)
-			if(returning[i].getMemo()==null)
-				returning[i]=null;
-		return returning;
-	}
-	*/	
 	private void createContentPane(){
+		jp=new JPanel();
+		JScrollPane scroll=new JScrollPane(jp,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scroll.setOpaque(false);
+		scroll.setBorder(null);
+		getContentPane().add(scroll);
 		
-		dynamic=new JPanel();
-		dynamic.setName("dynamic");
-		dynamic.setLayout(new BoxLayout(dynamic, BoxLayout.Y_AXIS));
-		dynamic.setBackground(sfondo);
-		dynamic.setOpaque(true);
-		getContentPane().setBackground(Color.BLACK);
-		this.getContentPane().add(dynamic,BorderLayout.NORTH);
+	}
+	
+	@Override
+	public void setVisible(boolean aFlag){
+		
+		if(aFlag)
+			System.out.println("Classic visibile");
+		else
+			System.out.println("Classic invisibile");
+		super.setVisible(aFlag);
 	}
 	/**
 	 * In questo modo ci assicuriamo che il PanelContainer contenga solamente MemPanel
 	 */
 	@Override
-	public Component add(Component c){
+	public Component add(Component c){		//qui dentro si può aggiungere soltanto MemPanels
 		
 		if(c instanceof MemPanel){
-			//System.out.println("aggiunto");
 			if(!personal.contains(((MemPanel)c).getMemo())){
 				personal.add(((MemPanel)c).getMemo());
-				System.out.println("Aggiunto Memo all'InternalFrameContainer");
-				return dynamic.add(c);
+				return dynamic.add(c,personal.indexOf(((MemPanel)c).getMemo()));
 			}
-			else return null;
 		}
-		else return null;
+		return null;
 	}
 	
-	public void remove(Memo m){
+	public MemPanel get(Memo m){
 		
-		System.out.print("rimozione dal classic in corso...");
+		Component[] panels=dynamic.getComponents();
+		for(int i=0;i<panels.length;i++){
+			MemPanel mp=(MemPanel) panels[i];
+			if(mp.getMemo().equals(m))
+				return mp;
+		}
+		return null;
+	}
+	
+	public void remove(Memo m){		//funziona
+		
 		Component[] panels=dynamic.getComponents();
 		for(int i=0;i<panels.length;i++){
 			MemPanel mp=(MemPanel) panels[i];
@@ -145,10 +155,8 @@ public class ClassicFrame extends JInternalFrame{
 				personal.remove(m);
 			}
 		}
-		dynamic.setVisible(false);
-		dynamic.setVisible(true);
-		System.out.println("completato");
-		//this.repaint();
+		dynamic.revalidate();
+		repaint();
 	}
 	
 	/**
@@ -157,30 +165,30 @@ public class ClassicFrame extends JInternalFrame{
 	void clearMemos(){
 		
 		dynamic.removeAll();
+		personal.clear();
 	}
 	
 	/**
-	 * Provvede all'aggiornamento dei memo, intuendo se alcuni sono scaduti
-	 * @param ora
+	 * Provvede all'aggiornamento dei memo, intuendo se alcuni sono scaduti.
+	 * @return il numero dei memo scaduti (solitamente 1, ma a volte alcuni memo scadono contemporaneamente)
 	 */
-	public boolean updateMemos(){
+	public int updateMemos(){
 		
 		MemPanel mp;
 		Data end;
 		Component[] panels=dynamic.getComponents();
-		for(int i=0;i<panels.length;i++){
-			mp=(MemPanel)panels[i];
-			end=mp.getMemo().getEnd();
-			if(end.compareTo(new Data())<0){
-				boolean ret=mp.checkMemo();
-				if(ret){
-					dynamic.remove(mp);
-					dynamic.add(mp);
+		int cont=0;
+		for(int i=0;i<panels.length;i++)
+			if(panels[i] instanceof MemPanel){
+				mp=(MemPanel)panels[i];
+				end=mp.getMemo().getEnd();
+				if(end.compareTo(new Data())<0){	//vengono controllati solo i memo scaduti
+					boolean ret=mp.checkMemo();
+					//System.out.println(mp.getMemo().description());
+					if(ret)			//un memo è appena scaduto ed è stato notificato
+						cont++;
 				}
-				System.out.println("Un memo è scaduto. ret:"+ret);
-				return ret;
 			}
-		}
-		return false;
+		return cont;
 	}
 }

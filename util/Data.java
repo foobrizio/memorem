@@ -51,9 +51,7 @@ public class Data implements Comparable<Data>, Serializable{
 		this.ora=resto;
 		resto=giorno+adding;	//resettiamo i valori per verificare il giorno
 		adding=0;
-		//System.out.println(monthToString(mese)+" ha "+daysOfMonth(mese,anno));
 		while(resto>daysOfMonth(anno,mese)){
-			//System.out.println("resto:"+resto+", daysOfMonth:"+daysOfMonth(anno,mese));
 			resto=resto%daysOfMonth(anno,mese);
 			adding++;
 		}
@@ -61,7 +59,6 @@ public class Data implements Comparable<Data>, Serializable{
 		resto=mese+adding;		//resettiamo i valori per il mese
 		adding=0;	
 		while(resto>12){
-			System.out.println("resto:"+resto+",mese:"+mese);
 			resto=resto%12;
 			adding++;
 		}
@@ -70,8 +67,6 @@ public class Data implements Comparable<Data>, Serializable{
 		this.anno=resto;
 		
 		if(this.giorno==0){
-			System.out.println("si va al mese precedente");
-			System.out.println("mese:"+(this.mese-1));
 			this.mese--;
 			if(this.mese==0){
 				this.anno--;
@@ -125,7 +120,6 @@ public class Data implements Comparable<Data>, Serializable{
 	
 	public static int daysOfMonth(int year,int month){
 		
-		//System.out.println("month%12 fa="+month%12);
 		switch(month%12){
 		case 2: return bisestile(year)? 29: 28;
 		case 1: case 3: case 5: case 7: case 8: case 10: case 0: return 31;		//Gennaio,Marzo,Maggio,Luglio,Agosto,Ottobre,Dicembre
@@ -170,18 +164,18 @@ public class Data implements Comparable<Data>, Serializable{
 		
 		month=month.trim().toLowerCase();
 		switch(month){
-		case "gennaio": return 1;
-		case "febbraio": return 2;
-		case "marzo": return 3;
-		case "aprile": return 4;
-		case "maggio": return 5;
-		case "giugno": return 6;
-		case "luglio": return 7;
-		case "agosto": return 8;
-		case "settembre": return 9;
-		case "ottobre": return 10;
-		case "novembre": return 11;
-		case "dicembre": return 12;
+		case "gennaio": 	case "january": 	return 1;
+		case "febbraio": 	case "february":	return 2;
+		case "marzo": 		case "march":		return 3;
+		case "aprile": 		case "april":		return 4;
+		case "maggio": 		case "may":			return 5;
+		case "giugno": 		case "june":		return 6;
+		case "luglio": 		case "july":		return 7;
+		case "agosto": 		case "august":		return 8;
+		case "settembre": 	case "september":	return 9;
+		case "ottobre": 	case "october":		return 10;
+		case "novembre": 	case "november":	return 11;
+		case "dicembre": 	case "december":	return 12;
 		default: return -1;
 		}
 	}
@@ -190,10 +184,8 @@ public class Data implements Comparable<Data>, Serializable{
 	public static int dayOfWeek(int year,int month, int day){
 		
 		int ab=Integer.parseInt(String.valueOf(year).substring(0, 2)); //prime due cifre dell'anno
-		while(ab<18){
-			System.out.println("ab="+ab);
+		while(ab<18)
 			ab+=4;
-		}
 		int baseCentDay=0;
 		switch(ab){
 		case 18: baseCentDay=5; break;
@@ -208,7 +200,6 @@ public class Data implements Comparable<Data>, Serializable{
 		int doomsDayYear=quozA+restoB+quozC;
 		doomsDayYear%=7;
 		doomsDayYear+=baseCentDay;
-		//System.out.println("il doomsDay dell'anno è "+doomsDayYear);
 		int nearestDoom=0;
 		switch(month){				//scegliamo il giorno doomsday più vicino in base al mese della data da individuare
 		case 1: nearestDoom= bisestile(year)? 4:3;break;
@@ -266,7 +257,6 @@ public class Data implements Comparable<Data>, Serializable{
 				mil-=SECONDS_X_HOUR;
 		
 		}
-		System.out.println("giorno della settimana:"+Data.dayOfWeek(this.anno,this.mese,this.giorno));
 		return mil*1000;
 		
 	}
@@ -287,56 +277,6 @@ public class Data implements Comparable<Data>, Serializable{
 		
 	}
 	
-	/*
-	public static Data convertTimestamp(java.sql.Timestamp stamp){
-		
-		long dm=stamp.getTime();
-		dm/=1000; 	//ora abbiamo il dm in secondi
-		int year=UNIX_EPOCH_TIME.anno;
-		for(int i=year;;i++){
-			if(bisestile(i)){
-				if(dm<SECONDS_X_YEAR+SECONDS_X_DAY)			//c'è meno di un anno dentro dm
-					break;
-				else
-					dm-=(SECONDS_X_YEAR+SECONDS_X_DAY); 	//togliamo 366 giorni a dm e aggiungiamo 1 anno al conto
-			}
-			else{
-				if(dm<SECONDS_X_YEAR)
-					break;
-				else
-					dm-=(SECONDS_X_YEAR);
-			}
-			//System.out.println("anno "+i);
-			year++;
-		}		//ora qui abbiamo il numero di anni (avendo contato anche i bisestili)
-		int mese=1;
-		for(;;){
-			int dom=daysOfMonth(mese,year);
-			if(dm<dom*SECONDS_X_DAY)
-				break;
-			else{
-				//System.out.println("mese "+mese);
-				dm-=dom*SECONDS_X_DAY;
-				mese++;
-			}
-		} //ora qui abbiamo i mesi
-		int giorno=1;
-		//System.out.println(dm);
-		while(dm>SECONDS_X_DAY){
-			//System.out.println("giorno "+giorno);
-			dm-=SECONDS_X_DAY;
-			giorno++;
-		}
-		dm/=1000;	//ora abbiamo il tm in secondi
-		int ora=1;
-		while(dm>=SECONDS_X_HOUR){
-			dm-=SECONDS_X_HOUR;
-			ora++;
-		}
-		int minuto=(int)dm/60;
-		return new Data(year,mese,giorno+1,ora,minuto);
-	}
-	*/
 	/**
 	 * Converte una data in un formato stringa compresso facilmente analizzabile
 	 * @param data
@@ -375,19 +315,31 @@ public class Data implements Comparable<Data>, Serializable{
 	public static Data convertStringToData(String data){
 		
 		
-		if(data.length()<16){
-			System.out.println("data:"+data+" ,length:"+data.length());
+		if(data.length()<16)
 			throw new IllegalArgumentException("La data passata al metodo non è conforme allo standard");
-		}
 		int anno= Integer.parseInt(data.substring(0, 4));
 		int mese= Integer.parseInt(data.substring(5,7));
-		//System.out.println("data:"+data);
 		int giorno= Integer.parseInt(data.substring(8,10));
 		int h= Integer.parseInt(data.substring(11,13));
 		int minuto= Integer.parseInt(data.substring(14,16));
 		return new Data(anno,mese,giorno,h,minuto);
 	}
 	
+	public boolean equals(Data d){
+		
+		if(this.anno!=d.anno)
+			return false;
+		else if(this.mese!=d.mese)
+			return false;
+		else if(this.giorno!=d.giorno)
+			return false;
+		else if(this.ora!=d.ora)
+			return false;
+		else if(this.minuto!=d.minuto)
+			return false;
+		return true;
+	}
+	@Override
 	public String toString(){
 			
 		String minuto=""+this.minuto;
@@ -397,6 +349,7 @@ public class Data implements Comparable<Data>, Serializable{
 		return ""+giorno+" "+mese+" "+anno+" "+ora+":"+minuto;
 	}
 	
+	@Override
 	public int hashCode(){
 		
 		final int PRIMO=43;

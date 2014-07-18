@@ -7,7 +7,6 @@ import main.Memo;
 
 public class MemoList implements Iterable<Memo>{
 	
-	@SuppressWarnings("hiding")
 	private class Iteratore<T> implements Iterator<T>{
 
 		private int index=-1;
@@ -65,7 +64,6 @@ public class MemoList implements Iterable<Memo>{
 				}
 			}
 			else{				//ci troviamo nella LL lows
-				System.out.println("low-next");
 				index++;
 				return (T)lows.get(index-highs.size()-normals.size());
 			}
@@ -163,7 +161,10 @@ public class MemoList implements Iterable<Memo>{
 		case 0:/*low */	current=lows;break;
 		default: throw new IllegalArgumentException("Che cazzo di priorità ha???");
 		}
-		return current.contains(t);
+		for(Memo m: current)
+			if(m.equals(t))
+				return true;
+		return false;
 	}//contains
 	
 	public boolean containsAll(MemoList tl){
@@ -186,6 +187,16 @@ public class MemoList implements Iterable<Memo>{
 			return lows.get(index-highs.size()-normals.size());
 		else return null;
 	}//get
+	
+	public int indexOf(Memo m){
+		
+		switch(m.priority()){
+		case 2: return highs.indexOf(m);
+		case 1: return highs.size()+normals.indexOf(m);
+		case 0: return highs.size()+normals.size()+lows.indexOf(m);
+		default: return -1;
+		}
+	}
 	
 	public boolean remove(Memo t){
 		
