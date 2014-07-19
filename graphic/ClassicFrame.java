@@ -28,7 +28,7 @@ public class ClassicFrame extends JInternalFrame{
 	 * 			cbm2		// "media"
 	 * 			cbm3		// "bassa"
 	 */
-	private JMenu mnPriorit;
+	JMenu mnPriorit;
 	/*
 	 * mnFiltraPerData è così composto
 	 * 			today		//	"oggi"

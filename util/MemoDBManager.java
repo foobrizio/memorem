@@ -648,6 +648,8 @@ public class MemoDBManager implements Iterable<Memo>{
 				Memo m=new Memo(d,pr,Data.convertStringToData(e),icon);
 				if(c)
 					m.spunta();
+				if(m.description().equals("prova2"))
+					System.out.println("manager:"+m);
 				sancarlo.add(m);
 			}
 			rs.close();

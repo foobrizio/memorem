@@ -806,13 +806,21 @@ public class Memorem extends JFrame{
 		for(int i=0;i<3;i++)
 			if(pF[i].isSelected())
 				prioritatibus.add(pF[i].getText());
+		System.out.println(prioritatibus.size()+" priorità incluse");
+		if(prioritatibus.size()==0){
+			classic.mnPriorit.setForeground(Color.RED);
+		}
+		else
+			classic.mnPriorit.setForeground(Color.BLACK);
 		k.formaQuery(data, visual, prioritatibus);
-		MemoList nuova=k.getTotalList();
+		MemoList nuova=k.getCurrentList();
 		calendar.setMemolist(nuova);
 		classic.clearMemos();
 		for(Memo m:nuova){
 			//System.out.println("memorem:"+m.getIcon());
 			MemPanel mp=new MemPanel(m);
+			if(prioritatibus.size()==0)
+				System.out.println(m);
 			mp.setBridges(p, jfc, iconButton);
 			if(visual=="scaduti")
 				mp.completa();
@@ -833,8 +841,8 @@ public class Memorem extends JFrame{
 	}
 	
 	/**
-	 * Metodo che viene richiamato quando l'admin si connette o si disconnette, fornendogli comandi che gli altri utenti
-	 * non possono vedere
+	 * Metodo che viene richiamato quando l'admin si connette o si disconnette, fornendogli comandi 
+	 * che gli altri utenti non possono vedere
 	 * @param abilita: se true l'admin si è connesso, se false l'admin si è disconnesso
 	 */
 	private void enableSpecialPowers(boolean abilita){

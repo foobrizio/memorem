@@ -112,7 +112,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public String stampaMemoAttivi(){
 		
-		aggiorna();
+		//aggiorna();
 		MemoList ml=manager.list(true);
 		StringBuilder sb=new StringBuilder(1000);
 		int cont=0;
@@ -131,7 +131,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public String stampaMemoTotali(){
 		
-		aggiorna();
+		//aggiorna();
 		MemoList ml=getTotalList();
 		StringBuilder sb=new StringBuilder(1000);
 		int cont=0;
@@ -150,7 +150,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public int memoAttivi(){
 		
-		aggiorna();
+		//aggiorna();
 		return manager.size(true);
 	}
 	/**
@@ -159,7 +159,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public int memoTotali(){
 		
-		aggiorna();
+		//aggiorna();
 		return manager.size(false);
 	}
 	
@@ -252,89 +252,7 @@ public class Keeper implements Iterable<Memo>{
 		
 		return currentMemos.contains(t) && !removenda.contains(t);
 	}
-	
-	/** 
-	 * Scansiona l'archivio per vedere se qualche task è scaduto e lo 
-	 * trasferisce nella lista apposita
-	 */
-	private void aggiorna(){
-		
-		if(manager.size(true)!=0){
-			for(Memo t : manager){
-				if(t.isScaduto()){ 	//il task è scaduto
-					manager.move(t,false);
-					return;
-				}
-				if(!t.isActive()){			//il task è già stato completato
-					manager.move(t,true);
-					return;
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Ritorna i task che scadono oggi sottoforma di String, più gli altri 
-	 * task con priorità alta
-	 * @param flag: Se settata su false non considera i task con priorità 
-	 * alta che scadono tra più di un giorno
-	 * @return
-	 */
-	public String taskOdierni(boolean flag){
-		
-		aggiorna();
-		StringBuilder sb=new StringBuilder(100);
-		Data oggi=new Data();
-		MemoList high=new MemoList();
-		for(Memo t: manager){
-			Data ditti=t.getEnd();
-			if(ditti.anno()==oggi.anno() && ditti.mese()==oggi.mese() && ditti.giorno()==oggi.giorno())
-				sb.append(t.toString()+"\n");
-			else if(t.priority()==2 && flag)	//i Task ad alta priorità vengono stampati dopo
-				high.add(t);
-		}
-		if(flag){
-			sb.append("Altri task con priorità alta:\n");
-			for(Memo t:high){
-				sb.append(t.toString()+"\n");
-			}
-		}
-		return sb.toString();
-	}
-	
-	/**
-	 * Ritorna i task che scadono entro una settimana sottoforma di String, più
-	 * gli altri task con priorità alta
-	 * @param flagOggi: Se settata su false non considera i task che scadono in meno di un giorno
-	 * @param flagPriorita: Se settata su false non considera i task con priorità alta che scadono
-	 * fra più di una settimana
-	 * @return
-	 */
-	public String taskSettimana(boolean flagOggi,boolean flagPriorita){
-		
-		aggiorna();
-		StringBuilder sb=new StringBuilder(100);
-		Data oggi=new Data(); //data odierna
-		Data oneWeek=new Data(oggi.anno(),oggi.mese(),(oggi.giorno()+7),oggi.ora(),oggi.minuto()); //data fra una settimana
-		if(!flagOggi)
-			oggi=new Data(oggi.anno(),oggi.mese(),(oggi.giorno()+1),0,0);
-		MemoList high=new MemoList();
-		for(Memo t: manager){
-			Data dt=t.getEnd();
-			if(dt.compareTo(oggi)>=0 && dt.compareTo(oneWeek)<=0)
-				sb.append(t.toString()+"\n");
-			else if(t.priority()==2)
-				high.add(t);
-		}
-		if(flagPriorita){
-			sb.append("Altri task con priorità alta:\n");
-			for(Memo t:high){
-				sb.append(t.toString()+"\n");
-			}
-		}
-		return sb.toString();
-	}
-	
+
 	/**
 	 * Forma la query da inviare al database per ricevere soltanto i dati che si vogliono visualizzare
 	 * @param data
@@ -367,7 +285,10 @@ public class Keeper implements Iterable<Memo>{
 				case "year":
 				query=query+"AND year(end)=year(curdate())";
 				break;
+				
+				default: break;		//nel caso di always
 				}
+				query=query+" AND end>curdate()";
 			}
 			else{						//visualizzare da oggi verso il passato
 				switch(data){
@@ -386,12 +307,16 @@ public class Keeper implements Iterable<Memo>{
 				case "year":
 				query=query+"AND year(end)=year(curdate())";
 				break;
+				
+				default: break;
 				}
 			}
 		}//abbiamo analizzato in quale range di tempo bisogna visualizzare i memo
-		if(prior.size()==0)
+		if(prior.size()==0){
+			currentMemos=new MemoList();
 			return;
-		else if(prior.size()==1){
+		}
+		if(prior.size()==1){
 			if(prior.get(0).equals("Alta"))
 				query=query+" AND prior='2'";
 			else if(prior.get(0).equals("Bassa"))
@@ -408,9 +333,18 @@ public class Keeper implements Iterable<Memo>{
 		query+=" ORDER BY prior DESC, end";
 		//System.out.println(query);
 		boolean scaduti=visual!="attivi";
+		currentMemos.clear();
 		currentMemos=manager.processQuery(query,scaduti);
 	}
 	
+	/**
+	 * Ritorna la lista corrente di memo (utile se invocata immediatamente dopo una query personalizzata
+	 * @return
+	 */
+	public MemoList getCurrentList(){
+		
+		return currentMemos;
+	}
 	
 	public void salva(){
 		
@@ -501,10 +435,5 @@ public class Keeper implements Iterable<Memo>{
 		//System.out.println(t1.toString());
 		System.out.println("Task attivi="+k.memoAttivi());
 		System.out.println("Task totali="+k.memoTotali());
-		//System.out.println(k.stampaTaskTotali());
-		System.out.println("Cosa fare oggi:\n");
-		System.out.println(k.taskOdierni(false)+"\n");
-		System.out.println("Cosa fare in settimana:\n");
-		System.out.println(k.taskSettimana(false, true));
 	}
 }
