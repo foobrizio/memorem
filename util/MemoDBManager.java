@@ -170,7 +170,7 @@ public class MemoDBManager implements Iterable<Memo>{
 		}
 		if(alreadyExist)
 			return 1;
-		String sql="INSERT INTO memousers(nickname,password,nome,cognome,genere) VALUES('"+verificaStringa(user)+"',SHA('"+password+"','"+verificaStringa(nome)+"','"+verificaStringa(cognome)+"',b'"+(gen?"1":"0")+"')";
+		String sql="INSERT INTO memousers(nickname,password,nome,cognome,genere) VALUES('"+verificaStringa(user)+"',SHA('"+password+"'),'"+verificaStringa(nome)+"','"+verificaStringa(cognome)+"',b'"+(gen?"1":"0")+"')";
 		int result=executeUpdate(sql);
 		if(result==1){
 			if(login(user,password)==0) //il login va a buon fine
@@ -195,7 +195,7 @@ public class MemoDBManager implements Iterable<Memo>{
 	public boolean removeUser(String utont){
 		
 		boolean autoremove=false;
-		if(this.user.equals(utont))
+		if(this.user.getNickname().equals(utont))
 			autoremove=true;
 		else if(!this.user.equals("admin")){
 			System.out.println("Non hai i permessi per farlo");
@@ -950,6 +950,7 @@ public class MemoDBManager implements Iterable<Memo>{
 	private int executeUpdate(String sql){
 		
 		int x=0;
+		//System.out.println(sql);
 		try{
 			conn=DriverManager.getConnection(DB_URL+dbName, "root", DBpassword);
 			stmt=conn.createStatement();

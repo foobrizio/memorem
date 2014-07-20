@@ -196,6 +196,10 @@ public class MemoList implements Iterable<Memo>{
 		return size==0;
 	}//isEmpty
 
+	public boolean add(Memo t){
+		
+		return this.add(t,false);
+	}
 	public boolean add(Memo t,boolean fromDB){
 		
 		if(!fromDB)
@@ -221,16 +225,6 @@ public class MemoList implements Iterable<Memo>{
 		size++;
 		return true;
 	}//add
-
-	public boolean add(Memo... t){
-
-		for(int i=0;i<t.length;i++)
-			if(!add(t[i],false)){
-				System.out.println("ho aggiunto solo "+i+1+" dei"+t.length+" Task");
-				return false;
-		}
-		return true;
-	}//add multiplo
 
 	public boolean contains(Memo t){
 
@@ -357,7 +351,11 @@ public class MemoList implements Iterable<Memo>{
 		Memo past=new Memo("questo è vecchio",2014,2,21,13,0);
 		Memo prova2=new Memo("prova2",2014,7,17,0,0);
 		MemoList ml=new MemoList();
-		ml.add(one,two,three,past,prova2);
+		ml.add(one,false);
+		ml.add(two,false);
+		ml.add(three,false);
+		ml.add(past,false);
+		ml.add(prova2,false);
 		System.out.println("size:"+ml.size());
 		System.out.println(ml);
 		if(prova2.getEnd().compareTo(new Data())<0){

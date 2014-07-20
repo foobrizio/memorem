@@ -137,7 +137,6 @@ public class CalendarFrame extends JInternalFrame{
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			
-			
 			rowSelected=table.rowAtPoint(e.getPoint());
 			columnSelected=table.columnAtPoint(e.getPoint());
 			String giorno=(String)table.getValueAt(rowSelected, columnSelected);

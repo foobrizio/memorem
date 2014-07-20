@@ -41,7 +41,10 @@ public class DeferDialog extends JDialog implements ActionListener{
 			Memo three=new Memo("antivigilia Canapisa","low",2014,5,29,16,0);
 			Memo past=new Memo("questo è vecchio",2014,2,21,13,0);
 			Memo prova2=new Memo("prova2",2014,7,17,0,0);
-			ml.add(one,two,three,past,prova2);
+			ml.add(one);ml.add(two);
+			ml.add(three);
+			ml.add(past);
+			ml.add(prova2);
 			DeferDialog dialog = new DeferDialog(null,ml);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
@@ -394,6 +397,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 		Data d=new Data();
 		if(arg0.getSource()==one){
 			d=new Data().domani();
+			System.out.println(d);
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			handled.add(cur);

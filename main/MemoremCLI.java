@@ -408,7 +408,7 @@ public class MemoremCLI extends Thread{
 			prior.add("Media");
 			prior.add("Bassa");
 			k.formaQuery("always", "attivi", prior);
-			MemoList ml=k.getDBList();
+			MemoList ml=k.getCurrentList();
 			int cont=0;
 			for(Memo m:ml)
 				if(m.isScaduto())
@@ -502,7 +502,7 @@ public class MemoremCLI extends Thread{
 				System.out.println("Inserire il proprio genere. I seguenti input sono ammessi: maschio,male,uomo,man,m,femmina,female,donna,woman,f");
 			}
 		}
-		k.signUp(nick, password,nome,cognome,gen);
+		k.signUp(nick, password,nome,cognome,gen,true);
 		user=k.getUser();
 		
 	}

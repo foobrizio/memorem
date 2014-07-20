@@ -286,7 +286,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 				lblIlNicknameDeve.setVisible(true);
 				return;
 			}
-			if(pass.length()<=4){
+			if(pass.length()<4){
 				this.repaint();
 				lblAlmenoCaratteri.setText("La password deve avere almeno 4 caratteri");
 				lblAlmenoCaratteri.setVisible(true);

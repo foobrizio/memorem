@@ -70,6 +70,7 @@ public class ClassicFrame extends JInternalFrame{
 		createButtons(vF,pF,dF);
 		setJMenuBar(menuBar);
 		this.menuBar.setVisible(true);
+
 		//setVisible(true);
 	}
 	/**
@@ -110,6 +111,22 @@ public class ClassicFrame extends JInternalFrame{
 		
 	}
 	
+	public void setGuestInterface(boolean scelta){
+		
+		if(scelta){
+			//mnPriorit.setEnabled(false);
+			//visual.setEnabled(false);
+			//mnFiltraPerData.setEnabled(false);
+			menuBar.setEnabled(false);
+			menuBar.setVisible(false);
+		}
+		else{
+			menuBar.setEnabled(true);
+			menuBar.setVisible(true);
+		}
+		
+	}
+	/*
 	@Override
 	public void setVisible(boolean aFlag){
 		
@@ -118,7 +135,7 @@ public class ClassicFrame extends JInternalFrame{
 		else
 			System.out.println("Classic invisibile");
 		super.setVisible(aFlag);
-	}
+	}*/
 	/**
 	 * In questo modo ci assicuriamo che il PanelContainer contenga solamente MemPanel
 	 */
