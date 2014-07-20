@@ -1,14 +1,15 @@
 package main;
 import util.Data;
+
 import java.io.*;
 
+import org.apache.commons.codec.digest.DigestUtils;
 
 
+
+@SuppressWarnings("serial")
 public class Memo implements Comparable<Memo>, Serializable{
 	
-	
-	private static final long serialVersionUID = 3850876655640676539L;
-
 	private enum Priority{LOW, NORMAL, HIGH};
 	
 	//final static int SEC4MIN=60;
@@ -20,6 +21,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 	private Data end;
 	private boolean completion;
 	private String icon;
+	private String id;
 	
 	/*											*
 	 * 											*
@@ -33,6 +35,21 @@ public class Memo implements Comparable<Memo>, Serializable{
 		completion=false;
 		end=new Data(year,month,day,hour,minute);
 		icon="note.png";
+		id=DigestUtils.shaHex(desc+end.toString());
+	}
+	
+	/**
+	 * Da database va sempre richiamato questo costruttore
+	 * @param desc
+	 * @param priority
+	 * @param end
+	 * @param icon
+	 * @param id
+	 */
+	public Memo(String desc, int priority, Data end, String icon,String id){
+		
+		this(desc,priority,end,icon);
+		this.id=id;
 	}
 	
 	public Memo(String desc, String priority, int year, int month, int day, int hour, int minute){
@@ -42,6 +59,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		completion=false;
 		end=new Data(year,month,day,hour,minute);
 		icon="note.png";
+		id=DigestUtils.shaHex(desc+end.toString());
 	}
 	
 	public Memo(String desc, Data end){
@@ -51,6 +69,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		completion=false;
 		this.end=end;
 		icon="note.png";
+		id=DigestUtils.shaHex(desc+end.toString());
 	}
 	
 	public Memo(String desc, int priority, Data end){
@@ -60,6 +79,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		completion=false;
 		this.end=end;
 		icon="note.png";
+		id=DigestUtils.shaHex(desc+end.toString());
 	}
 	
 	public Memo(String desc, int priority, Data end, String icon){
@@ -79,6 +99,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.end=m.end;
 		this.completion=m.completion;
 		this.icon=m.icon;
+		this.id=m.id;
 	}
 	
 	
@@ -259,14 +280,29 @@ public class Memo implements Comparable<Memo>, Serializable{
 		return icon;
 	}
 	
+	public String getId(){
+		
+		return id;
+	}
 	
-	public boolean equals(Memo m){
+	
+	public boolean identici(Memo m){
 		
 		if(!this.desc.trim().equals(m.desc.trim()))
 			return false;
 		if(!this.end.equals(m.end))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public boolean equals(Object m){
+		
+		if(!(m instanceof Memo))
+			return false;
+		if(m==this)
+			return true;
+		return this.getId().equals(((Memo)m).getId());
 	}
 	
 	@Override

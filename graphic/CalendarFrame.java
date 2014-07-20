@@ -132,10 +132,7 @@ public class CalendarFrame extends JInternalFrame{
 		private int rowSelected=-1;
 		private int columnSelected=-1;
 		@Override
-		public void mouseDragged(MouseEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
+		public void mouseDragged(MouseEvent e){}
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
@@ -201,7 +198,7 @@ public class CalendarFrame extends JInternalFrame{
 					for(Memo m: ml){
 						Data end=m.getEnd();
 						if(end.hasSameDay(curicazzi))
-							delGiorno.add(m);
+							delGiorno.add(m,false);
 					}	//abbiamo finito di scandire i memo per il giorno cliccato
 					if(delGiorno.size()!=0){
 						//il menu a tendina si apre con il JPopupMenu
@@ -278,7 +275,7 @@ public class CalendarFrame extends JInternalFrame{
 				int mese=end.mese();
 				int anno=end.anno();
 				if(mese==curMonth && anno==curYear)
-					forTheMonth.add(m);
+					forTheMonth.add(m,false);
 			}
 			for( Memo m : forTheMonth){		//ora inseriamo nella tabella i memo del mese
 				
@@ -517,7 +514,7 @@ public class CalendarFrame extends JInternalFrame{
 	 */
 	public void add(Memo m){
 		
-		ml.add(m);
+		ml.add(m,false);
 		Color c=null;
 		switch(m.priority()){
 		case 0: c=myBlue;break;

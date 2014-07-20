@@ -408,13 +408,13 @@ public class MemoremCLI extends Thread{
 			prior.add("Media");
 			prior.add("Bassa");
 			k.formaQuery("always", "attivi", prior);
-			MemoList ml=k.getCurrentList();
-			MemoList nuova=new MemoList();
+			MemoList ml=k.getDBList();
+			int cont=0;
 			for(Memo m:ml)
 				if(m.isScaduto())
-					nuova.add(m);
-			if(nuova.size()!=0)
-				System.out.println("Ci sono "+nuova.size()+" memo scaduti che vanno gestiti");
+					cont++;
+			if(cont!=0)
+				System.out.println("Ci sono "+cont+" memo scaduti che vanno gestiti");
 		}
 		else if(result==2){
 			System.out.println("La password è sbagliata");
@@ -527,7 +527,7 @@ public class MemoremCLI extends Thread{
 		prior.add("Media");
 		prior.add("Bassa");
 		k.formaQuery("always", "attivi", prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		Memo x;
 		for(Memo m:ml){
 			System.out.println(cont+"\t"+m.toString());
@@ -566,11 +566,16 @@ public class MemoremCLI extends Thread{
 		prior.add("Media");
 		prior.add("Bassa");
 		k.formaQuery("always", "attivi", prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
+		Iterator<Memo> it=ml.iterator();
+		while(it.hasNext())
+			if(!(it.next().isScaduto()))
+				it.remove();
 		if(ml.size()==0){
 			System.out.println("Non ci sono memo da rinviare");
 			return;
 		}
+		boolean continua=true;
 		while(true){
 			int cont=1;
 			for(Memo m:ml){
@@ -587,26 +592,34 @@ public class MemoremCLI extends Thread{
 				System.out.println("Vuoi confermare la scelta?S/n");
 				String risposta=sc.nextLine().trim().toLowerCase();
 				if(risposta.equals("si") || risposta.equals("s") || risposta.equals("y") || risposta.equals("yes")){
-					System.out.println("Di quanti giorni vuoi rinviare il memo? (default: rinvia a domani)");
-					number=sc.nextLine();
-					Data nuova=x.getEnd();
-					if(number.length()==0){
-						nuova=new Data().domani();
-						Memo xNuovo=new Memo(x.description(),x.priority(),nuova);
-						k.modifica(x, xNuovo);
-						return;
-					}
-					num=Integer.parseInt(number);
-					for(int i=0;i<num;i++)
-						nuova.domani();
-					if(nuova.compareTo(new Data())<0)
-						System.out.println("Non puoi inserire una data gia' passata");
-					else{
-						Memo xNuovo=new Memo(x.description(),x.priority(),nuova);
-						k.modifica(x, xNuovo);
-						return;
-					}
-					break;
+					while(true){
+						System.out.println("Di quanti giorni vuoi rinviare il memo? (default: rinvia a domani)");
+						number=sc.nextLine();
+						Data nuova=x.getEnd();
+						if(number.length()==0){
+							nuova=new Data().domani();
+							Memo xNuovo=new Memo(x.description(),x.priority(),nuova);
+							k.modifica(x, xNuovo);
+							System.out.println("Memo rinviato");
+							return;
+						}
+						num=Integer.parseInt(number);
+						for(int i=0;i<num;i++)
+							nuova=nuova.domani();
+						if(nuova.compareTo(new Data())<0){
+							System.out.println("Non puoi inserire una data gia' passata");
+							if(!continua()){
+								continua=false;
+								break;
+							}
+						}
+						else{
+							Memo xNuovo=new Memo(x.description(),x.priority(),nuova);
+							k.modifica(x, xNuovo);
+							System.out.println("Memo rinviato");
+							return;
+						}
+					}//while
 				}
 				else if(risposta.equals("no") || risposta.equals("n"))
 					if(!continua())
@@ -616,6 +629,8 @@ public class MemoremCLI extends Thread{
 			}catch(NullPointerException e){
 				System.out.println("Inserire un numero tra quelli visualizzati");
 			}
+			if(!continua)
+				break;
 		}//while	
 	}
 	/**
@@ -637,7 +652,7 @@ public class MemoremCLI extends Thread{
 		prior.add("Media");
 		prior.add("Bassa");
 		k.formaQuery("always", "attivi", prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		StringBuilder sb=new StringBuilder(1000);
 		int cont=0;
 		for(Memo m:ml){
@@ -667,7 +682,7 @@ public class MemoremCLI extends Thread{
 		prior.add("Bassa");
 		prior.add("Media");
 		k.formaQuery(data, visual, prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		System.out.println("Memo del giorno:"+ml.size());
 		System.out.println(ml.toString());
 	}
@@ -685,7 +700,7 @@ public class MemoremCLI extends Thread{
 		prior.add("Bassa");
 		prior.add("Media");
 		k.formaQuery(data, visual, prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		System.out.println("Memo in questa settimana:"+ml.size());
 		System.out.println(ml.toString());
 	}
@@ -699,7 +714,7 @@ public class MemoremCLI extends Thread{
 		prior.add("Bassa");
 		prior.add("Media");
 		k.formaQuery(data, visual, prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		System.out.println("Memo scaduti:"+ml.size());
 		System.out.println(ml.toString());
 	}
@@ -714,16 +729,16 @@ public class MemoremCLI extends Thread{
 		prior.add("Media");
 		prior.add("Bassa");
 		k.formaQuery("always", "attivi", prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		if(ml.size()==0)
 			System.out.println("Non ci sono memo da notificare");
 		else{
-			MemoList nuova=new MemoList();
+			Iterator<Memo> it=ml.iterator();
+			while(it.hasNext())
+				if(!(it.next().isScaduto()))
+					it.remove();
+			System.out.println("Memo in attesa:"+ml.size());
 			for(Memo m:ml)
-				if(m.isScaduto())
-					nuova.add(m);
-			System.out.println("Memo in attesa:"+nuova.size());
-			for(Memo m:nuova)
 				System.out.println(m);
 		}
 	}
@@ -747,7 +762,7 @@ public class MemoremCLI extends Thread{
 		prior.add("Media");
 		prior.add("Bassa");
 		k.formaQuery("always", "attivi", prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		while(true){
 			int cont=1;
 			for(Memo m:ml){
@@ -787,14 +802,15 @@ public class MemoremCLI extends Thread{
 		prior.add("Media");
 		prior.add("Bassa");
 		k.formaQuery("always", "attivi", prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		if(ml.size()==0){
 			System.out.println("Non ci sono memo da archiviare");
 			return;
 		}
-		for(Memo m:ml)
-			if(!m.isScaduto())
-				ml.remove(m);
+		Iterator<Memo> it=ml.iterator();
+		while(it.hasNext())
+			if(!it.next().isScaduto())
+				it.remove();
 		while(true){
 			int cont=1;
 			for(Memo m:ml){
@@ -831,7 +847,7 @@ public class MemoremCLI extends Thread{
 		prior.add("Media");
 		prior.add("Bassa");
 		k.formaQuery("always", "attivi", prior);
-		MemoList ml=k.getCurrentList();
+		MemoList ml=k.getRealList();
 		while(true){
 			int cont=1;
 			for(Memo m:ml){
@@ -891,13 +907,32 @@ public class MemoremCLI extends Thread{
 	public static void modifyPassword(){
 		
 		System.out.print("Inserire la password corrente:");
+		String cur=sc.nextLine();
 		System.out.println("Inserire nuova password:");
+		String nuova=sc.nextLine();
 		System.out.println("Conferma nuova password:");
+		String conf=sc.nextLine();
+		if(!nuova.equals(conf)){
+			System.out.println("Le due password non combaciano");
+			return;
+		}
+		int result=k.modificaPassword(cur, nuova);
+		switch(result){
+		case 0: System.out.println("password modificata"); return;
+		case 2: System.out.println("La password dell'utente è sbagliata"); return;
+		case 3: System.out.println("La password nuova deve essere diversa dalla vecchia"); return;
+		default: System.out.println("Errore durante la modifica della password"); return;
+		}
 	}
 	
 	public static void deleteUser(){
 		
-		System.out.println("Attenzione, questo processo rimuoverà in modo irreversibile tutti i tuoi dati. Sei sicuro di voler continuare? s/n");
+		System.out.print("Attenzione, questo processo rimuoverà in modo irreversibile tutti i tuoi dati. ");
+		if(continua()){
+			k.removeUser(k.getUser().getNickname());
+			k.logout();
+		}
+		
 		
 	}
 	public static void profilo(){

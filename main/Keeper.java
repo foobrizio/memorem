@@ -25,6 +25,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	private MemoList currentMemos;		
 	private LinkedHashSet<Memo> removenda;
+	private LinkedHashSet<Memo> nuovi;
 	private LinkedHashMap<Memo,Memo> mutanda;//che in latino significa "da modificare"..ma in italiano lol xD
 	private MemoDBManager manager;
 	private double completati;
@@ -35,6 +36,7 @@ public class Keeper implements Iterable<Memo>{
 		this.user=new User("none");
 		this.currentMemos=new MemoList();
 		this.removenda=new LinkedHashSet<Memo>();
+		this.nuovi=new LinkedHashSet<Memo>();
 		this.mutanda=new LinkedHashMap<Memo,Memo>();
 		this.manager=new MemoDBManager("memodatabase");
 	}
@@ -46,7 +48,8 @@ public class Keeper implements Iterable<Memo>{
 	public boolean add(Memo t){
 		
 		if(!t.isScaduto()){
-			return currentMemos.add(t);
+			nuovi.add(t);
+			return currentMemos.add(t,false);
 		}
 		else{
 			System.out.println("Il task e' gia' scaduto, pertanto non verra' aggiunto");
@@ -63,7 +66,8 @@ public class Keeper implements Iterable<Memo>{
 	public void modifica(Memo vecchio,Memo nuovo){
 		
 		currentMemos.remove(vecchio);
-		currentMemos.add(nuovo);
+		nuovi.remove(vecchio);
+		currentMemos.add(nuovo,false);
 		mutanda.put(vecchio, nuovo);
 		
 	}
@@ -75,6 +79,7 @@ public class Keeper implements Iterable<Memo>{
 		
 		if(manager.contains(m)){
 			currentMemos.remove(m);
+			nuovi.remove(m);
 			manager.move(m,completato);
 		}
 		if(completato)
@@ -177,8 +182,29 @@ public class Keeper implements Iterable<Memo>{
 		for(Memo m:ml2)
 			if(!ml.contains(m)){
 				//System.out.println(m);
-				ml.add(m);
+				ml.add(m,false);
 			}
+		for(Memo m: nuovi)
+			ml.add(m);
+		return ml;
+	}
+	
+	/**
+	 * Ritorna la lista dei memo scaduti da gestire
+	 * @return
+	 */
+	public MemoList getPending(){
+		
+		LinkedList<String> p=new LinkedList<String>();
+		p.add("Alta");
+		p.add("Media");
+		p.add("Bassa");
+		formaQuery("always", "attivi", p);
+		MemoList ml=getRealList();
+		Iterator<Memo> it=ml.iterator();
+		while(it.hasNext())
+			if(!it.next().isScaduto())
+				it.remove();
 		return ml;
 	}
 	
@@ -212,10 +238,12 @@ public class Keeper implements Iterable<Memo>{
 			removenda.add(t);
 		else if(!manager.contains(t) && currentMemos.contains(t)){	//significa che il memo da eliminare è stato modificato di recente, quindi non c'è nel manager
 			mutanda.remove(t);
+			nuovi.remove(t);
 			currentMemos.remove(t);
 		}
 		else if(manager.contains(t) && currentMemos.contains(t)){
 			currentMemos.remove(t);
+			nuovi.remove(t);
 			removenda.add(t);
 		}
 	}
@@ -332,7 +360,7 @@ public class Keeper implements Iterable<Memo>{
 		}
 		query+=" ORDER BY prior DESC, end";
 		//System.out.println(query);
-		boolean scaduti=visual!="attivi";
+		boolean scaduti=(visual!="attivi");
 		currentMemos.clear();
 		currentMemos=manager.processQuery(query,scaduti);
 	}
@@ -341,9 +369,23 @@ public class Keeper implements Iterable<Memo>{
 	 * Ritorna la lista corrente di memo (utile se invocata immediatamente dopo una query personalizzata
 	 * @return
 	 */
-	public MemoList getCurrentList(){
+	public MemoList getDBList(){
 		
 		return currentMemos;
+	}
+	
+	public MemoList getRealList(){
+		
+		MemoList questa=new MemoList(currentMemos);
+		for(Memo m: removenda)
+			questa.remove(m);
+		for(Memo m:mutanda.keySet()){
+			questa.remove(m);
+			questa.add(mutanda.get(m));
+		}
+		for(Memo m:nuovi)
+			questa.add(m);
+		return questa;
 	}
 	
 	public void salva(){
@@ -355,6 +397,12 @@ public class Keeper implements Iterable<Memo>{
 		for(Memo m: currentMemos)
 			if(!manager.contains(m))
 				manager.insertMemo(m);
+		Iterator<Memo> iterator=nuovi.iterator();
+		while(iterator.hasNext()){
+			Memo m=iterator.next();
+			manager.insertMemo(m);
+			iterator.remove();
+		}
 	}
 	
 	public int login(String user,String password){
@@ -363,7 +411,7 @@ public class Keeper implements Iterable<Memo>{
 		if(x==0){
 			this.user=manager.getUser();
 			for(Memo m: manager.list(true))
-				currentMemos.add(m);
+				currentMemos.add(m,true);
 		}
 		int[] risu=manager.rapportoCompletati();
 		completati=risu[0];
@@ -392,6 +440,15 @@ public class Keeper implements Iterable<Memo>{
 		return res;
 	}
 	
+	/**
+	 * 
+	 * @param passV
+	 * @param passN
+	 * @return 	3 se la password nuova è identica a quella vecchia,
+	 * 		 	2 se la vecchia password è sbagliata,
+	 * 			1 in caso di altri eventuali errori
+	 * 			0 se la modifica va a buon fine
+	 */
 	public int modificaPassword(String passV,String passN){
 		
 		return manager.modificaPassword(passV,passN);

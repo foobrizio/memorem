@@ -25,8 +25,7 @@ public class StatPanel extends JDialog {
 	 */
 	public StatPanel(Keeper k){
 		
-		
-		panel=new ColoredPanel("./src/graphic/wallpapers/wall5.jpg");
+		panel=new ColoredPanel("./src/graphic/wallpapers/stats.jpg");
 		setBounds(100, 100, 400, 250);
 		getContentPane().add(panel,BorderLayout.CENTER);
 		setResizable(false);
@@ -117,7 +116,9 @@ public class StatPanel extends JDialog {
 		btnOk.addActionListener(new ActionListener(){
 			
 			public void actionPerformed(ActionEvent evt){
-				StatPanel.this.dispose();
+				setVisible(false);
+				dispose();
+				return;
 			}
 		});
 		btnOk.setBounds(165, 213, 53, 25);

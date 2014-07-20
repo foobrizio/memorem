@@ -68,6 +68,7 @@ public class MemPanel extends JPanel implements ActionListener{
 	
 	/**
 	 * Costruttore di Default
+	 * @wbp.parser.constructor
 	 */
 	public MemPanel(Memo memo){
 		
@@ -80,21 +81,32 @@ public class MemPanel extends JPanel implements ActionListener{
 		//coloreClock=Color.BLACK;
 		tipoB=false; //se impostato a false il memo è attivo
 		bar=new JMenuBar();
+		bar.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		elimina=new MyMenuItem("elimina");
+		elimina.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		modifica=new JMenuItem("modifica");
+		modifica.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		tipo=new JMenuItem("cambia visualizzazione");
+		tipo.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		
 		rinvia = new JMenu("rinvia");
+		rinvia.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		archivia= new MyMenuItem("archivia");
+		archivia.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		oneDay = new MyMenuItem("1 giorno");
+		oneDay.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		threeDays = new MyMenuItem("3 giorni");
+		threeDays.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		oneWeek = new MyMenuItem("1 settimana");
+		oneWeek.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		personalizza = new MyMenuItem("personalizza");
+		personalizza.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		
 		combo=new JMenu();
-		combo.setFont(new Font("Dialog", Font.BOLD, 12));
+		combo.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		combo.setText("Opzioni");
 		completa = new MyMenuItem("completa");
+		completa.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		combo.add(completa);
 		combo.add(archivia);
 		combo.add(elimina);
@@ -144,6 +156,7 @@ public class MemPanel extends JPanel implements ActionListener{
 		//iconTainer.setSize(20,20);
 		paneleft.add(iconTainer, BorderLayout.WEST);
 		orario=new JLabel(memo.endDate(),SwingConstants.LEFT);
+		orario.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		orario.setBackground(new Color(0,0,0,0));
 		paneleft.add(orario);
 		//orario.setForeground(coloreClock);
@@ -151,7 +164,7 @@ public class MemPanel extends JPanel implements ActionListener{
 		orario.addMouseListener(mouse);
 		descrizione=new JLabel(memo.description(),SwingConstants.CENTER);
 		//descrizione.setFont(descrizione.getFont().deriveFont(descrizione.getFont().getStyle() | Font.BOLD));
-		descrizione.setFont(descrizione.getFont().deriveFont(Font.BOLD+Font.ITALIC));
+		descrizione.setFont(new Font("Linux Libertine Mono", Font.BOLD | Font.ITALIC, 12));
 		descrizione.setVerticalAlignment(SwingConstants.CENTER);
 		descrizione.addMouseListener(mouse);
 		//setVisible(true);

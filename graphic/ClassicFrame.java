@@ -103,7 +103,7 @@ public class ClassicFrame extends JInternalFrame{
 	
 	private void createContentPane(){
 		jp=new JPanel();
-		JScrollPane scroll=new JScrollPane(jp,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		JScrollPane scroll=new JScrollPane(jp,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scroll.setOpaque(false);
 		scroll.setBorder(null);
 		getContentPane().add(scroll);
@@ -127,7 +127,7 @@ public class ClassicFrame extends JInternalFrame{
 		
 		if(c instanceof MemPanel){
 			if(!personal.contains(((MemPanel)c).getMemo())){
-				personal.add(((MemPanel)c).getMemo());
+				personal.add(((MemPanel)c).getMemo(),false);
 				return dynamic.add(c,personal.indexOf(((MemPanel)c).getMemo()));
 			}
 		}

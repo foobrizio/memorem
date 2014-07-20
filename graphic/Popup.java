@@ -22,7 +22,7 @@ public class Popup extends JDialog implements ActionListener{
 	private boolean okPressed,modified,eliminated;
 	private Memo created,old;
 	private Data oggi;
-	private JLabel titolo;
+	private JLabel titolo,nome,prioritLabel,annoLabel,meseLabel,dayLabel,oraLabel,minutoLabel;
 	
 	/**
 	 * Launch the application.
@@ -43,10 +43,40 @@ public class Popup extends JDialog implements ActionListener{
 	public Popup(JFrame owner,boolean modified){
 		super(owner,true);
 		this.modified=modified;
-		setBounds(100, 100, 450, 200);
+		if(owner!=null)
+			setBounds((owner.getX()+owner.getWidth())/3, (owner.getY()+owner.getHeight())/3, 425, 200);
+		else
+			setBounds(100, 100, 425, 200);
 		setResizable(false);
+		titolo=new JLabel();
+		nome = new JLabel("Nome");
+		prioritLabel = new JLabel("Priorità");
+		annoLabel = new JLabel("Anno");
+		meseLabel = new JLabel("Mese");
+		dayLabel = new JLabel("Giorno");
+		oraLabel = new JLabel("Ora");
+		minutoLabel = new JLabel("Minuto");
+		if(modified){
+			setContentPane(new ColoredPanel("./src/graphic/wallpapers/shadow.jpg"));
+			titolo.setText("Modifica memo");
+			Color color=Color.WHITE;
+			titolo.setForeground(color);
+			nome.setForeground(color);
+			prioritLabel.setForeground(color);
+			annoLabel.setForeground(color);
+			meseLabel.setForeground(color);
+			dayLabel.setForeground(color);
+			oraLabel.setForeground(color);
+			minutoLabel.setForeground(color);
+		}
+		else{
+			setContentPane(new ColoredPanel("./src/graphic/wallpapers/new.jpg"));
+			titolo.setText("Aggiungi memo");
+			titolo.setForeground(new Color(255,255,150));
+		}
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPanel.setOpaque(false);
 		getContentPane().add(contentPanel, BorderLayout.NORTH);
 		GridBagLayout gbl_contentPanel = new GridBagLayout();
 		gbl_contentPanel.columnWidths = new int[] {30, 0, 0, 0, 30, 0, 30, 30, 30};
@@ -56,11 +86,6 @@ public class Popup extends JDialog implements ActionListener{
 		contentPanel.setLayout(gbl_contentPanel);
 		oggi=new Data();
 		{
-			titolo = new JLabel("New label");
-			if(modified)
-				titolo.setText("Modifica memo");
-			else
-				titolo.setText("Aggiungi memo");
 			GridBagConstraints gbc_titolo = new GridBagConstraints();
 			gbc_titolo.gridwidth = 3;
 			gbc_titolo.insets = new Insets(0, 0, 5, 5);
@@ -69,13 +94,12 @@ public class Popup extends JDialog implements ActionListener{
 			contentPanel.add(titolo, gbc_titolo);
 		}
 		{
-			JLabel lblNome = new JLabel("Nome");
-			GridBagConstraints gbc_lblNome = new GridBagConstraints();
-			gbc_lblNome.anchor = GridBagConstraints.EAST;
-			gbc_lblNome.insets = new Insets(0, 0, 5, 5);
-			gbc_lblNome.gridx = 1;
-			gbc_lblNome.gridy = 1;
-			contentPanel.add(lblNome, gbc_lblNome);
+			GridBagConstraints gbc_nome = new GridBagConstraints();
+			gbc_nome.anchor = GridBagConstraints.EAST;
+			gbc_nome.insets = new Insets(0, 0, 5, 5);
+			gbc_nome.gridx = 1;
+			gbc_nome.gridy = 1;
+			contentPanel.add(nome, gbc_nome);
 		}
 		{
 			descrizione = new JTextField();
@@ -89,13 +113,12 @@ public class Popup extends JDialog implements ActionListener{
 			descrizione.setColumns(10);
 		}
 		{
-			JLabel lblPriorit = new JLabel("Priorità");
-			GridBagConstraints gbc_lblPriorit = new GridBagConstraints();
-			gbc_lblPriorit.anchor = GridBagConstraints.EAST;
-			gbc_lblPriorit.insets = new Insets(0, 0, 5, 5);
-			gbc_lblPriorit.gridx = 1;
-			gbc_lblPriorit.gridy = 2;
-			contentPanel.add(lblPriorit, gbc_lblPriorit);
+			GridBagConstraints gbc_prioritLabel = new GridBagConstraints();
+			gbc_prioritLabel.anchor = GridBagConstraints.EAST;
+			gbc_prioritLabel.insets = new Insets(0, 0, 5, 5);
+			gbc_prioritLabel.gridx = 1;
+			gbc_prioritLabel.gridy = 2;
+			contentPanel.add(prioritLabel, gbc_prioritLabel);
 		}
 		{
 			String[] priorita={ "Bassa", "Normale", "Alta" };
@@ -111,13 +134,13 @@ public class Popup extends JDialog implements ActionListener{
 			contentPanel.add(prior, gbc_comboBox);
 		}
 		{
-			JLabel lblAnno = new JLabel("Anno");
-			GridBagConstraints gbc_lblAnno = new GridBagConstraints();
-			gbc_lblAnno.anchor = GridBagConstraints.EAST;
-			gbc_lblAnno.insets = new Insets(0, 0, 5, 5);
-			gbc_lblAnno.gridx = 5;
-			gbc_lblAnno.gridy = 2;
-			contentPanel.add(lblAnno, gbc_lblAnno);
+			
+			GridBagConstraints gbc_annoLabel = new GridBagConstraints();
+			gbc_annoLabel.anchor = GridBagConstraints.EAST;
+			gbc_annoLabel.insets = new Insets(0, 0, 5, 5);
+			gbc_annoLabel.gridx = 5;
+			gbc_annoLabel.gridy = 2;
+			contentPanel.add(annoLabel, gbc_annoLabel);
 		}
 		{
 			manageYear(oggi.anno());
@@ -128,13 +151,13 @@ public class Popup extends JDialog implements ActionListener{
 			});
 		}
 		{
-			JLabel lblMese = new JLabel("Mese");
-			GridBagConstraints gbc_lblMese = new GridBagConstraints();
-			gbc_lblMese.anchor = GridBagConstraints.EAST;
-			gbc_lblMese.insets = new Insets(0, 0, 5, 5);
-			gbc_lblMese.gridx = 1;
-			gbc_lblMese.gridy = 3;
-			contentPanel.add(lblMese, gbc_lblMese);
+			
+			GridBagConstraints gbc_meseLabel = new GridBagConstraints();
+			gbc_meseLabel.anchor = GridBagConstraints.EAST;
+			gbc_meseLabel.insets = new Insets(0, 0, 5, 5);
+			gbc_meseLabel.gridx = 1;
+			gbc_meseLabel.gridy = 3;
+			contentPanel.add(meseLabel, gbc_meseLabel);
 		}
 		{
 			manageMonth();
@@ -146,25 +169,25 @@ public class Popup extends JDialog implements ActionListener{
 			});
 		}
 		{
-			JLabel lblGiorno = new JLabel("Giorno");
-			GridBagConstraints gbc_lblGiorno = new GridBagConstraints();
-			gbc_lblGiorno.anchor = GridBagConstraints.EAST;
-			gbc_lblGiorno.insets = new Insets(0, 0, 5, 5);
-			gbc_lblGiorno.gridx = 5;
-			gbc_lblGiorno.gridy = 3;
-			contentPanel.add(lblGiorno, gbc_lblGiorno);
+			
+			GridBagConstraints gbc_dayLabel = new GridBagConstraints();
+			gbc_dayLabel.anchor = GridBagConstraints.EAST;
+			gbc_dayLabel.insets = new Insets(0, 0, 5, 5);
+			gbc_dayLabel.gridx = 5;
+			gbc_dayLabel.gridy = 3;
+			contentPanel.add(dayLabel, gbc_dayLabel);
 		}
 		{	
 			manageDay();
 		}
 		{
-			JLabel lblOra = new JLabel("Ora");
-			GridBagConstraints gbc_lblOra = new GridBagConstraints();
-			gbc_lblOra.anchor = GridBagConstraints.EAST;
-			gbc_lblOra.insets = new Insets(0, 0, 0, 5);
-			gbc_lblOra.gridx = 1;
-			gbc_lblOra.gridy = 4;
-			contentPanel.add(lblOra, gbc_lblOra);
+			
+			GridBagConstraints gbc_oraLabel = new GridBagConstraints();
+			gbc_oraLabel.anchor = GridBagConstraints.EAST;
+			gbc_oraLabel.insets = new Insets(0, 0, 0, 5);
+			gbc_oraLabel.gridx = 1;
+			gbc_oraLabel.gridy = 4;
+			contentPanel.add(oraLabel, gbc_oraLabel);
 		}
 		{
 			Integer[] ore=new Integer[24];
@@ -181,13 +204,13 @@ public class Popup extends JDialog implements ActionListener{
 			contentPanel.add(ora, gbc_comboBox);
 		}
 		{
-			JLabel lblMinuto = new JLabel("Minuto");
-			GridBagConstraints gbc_lblMinuto = new GridBagConstraints();
-			gbc_lblMinuto.anchor = GridBagConstraints.EAST;
-			gbc_lblMinuto.insets = new Insets(0, 0, 0, 5);
-			gbc_lblMinuto.gridx = 5;
-			gbc_lblMinuto.gridy = 4;
-			contentPanel.add(lblMinuto, gbc_lblMinuto);
+			
+			GridBagConstraints gbc_minutoLabel = new GridBagConstraints();
+			gbc_minutoLabel.anchor = GridBagConstraints.EAST;
+			gbc_minutoLabel.insets = new Insets(0, 0, 0, 5);
+			gbc_minutoLabel.gridx = 5;
+			gbc_minutoLabel.gridy = 4;
+			contentPanel.add(minutoLabel, gbc_minutoLabel);
 		}
 		{
 			Integer[] minuti=new Integer[60];
@@ -207,6 +230,7 @@ public class Popup extends JDialog implements ActionListener{
 		{
 			JPanel buttonPane = new JPanel();
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+			buttonPane.setOpaque(false);
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
 				okButton = new JButton("OK");

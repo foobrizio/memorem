@@ -259,6 +259,15 @@ public class MemoDBManager implements Iterable<Memo>{
 		return true;
 	}
 	
+	/**
+	 * 
+	 * @param passV
+	 * @param passN
+	 * @return 	3 se la password nuova è identica a quella vecchia,
+	 * 		 	2 se la vecchia password è sbagliata,
+	 * 			1 in caso di altri eventuali errori
+	 * 			0 se la modifica va a buon fine
+	 */
 	public int modificaPassword(String passV,String passN){
 		
 		if(passV.equals(passN))
@@ -330,6 +339,7 @@ public class MemoDBManager implements Iterable<Memo>{
 			tbl=tbl+"completed BIT DEFAULT 0, ";
 		tbl=tbl+"user VARCHAR(20) NOT NULL,"+
 		"icon VARCHAR(30) DEFAULT 'note.png',"+
+		"id CHAR(40) NOT NULL,"+
 		"FOREIGN KEY(user) REFERENCES memousers(nickname),"+
 		"PRIMARY KEY(descrizione,end,user))";
 		int res=executeUpdate(tbl);
@@ -363,8 +373,8 @@ public class MemoDBManager implements Iterable<Memo>{
 		if(user.equals("none"))			return false;	//nessun utente connesso
 		String sql="";
 		if(table.equals(mn))
-			sql="INSERT INTO "+mn+" (descrizione,prior,end,user,icon)";
-		else sql="INSERT INTO "+mo+" (descrizione,prior,end,completed,user,icon)";
+			sql="INSERT INTO "+mn+" (descrizione,prior,end,user,icon,id)";
+		else sql="INSERT INTO "+mo+" (descrizione,prior,end,completed,user,icon,id)";
 		//valori primitivi
 		String desc=m.description();
 		int result=-1;
@@ -373,12 +383,12 @@ public class MemoDBManager implements Iterable<Memo>{
 		//valori che vanno convertiti
 		String end=Data.convertDateToString(m.getEnd());
 		String icon=m.getIcon();
-		sql+=" VALUES('";
-		//sql+=desc+"',"+prior+",'"+end+"','"+user+"',b'"+(m.isCompleted()?"1":"0")+"')";
+		sql+=" VALUES('"+verificaStringa(desc)+"',"+prior+",'"+end+"'";
 		if(table.equals(mn))
-			sql+=verificaStringa(desc)+"',"+prior+",'"+end+"','"+verificaStringa(user.getNickname())+"','"+verificaStringa(icon)+"')";
+			sql+=",'"+verificaStringa(user.getNickname())+"','"+verificaStringa(icon)+"'";
 		else
-			sql+=verificaStringa(desc)+"',"+prior+",'"+end+"',b'"+(completed?"1":"0")+"','"+verificaStringa(user.getNickname())+"','"+verificaStringa(icon)+"')";
+			sql+=",b'"+(completed?"1":"0")+"','"+verificaStringa(user.getNickname())+"','"+verificaStringa(icon)+"'";
+		sql+=",'"+m.getId()+"')";
 		result=executeUpdate(sql);
 		return result==1;
 	}
@@ -418,8 +428,7 @@ public class MemoDBManager implements Iterable<Memo>{
 	private boolean removeMemo(Memo m,String table){
 		
 		if(user.equals("none"))			return false;	//nessun utente connesso
-		String sql="DELETE FROM "+table+" WHERE descrizione='"+verificaStringa(m.description())+"' AND end='";
-		sql=sql+Data.convertDateToString(m.getEnd())+"'";
+		String sql="DELETE FROM "+table+" WHERE id='"+m.getId()+"'";
 		return executeUpdate(sql)==1;
 	}
 	
@@ -456,7 +465,7 @@ public class MemoDBManager implements Iterable<Memo>{
 				sql+=", ";
 			sql+=" icon='"+verificaStringa(nuovo.getIcon())+"'";
 		}
-		sql+=" WHERE descrizione='"+verificaStringa(vecchio.description())+"' AND end='"+Data.convertDateToString(vecchio.getEnd())+"'";
+		sql+=" WHERE id='"+vecchio.getId()+"'";
 		//System.out.println(sql);
 		return executeUpdate(sql)!=0;
 	}
@@ -498,10 +507,11 @@ public class MemoDBManager implements Iterable<Memo>{
 				int prior=rs.getInt("prior");
 				String end=rs.getString("end");
 				String icon=rs.getString("icon");
+				String id=rs.getString("id");
 				Data fine=Data.convertStringToData(end);
-				m=new Memo(desc,prior,fine,icon);
+				m=new Memo(desc,prior,fine,icon,id);
 				//System.out.println("manager:"+m.getIcon());
-				ml.add(m);
+				ml.add(m,true);
 			}
 			if(!soloAttivi){
 				while(rs2.next()){
@@ -511,11 +521,12 @@ public class MemoDBManager implements Iterable<Memo>{
 					String end=rs2.getString("end");
 					boolean completed=rs2.getBoolean("completed");
 					String icon=rs2.getString("icon");
+					String id=rs2.getString("icon");
 					Data fine=Data.convertStringToData(end);
-					m=new Memo(desc,prior,fine,icon);
+					m=new Memo(desc,prior,fine,icon,id);
 					if(completed)
 						m.spunta();
-					ml.add(m);
+					ml.add(m,true);
 					
 				}
 			}
@@ -553,9 +564,7 @@ public class MemoDBManager implements Iterable<Memo>{
 	private boolean contains(Memo m,String table){
 		
 		if(user.equals("none"))				return false;	//nessun utente connesso
-		String end=Data.convertDateToString(m.getEnd());
-		String sql="SELECT * FROM "+table+" WHERE descrizione='"+verificaStringa(m.description())+"'"+
-		" AND end='"+end+"'";
+		String sql="SELECT * FROM "+table+" WHERE id='"+m.getId()+"'";
 		ResultSet rs=executeQuery(sql);
 		int x=0;
 		try{ 
@@ -576,6 +585,7 @@ public class MemoDBManager implements Iterable<Memo>{
 	
 	/**
 	 * Ritorn il memo che nel database corrisponde alla descrizione "desc" e alla data "end" 
+	 * QUESTO METODO NON é CORRETTO, BISOGNA VERIFICARE SE ESSO SIA IN mo O IN mn
 	 * @param desc
 	 * @param end
 	 * @return
@@ -597,7 +607,9 @@ public class MemoDBManager implements Iterable<Memo>{
 				String rizione=rs.getString("descrizione");
 				int prior=rs.getInt("prior");
 				String data=rs.getString("end");
-				m=new Memo(rizione,prior,Data.convertStringToData(data));
+				String icon=rs.getString("icon");
+				String id=rs.getString("id");
+				m=new Memo(rizione,prior,Data.convertStringToData(data),icon,id);
 				break;
 			}
 			rs.close();
@@ -645,12 +657,11 @@ public class MemoDBManager implements Iterable<Memo>{
 				if(scaduti)
 					c=rs.getBoolean("completed");
 				String icon=rs.getString("icon");
-				Memo m=new Memo(d,pr,Data.convertStringToData(e),icon);
+				String id=rs.getString("id");
+				Memo m=new Memo(d,pr,Data.convertStringToData(e),icon,id);
 				if(c)
 					m.spunta();
-				if(m.description().equals("prova2"))
-					System.out.println("manager:"+m);
-				sancarlo.add(m);
+				sancarlo.add(m,true);
 			}
 			rs.close();
 		}catch(SQLException e){
@@ -986,7 +997,7 @@ public class MemoDBManager implements Iterable<Memo>{
 	public static void main(String[] args){
 		
 		MemoDBManager mdbm=new MemoDBManager("memodatabase");
-		Memo m=new Memo("compleanno di Judy","normal",2014,2,28,22,00);
+		/*Memo m=new Memo("compleanno di Judy","normal",2014,2,28,22,00);
 		Memo m2=new Memo("Canapisa!!!!","high",2014,5,31,16,00);
 		Memo m3=new Memo("compleanno Francesco","normal",2014,2,27,21,00);
 		Memo m4=new Memo("Canapisa!!!","high",2014,5,31,15,00);
@@ -1001,9 +1012,7 @@ public class MemoDBManager implements Iterable<Memo>{
 		mdbm.login("fabrizio", "uprising");
 		//Memo patrick=new Memo("St Patrick's Day a Dublino",2015,3,17,0,0);
 		//mdbm.insertMemo(patrick);
-		//System.out.println(x);
-		//mdbm.insertMemo(m);
-		//mdbm.insertMemo(m3);
+		//System.out.println(x)
 		
 		//mdbm.clearTable("memnew");
 		//mdbm.deleteTable("memold");

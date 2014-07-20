@@ -2,7 +2,6 @@ package util;
 
 import java.util.*;
 
-import uk.gov.nationalarchives.droid.IndexedHashSet;
 import main.Memo;
 
 
@@ -84,10 +83,10 @@ public class MemoList implements Iterable<Memo>{
 			return;
 		}
 	}*/
-	
+
 	@SuppressWarnings({ "hiding" })
 	private class myIterator<Memo> implements Iterator<Memo>{
-		
+
 		private int used=0;
 		@SuppressWarnings("unchecked")
 		private Iterator<Memo> highIt=(Iterator<Memo>) highs.iterator();		//used=1
@@ -114,7 +113,7 @@ public class MemoList implements Iterable<Memo>{
 		}
 
 		public Memo next() {
-			
+
 			if(used==0 || used==1){
 				if(highIt.hasNext()){
 					used=1;
@@ -146,15 +145,16 @@ public class MemoList implements Iterable<Memo>{
 
 		@Override
 		public void remove() {
-			
+
 			if(used==1)
 				highIt.remove();
 			else if(used==2)
 				normalIt.remove();
 			else if(used==3)
 				lowIt.remove();
+			size--;
 		}
-		
+
 	}
 	private LinkedList<Memo> highs;
 	private LinkedList<Memo> normals;
@@ -196,10 +196,11 @@ public class MemoList implements Iterable<Memo>{
 		return size==0;
 	}//isEmpty
 
-	public boolean add(Memo t){
-
-		if(contains(t))		//non si può inserire qualcosa che esiste già
-			return false;
+	public boolean add(Memo t,boolean fromDB){
+		
+		if(!fromDB)
+			if(contains(t))		//non si può inserire qualcosa che esiste già
+				return false;
 		LinkedList<Memo> current;
 		switch(t.priority()){			//ora andiamo a controllare la priorità del task
 		case 2:/*high*/	current=highs;break;
@@ -207,12 +208,16 @@ public class MemoList implements Iterable<Memo>{
 		case 0:/*low */	current=lows;break;
 		default: throw new IllegalArgumentException("Che cazzo di priorità ha???");
 		}
-		int i=0;
-		for(;i<current.size();i++){
-			if(t.getEnd().compareTo(current.get(i).getEnd())<0)
+		if(!fromDB){
+			int i=0;
+			for(;i<current.size();i++){
+				if(t.getEnd().compareTo(current.get(i).getEnd())<0)
 				break;
+			}
+			current.add(i, t);
 		}
-		current.add(i, t);
+		else
+			current.addLast(t);
 		size++;
 		return true;
 	}//add
@@ -220,7 +225,7 @@ public class MemoList implements Iterable<Memo>{
 	public boolean add(Memo... t){
 
 		for(int i=0;i<t.length;i++)
-			if(!add(t[i])){
+			if(!add(t[i],false)){
 				System.out.println("ho aggiunto solo "+i+1+" dei"+t.length+" Task");
 				return false;
 		}
@@ -229,17 +234,12 @@ public class MemoList implements Iterable<Memo>{
 
 	public boolean contains(Memo t){
 
-		LinkedList<Memo> current;
 		switch(t.priority()){
-		case 2:/*high*/	current=highs;break;
-		case 1:/*norm*/	current=normals;break;
-		case 0:/*low */	current=lows;break;
+		case 2:/*high*/	return highs.contains(t);
+		case 1:/*norm*/	return normals.contains(t);
+		case 0:/*low */	return lows.contains(t);
 		default: throw new IllegalArgumentException("Che cazzo di priorità ha???");
 		}
-		for(Memo m: current)
-			if(m.equals(t))
-				return true;
-		return false;
 	}//contains
 
 	public boolean containsAll(MemoList tl){
@@ -262,6 +262,23 @@ public class MemoList implements Iterable<Memo>{
 			return lows.get(index-highs.size()-normals.size());
 		else return null;
 	}//get
+	
+	public Memo get(String descrizione,int priorità,Data end){
+		
+		Memo tipo=new Memo(descrizione,end);
+		Iterator<Memo> it=iterator();
+		switch(priorità){
+		case 2: it=highs.iterator(); break;
+		case 1: it=normals.iterator(); break;
+		case 0: it=lows.iterator(); break;
+		}
+		while(it.hasNext()){
+			Memo x=it.next();
+			if(x.identici(tipo))
+				return x;
+		}
+		return null;
+	}
 
 	public int indexOf(Memo m){
 
@@ -274,8 +291,8 @@ public class MemoList implements Iterable<Memo>{
 	}
 
 	public boolean remove(Memo t){
-		
-		if( !contains(t) )	//non si può rimuovere qualcosa che non c'è
+
+		if( !contains(t) )//non si può rimuovere qualcosa che non c'è
 			return false;
 		boolean result;
 		switch ( t.priority() ){
@@ -288,14 +305,8 @@ public class MemoList implements Iterable<Memo>{
 			size--;
 		return result;
 	}//remove singolo
+	
 
-	public boolean remove(Memo... t){
-
-		for( int i=0 ; i<t.length ; i++ )
-			if( !remove( t[i] ) )
-				return false;
-		return true;
-	}//remove multiplo
 
 	@Override
 	public Iterator<Memo> iterator() {
@@ -353,7 +364,7 @@ public class MemoList implements Iterable<Memo>{
 			System.out.println("Questo memo è più vecchio");
 			ml.remove(prova2);
 		}
-		
+
 
 	}
 }//Memolist

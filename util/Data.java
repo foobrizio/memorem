@@ -103,6 +103,30 @@ public class Data implements Comparable<Data>, Serializable{
 	}
 	
 	/**
+	 * Ritorna la data sottoforma di stringa
+	 * @return
+	 */
+	public String getData(){
+		
+		return giorno+" "+Data.monthToString(mese)+" "+anno;
+	}
+	
+	/**
+	 * Ritorna l'ora sottoforma di stringa
+	 * @return
+	 */
+	public String getOra(){
+		
+		String h=ora+"";
+		if(ora<10)
+			h="0"+h;
+		String m=minuto+"";
+		if(minuto<10)
+			m="0"+m;
+		return h+":"+m;
+	}
+	
+	/**
 	 * Ritorna true se la data d ha stesso giorno,stesso mese e stesso anno di this
 	 * @param d
 	 * @return
