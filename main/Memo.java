@@ -22,6 +22,8 @@ public class Memo implements Comparable<Memo>, Serializable{
 	private boolean completion;
 	private String icon;
 	private String id;
+	private boolean scadenzanotificata;
+	private boolean pure;
 	
 	/*											*
 	 * 											*
@@ -33,6 +35,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.desc=desc;
 		priority=Priority.NORMAL;
 		completion=false;
+		scadenzanotificata=false;
 		end=new Data(year,month,day,hour,minute);
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
@@ -49,7 +52,9 @@ public class Memo implements Comparable<Memo>, Serializable{
 	public Memo(String desc, int priority, Data end, String icon,String id){
 		
 		this(desc,priority,end,icon);
+		scadenzanotificata=false;
 		this.id=id;
+		pure=true;
 	}
 	
 	public Memo(String desc, String priority, int year, int month, int day, int hour, int minute){
@@ -57,9 +62,11 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.desc=desc;
 		this.setPriority(priority);
 		completion=false;
+		scadenzanotificata=false;
 		end=new Data(year,month,day,hour,minute);
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
+		pure=false;
 	}
 	
 	public Memo(String desc, Data end){
@@ -67,9 +74,11 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.desc=desc;
 		priority=Priority.NORMAL;
 		completion=false;
+		scadenzanotificata=false;
 		this.end=end;
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
+		pure=false;
 	}
 	
 	public Memo(String desc, int priority, Data end){
@@ -77,15 +86,20 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.desc=desc;
 		this.setPriority(priority);
 		completion=false;
+		scadenzanotificata=false;
 		this.end=end;
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
+		pure=false;
 	}
 	
 	public Memo(String desc, int priority, Data end, String icon){
 		
 		this(desc,priority,end);
+		scadenzanotificata=false;
+		completion=false;
 		this.icon=icon;
+		pure=false;
 	}
 	
 	/**
@@ -98,8 +112,10 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.priority=m.priority;
 		this.end=m.end;
 		this.completion=m.completion;
+		this.scadenzanotificata=m.scadenzanotificata;
 		this.icon=m.icon;
 		this.id=m.id;
+		pure=false;
 	}
 	
 	
@@ -112,6 +128,19 @@ public class Memo implements Comparable<Memo>, Serializable{
 	public void spunta(){
 		
 		completion=true;
+		scadenzanotificata=true;
+	}
+	
+	public void setScadenzaNotificata(){
+		
+		completion=false;
+		scadenzanotificata=true;
+	}
+	
+	public void setRevalued(){
+		
+		completion=false;
+		scadenzanotificata=false;
 	}
 	
 	/**
@@ -165,6 +194,11 @@ public class Memo implements Comparable<Memo>, Serializable{
 	public void setEnd(int year, int month, int day, int hour, int minute){
 		
 		this.end=new Data(year,month,day,hour,minute);
+	}
+	
+	public void setEnd(Data end){
+		
+		this.end=end;
 	}
 	
 	/**
@@ -267,7 +301,12 @@ public class Memo implements Comparable<Memo>, Serializable{
 	public boolean isScaduto(){
 		
 		Data oggi=new Data();
-		return oggi.compareTo(end)>0;	//oggi>end significa che la fine è già passata, per cui il task è scaduto
+		return oggi.compareTo(end)>=0;	//oggi>end significa che la fine è già passata, per cui il task è scaduto
+	}
+	
+	public boolean isNotificato(){
+		
+		return scadenzanotificata;
 	}
 	
 	public Data getEnd(){
@@ -283,6 +322,25 @@ public class Memo implements Comparable<Memo>, Serializable{
 	public String getId(){
 		
 		return id;
+	}
+	
+	/*public void setId(String id){
+		
+		this.id=id;
+	}*/
+	
+	/**
+	 * Ritorna true se il memo viene dal database, false se è stato creato o modificato dall'utente
+	 * @return
+	 */
+	public boolean getPure(){
+		
+		return pure;
+	}
+	
+	public void setPure(boolean t){
+		
+		pure=t;
 	}
 	
 	

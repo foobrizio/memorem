@@ -7,6 +7,10 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
+import util.User;
+
 import com.jgoodies.forms.layout.*;
 import com.jgoodies.forms.factories.FormFactory;
 
@@ -21,13 +25,17 @@ public class ModPassDialog extends JDialog implements ActionListener{
 	private JButton cancelButton;
 	private JButton fakeButton;
 	private char[] oldP,newP;
+	private User user;
+	private JLabel oldAdvice;
+	private JLabel passAdvice;
 	
 	/**
 	 * Create the dialog.
 	 */
-	public ModPassDialog(JButton fake) {
-		setBounds(100, 100, 350, 160);
+	public ModPassDialog(JButton fake,User user) {
+		setBounds(100, 100, 350, 230);
 		this.fakeButton=fake;
+		this.user=user;
 		setContentPane(new ColoredPanel("./src/graphic/wallpapers/password.jpg"));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -38,6 +46,12 @@ public class ModPassDialog extends JDialog implements ActionListener{
 				FormFactory.RELATED_GAP_COLSPEC,
 				ColumnSpec.decode("default:grow"),},
 			new RowSpec[] {
+				FormFactory.RELATED_GAP_ROWSPEC,
+				FormFactory.DEFAULT_ROWSPEC,
+				FormFactory.RELATED_GAP_ROWSPEC,
+				FormFactory.DEFAULT_ROWSPEC,
+				FormFactory.RELATED_GAP_ROWSPEC,
+				FormFactory.DEFAULT_ROWSPEC,
 				FormFactory.RELATED_GAP_ROWSPEC,
 				FormFactory.DEFAULT_ROWSPEC,
 				FormFactory.RELATED_GAP_ROWSPEC,
@@ -59,23 +73,37 @@ public class ModPassDialog extends JDialog implements ActionListener{
 			passVecchia.setColumns(10);
 		}
 		{
+			oldAdvice = new JLabel("La password utente è errata");
+			oldAdvice.setVisible(false);
+			oldAdvice.setHorizontalAlignment(SwingConstants.CENTER);
+			oldAdvice.setForeground(Color.RED);
+			contentPanel.add(oldAdvice, "2, 6, 3, 1");
+		}
+		{
 			JLabel lblNewLabel_1 = new JLabel("Nuova password:");
 			lblNewLabel_1.setHorizontalAlignment(SwingConstants.RIGHT);
-			contentPanel.add(lblNewLabel_1, "2, 6, right, default");
+			contentPanel.add(lblNewLabel_1, "2, 8, right, default");
 		}
 		{
 			passNuova = new JPasswordField();
 			passNuova.setColumns(10);
-			contentPanel.add(passNuova, "4, 6, fill, default");
+			contentPanel.add(passNuova, "4, 8, fill, default");
+		}
+		{
+			passAdvice = new JLabel("Le due password non combaciano");
+			passAdvice.setVisible(false);
+			passAdvice.setHorizontalAlignment(SwingConstants.CENTER);
+			passAdvice.setForeground(Color.RED);
+			contentPanel.add(passAdvice, "2, 10, 3, 1");
 		}
 		{
 			JLabel lblConfermaPassword = new JLabel("Conferma password:");
-			contentPanel.add(lblConfermaPassword, "2, 8, right, default");
+			contentPanel.add(lblConfermaPassword, "2, 12, right, default");
 		}
 		{
 			passConferma = new JPasswordField();
 			passConferma.setColumns(10);
-			contentPanel.add(passConferma, "4, 8, fill, default");
+			contentPanel.add(passConferma, "4, 12, fill, default");
 		}
 		{
 			JPanel buttonPane = new JPanel();
@@ -106,8 +134,20 @@ public class ModPassDialog extends JDialog implements ActionListener{
 			
 			char[] newPass1=passNuova.getPassword();
 			char[] newPass2=passConferma.getPassword();
+			String nuova=String.copyValueOf(passVecchia.getPassword());
+			if(!(DigestUtils.shaHex(nuova).equals(user.getPassword()))){
+				System.out.println(DigestUtils.shaHex(nuova));
+				System.out.println(user.getPassword());
+				oldAdvice.setVisible(true);
+				passAdvice.setVisible(false);
+				passVecchia.setText("");
+				passNuova.setText("");
+				passConferma.setText("");
+				return;
+			}
 			if(newPass1.length!=newPass2.length){
-				JOptionPane.showMessageDialog(this, "Le due password non combaciano");
+				oldAdvice.setVisible(false);
+				passAdvice.setVisible(true);
 				passVecchia.setText("");
 				passNuova.setText("");
 				passConferma.setText("");
@@ -115,7 +155,7 @@ public class ModPassDialog extends JDialog implements ActionListener{
 			}
 			else for(int i=0;i<newPass1.length;i++)	//ultimo check sulla correttezza della nuova password
 				if(newPass1[i]!=newPass2[i]){
-					JOptionPane.showMessageDialog(this, "Le due password non combaciano");
+					passAdvice.setVisible(true);
 					passVecchia.setText("");
 					passNuova.setText("");
 					passConferma.setText("");
@@ -155,12 +195,11 @@ public class ModPassDialog extends JDialog implements ActionListener{
 	 */
 	public static void main(String[] args) {
 		try {
-			ModPassDialog dialog = new ModPassDialog(new JButton("OK"));
+			ModPassDialog dialog = new ModPassDialog(new JButton("OK"),null);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 }

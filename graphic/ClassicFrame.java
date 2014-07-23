@@ -3,7 +3,6 @@ package graphic;
 import javax.swing.*;	//per JPanel e soci
 
 import main.Memo;
-import util.Data;
 import util.MemoList;
 
 import java.awt.*;		//per Color
@@ -38,6 +37,7 @@ public class ClassicFrame extends JInternalFrame{
 	 * 			always		//	"sempre"
 	 */
 	private JMenu mnFiltraPerData;
+	//private MouseMotion mouseM;
 
 	
 	public ClassicFrame(JRadioButtonMenuItem[] vF, JCheckBoxMenuItem[] pF,JRadioButtonMenuItem[] dF){
@@ -69,7 +69,9 @@ public class ClassicFrame extends JInternalFrame{
 		this.setBorder(null);
 		createButtons(vF,pF,dF);
 		setJMenuBar(menuBar);
-		this.menuBar.setVisible(true);
+		this.menuBar.setVisible(false);
+		//mouseM=new MouseMotion();
+		//dynamic.addMouseMotionListener(mouseM);
 
 		//setVisible(true);
 	}
@@ -99,6 +101,8 @@ public class ClassicFrame extends JInternalFrame{
 		mnFiltraPerData.add(dF[2]);
 		mnFiltraPerData.add(dF[3]);
 		mnFiltraPerData.add(dF[4]);
+		mnFiltraPerData.add(dF[5]);
+		mnFiltraPerData.add(dF[6]);
 		menuBar.add(mnFiltraPerData);
 	}
 	
@@ -145,7 +149,13 @@ public class ClassicFrame extends JInternalFrame{
 		if(c instanceof MemPanel){
 			if(!personal.contains(((MemPanel)c).getMemo())){
 				personal.add(((MemPanel)c).getMemo(),false);
-				return dynamic.add(c,personal.indexOf(((MemPanel)c).getMemo()));
+				int indexOf=personal.indexOf(((MemPanel)c).getMemo());
+				/*if(indexOf==0){
+					c.addMouseMotionListener(mouseM);
+					if(personal.size()>1)
+						dynamic.getComponent(0).removeMouseMotionListener(mouseM);
+				}*/
+				return dynamic.add(c,indexOf);
 			}
 		}
 		return null;
@@ -176,6 +186,28 @@ public class ClassicFrame extends JInternalFrame{
 		repaint();
 	}
 	
+	public void modifica(MemPanel mp,Memo m){
+		
+		Component[] panels=dynamic.getComponents();
+		boolean found=false;
+		for(int i=0;i<panels.length;i++){
+			if(!found && panels[i] instanceof MemPanel && ((MemPanel)panels[i]).getMemo().equals(m)){
+					((MemPanel)panels[i]).setMemo(m);
+					found=true;
+					personal.remove(mp.getMemo());
+					personal.add(m);
+			}
+			else if(found){
+				int pos=personal.indexOf(m);
+				dynamic.remove(mp);
+				//mp.addMouseMotionListener(mouseM);
+				dynamic.add(mp, pos);
+				dynamic.revalidate();
+				repaint();
+			}
+		}
+	}
+	
 	/**
 	 * Cancella i memo visualizzati nella finestra dynamic
 	 */
@@ -192,20 +224,38 @@ public class ClassicFrame extends JInternalFrame{
 	public int updateMemos(){
 		
 		MemPanel mp;
-		Data end;
 		Component[] panels=dynamic.getComponents();
 		int cont=0;
 		for(int i=0;i<panels.length;i++)
 			if(panels[i] instanceof MemPanel){
 				mp=(MemPanel)panels[i];
-				end=mp.getMemo().getEnd();
-				if(end.compareTo(new Data())<0){	//vengono controllati solo i memo scaduti
-					boolean ret=mp.checkMemo();
-					//System.out.println(mp.getMemo().description());
-					if(ret)			//un memo è appena scaduto ed è stato notificato
-						cont++;
-				}
+				boolean ret=mp.checkMemo();
+				if(ret)			//un memo è appena scaduto ed è stato notificato
+					cont++;
 			}
 		return cont;
 	}
+	
+	/*private class MouseMotion implements MouseMotionListener{
+
+		@Override
+		public void mouseDragged(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent arg0) {
+			
+			int y=arg0.getY();
+			if(y<=25)
+				menuBar.setVisible(true);
+			else{
+				menuBar.setVisible(false);
+				MenuSelectionManager.defaultManager().clearSelectedPath();
+			}
+		}
+		
+		
+	}*/
 }

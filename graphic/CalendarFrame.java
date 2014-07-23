@@ -208,22 +208,13 @@ public class CalendarFrame extends JInternalFrame{
 				//PERSONALIZZIAMO IL NOSTRO POPUP PER LA DATA RICHIESTA
 				else if(click.getButton()==MouseEvent.BUTTON1 && click.getClickCount()==2){		//doppio click
 					Data cliccata=new Data(anno,mese,giorno,0,0);
-					boolean esiste=false;
 					giorno=Integer.parseInt((String)riccardino.getValueAt(cellaSelezionata[0], cellaSelezionata[1]));
+					Memo x=null;
 					for(Memo m: ml)
-						if(m.getEnd().hasSameDay(cliccata)){
-							p.setDesc(m.description());
-							p.setOld(m);
-							esiste=true;
-						}
-					p.setModified(esiste);	//setModified deve stare in pole, perchè può modificare i valori dei parametri
-					p.setMonth(comboMonth.getSelectedIndex());
-					p.setYear(comboBox.getSelectedIndex()+oggi.anno());
-					p.setDay(giorno-1);		//setDay va richiamato sempre dopo setMonth, perchè setMonth modifica il giorno
-					p.setPrior(1);
-					p.setHour(p.getOld().getEnd().ora());
-					p.setMinute(p.getOld().getEnd().minuto());
-					p.setVisible(true);
+						if(m.getEnd().hasSameDay(cliccata))
+							x=m;
+					if(x!=null)
+						p.modifica(x);
 				}
 			}	
 		}
@@ -266,7 +257,6 @@ public class CalendarFrame extends JInternalFrame{
 		
 		public void refresh(){
 			
-			System.out.println("pop down");
 			griglia=new Color[table.getRowCount()][table.getColumnCount()];
 			MemoList forTheMonth=new MemoList();;
 			for( Memo m : ml){	//arrivati qui abbiamo la memolist aggiornata per il mese :D
@@ -473,15 +463,6 @@ public class CalendarFrame extends JInternalFrame{
 		this.p=p;
 	}
 	
-	@Override
-	public void setVisible(boolean aFlag){
-		
-		if(aFlag)
-			System.out.println("Calendario visibile");
-		else
-			System.out.println("Calendario invisibile");
-		super.setVisible(aFlag);
-	}
 	private void colorizeTable(){
 		
 		for(int i=0;i<7;i++)
@@ -500,7 +481,6 @@ public class CalendarFrame extends JInternalFrame{
 	    	
 	    	curMonth=comboMonth.getSelectedIndex()+1;
 			curYear=comboBox.getSelectedIndex()+oggi.anno();
-	    	System.out.println("hop");
 	    	riccardino.setMonth(curYear, curMonth);
 	    	renderer.refresh();
 	    	table.repaint();
@@ -680,7 +660,7 @@ public class CalendarFrame extends JInternalFrame{
 				try {
 					JFrame f=new JFrame();
 					f.setBackground(Color.black);
-					Popup p=new Popup(f,false);
+					Popup p=new Popup(f);
 					MemoList ml=new MemoList();
 					CalendarFrame frame = new CalendarFrame(ml);
 					frame.setListener(p);

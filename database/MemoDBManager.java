@@ -1,11 +1,12 @@
-package util;
+package database;
 
+import java.io.*;
 import java.sql.*;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import org.apache.commons.codec.digest.DigestUtils;	//classe DigestUtils per la decodifica SHA
+
+import util.*;
 
 import com.mysql.jdbc.exceptions.jdbc4.*; 			//eccezione MySQLIntegrityConstraintException
 
@@ -25,14 +26,12 @@ public class MemoDBManager implements Iterable<Memo>{
 	private final String mo="memodataold";
 	private final String mn="memodatanew";
 	
-	static final String JDBC_DRIVER="com.mysql.jdbc.Driver";
-	static final String DB_URL="jdbc:mysql://127.0.0.1/";
 	
 	private User user;
-	private String DBpassword;
 	
 	private static final String createDB="create database if not exists ";
 	private String grant="grant usage on ";
+	private String drivers,DB_URL,DBuser,DBpassword;
 	private Connection conn;
 	private Statement stmt;
 	
@@ -42,28 +41,36 @@ public class MemoDBManager implements Iterable<Memo>{
 	 */
 	public MemoDBManager(String dbName){
 		
-		this.dbName=dbName;
-		grant=grant+dbName+".* to root@localhost";
-		this.user=new User("none");
-		conn=null;
-		stmt=null;
-		DBpassword="my,u.i-o";
-		addUser("admin","Iamtheadmin",null,null,'m');
-		try {
-			Class.forName(JDBC_DRIVER);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		try {
-			conn=DriverManager.getConnection(DB_URL,"root",DBpassword);
-			stmt=conn.createStatement();
+		try{
+			Properties props = new Properties();
+			String current=System.getProperty("user.dir");
+			FileInputStream in = new FileInputStream(current+"/src/database/.database.properties");
+			props.load(in);
+			in.close();
+
+			drivers = props.getProperty("jdbc.drivers");
+			DB_URL = props.getProperty("jdbc.url");
+			DBuser = props.getProperty("jdbc.username");
+			DBpassword = props.getProperty("jdbc.password");
+
+			System.setProperty("jdbc.drivers", drivers);
+			System.setProperty("jdbc.username", DBuser);
+			conn = DriverManager.getConnection(DB_URL, DBuser,DBpassword);
+			stmt= conn.createStatement();
+			this.dbName=dbName;
+			grant=grant+dbName+".* to "+DBuser+"@localhost";
+			this.user=new User("none");
+			addUser("admin","Iamtheadmin",null,null,'m');
+			//Class.forName(drivers);
 			stmt.executeUpdate(createDB+" "+dbName);
 			stmt.executeUpdate(grant);
 			createUsersTable();
 			createTables();
 			createHintsTable();
-		} catch (SQLException e) {
+		} catch (IOException e){
 			e.printStackTrace();
+		} catch( SQLException e){
+			System.out.println();
 		} finally{
 			try{
 				if(stmt!=null)
@@ -241,6 +248,7 @@ public class MemoDBManager implements Iterable<Memo>{
 				if(!isMaschio)
 					genere='f';
 				this.user=new User(user,nome,cognome,genere);
+				this.user.setPassword(pass2);
 				res=0;
 			}
 			else res=2;					//password sbagliata
@@ -293,24 +301,19 @@ public class MemoDBManager implements Iterable<Memo>{
 		else return 1;
 	}
 	
-	public String[] userList(){
+	public HashSet<User> userList(){
 		
-		String[] utenti=null;
-		String sql="SELECT nickname FROM memousers";
+		HashSet<User> utenti=new HashSet<User>();
+		String sql="SELECT * FROM memousers";
 		ResultSet rs=executeQuery(sql);
-		int cont=0;
 		try{
-			while(rs.next()){		//prima scansione per stabilire la dimensione dell'array
-				cont++;
-			}
-			rs.beforeFirst(); 		//riavvolgiamo e ricominciamo la scansione
-			int i=0;
-			utenti=new String[cont-1];
 			while(rs.next()){
 				String nick=rs.getString("nickname");
-				//System.out.println("utente:"+nick+" in posizione i:"+i);
+				String password=rs.getString("password");
+				User nicko=new User(nick);
+				nicko.setPassword(password);
 				if(!nick.equals("admin"))
-					utenti[i++]=nick;
+					utenti.add(nicko);
 			}
 		}catch(SQLException sqle){
 			sqle.printStackTrace();
@@ -373,22 +376,23 @@ public class MemoDBManager implements Iterable<Memo>{
 		if(user.equals("none"))			return false;	//nessun utente connesso
 		String sql="";
 		if(table.equals(mn))
-			sql="INSERT INTO "+mn+" (descrizione,prior,end,user,icon,id)";
-		else sql="INSERT INTO "+mo+" (descrizione,prior,end,completed,user,icon,id)";
+			sql="INSERT INTO "+mn+" (id,descrizione,prior,end,user,icon)";
+		else sql="INSERT INTO "+mo+" (id,descrizione,prior,end,completed,user,icon)";
 		//valori primitivi
 		String desc=m.description();
+		String id=m.getId();
 		int result=-1;
 		int prior=m.priority();
 		boolean completed=m.isCompleted();
 		//valori che vanno convertiti
 		String end=Data.convertDateToString(m.getEnd());
 		String icon=m.getIcon();
-		sql+=" VALUES('"+verificaStringa(desc)+"',"+prior+",'"+end+"'";
+		sql+=" VALUES('"+id+"','"+verificaStringa(desc)+"',"+prior+",'"+end+"'";
 		if(table.equals(mn))
 			sql+=",'"+verificaStringa(user.getNickname())+"','"+verificaStringa(icon)+"'";
 		else
 			sql+=",b'"+(completed?"1":"0")+"','"+verificaStringa(user.getNickname())+"','"+verificaStringa(icon)+"'";
-		sql+=",'"+m.getId()+"')";
+		sql+=")";
 		result=executeUpdate(sql);
 		return result==1;
 	}
@@ -510,7 +514,6 @@ public class MemoDBManager implements Iterable<Memo>{
 				String id=rs.getString("id");
 				Data fine=Data.convertStringToData(end);
 				m=new Memo(desc,prior,fine,icon,id);
-				//System.out.println("manager:"+m.getIcon());
 				ml.add(m,true);
 			}
 			if(!soloAttivi){
@@ -544,7 +547,30 @@ public class MemoDBManager implements Iterable<Memo>{
 		return ml;
 	}
 	
-
+	/**
+	 * Ritorna i memo da visualizzare appena si avvia il programma, ovvero quelli con scadenza 
+	 * settimanale e quelli già scaduti in attesa di essere gestiti
+	 * @return
+	 */
+	public MemoList getStandardMemos(){
+		
+		String sql="SELECT * FROM memodatanew WHERE user='"+verificaStringa(user.getNickname())+"' and date_add(curdate(), interval 7 day)>=end";
+		ResultSet rs=executeQuery(sql);
+		MemoList ml=new MemoList();
+		try{
+			while(rs.next()){
+				String descrizione=rs.getString("descrizione");
+				int prior=rs.getInt("prior");
+				String end=rs.getString("end");
+				String icon=rs.getString("icon");
+				String id=rs.getString("id");
+				ml.add(new Memo(descrizione,prior,Data.convertStringToData(end),icon,id),true);
+			}
+		}catch(SQLException e){
+			return null;
+		}
+		return ml;
+	}
 	@Override
 	public Iterator<Memo> iterator() {
 		
@@ -584,8 +610,7 @@ public class MemoDBManager implements Iterable<Memo>{
 	}
 	
 	/**
-	 * Ritorn il memo che nel database corrisponde alla descrizione "desc" e alla data "end" 
-	 * QUESTO METODO NON é CORRETTO, BISOGNA VERIFICARE SE ESSO SIA IN mo O IN mn
+	 * Ritorn il memo che nel database dei memo attivi corrisponde alla descrizione "desc" e alla data "end" 
 	 * @param desc
 	 * @param end
 	 * @return
@@ -593,24 +618,20 @@ public class MemoDBManager implements Iterable<Memo>{
 	public Memo get(String desc, Data end){
 		
 		if(user.equals("none"))					return null;	//nessun utente connesso
-		boolean scaduto=end.compareTo(new Data())<0;
+		//boolean scaduto=end.compareTo(new Data())<0;
 		String sql="SELECT * FROM ";
-		if(scaduto)
-			sql+=mo+" ";
-		else
 			sql+=mn+" ";
-		sql+="WHERE descrizione='"+verificaStringa(desc)+"' AND end='"+Data.convertDateToString(end)+"'";
+		sql+="WHERE user='"+user.getNickname()+"' AND descrizione='"+verificaStringa(desc)+"' AND end='"+Data.convertDateToString(end)+"'";
 		ResultSet rs=executeQuery(sql);
 		Memo m=null;
 		try{
-			while(rs.next()){
+			if(rs.next()){
 				String rizione=rs.getString("descrizione");
 				int prior=rs.getInt("prior");
 				String data=rs.getString("end");
 				String icon=rs.getString("icon");
 				String id=rs.getString("id");
 				m=new Memo(rizione,prior,Data.convertStringToData(data),icon,id);
-				break;
 			}
 			rs.close();
 		}catch(SQLException e){
@@ -629,6 +650,11 @@ public class MemoDBManager implements Iterable<Memo>{
 		clearFromTable(mo);
 	}
 	
+	public void cancellaStorico(){
+		
+		if(user.equals("none"))				return;
+		clearFromTable(mo);
+	}
 	/**
 	 * Resetta tutto il database. Solo l'amministratore può usare questo metodo
 	 */
@@ -842,12 +868,14 @@ public class MemoDBManager implements Iterable<Memo>{
 		 * result[0]= (Integer)priorità alta
 		 * result[1]= (Integer)priorità media
 		 * result[2]= (Integer)priorità bassa
-		 * result[3]= (Integer)memo completati
-		 * result[4]= (Integer)memo archiviati
-		 * result[5]= (Integer)memo attivi
-		 * result[6]= (Integer)memo totali
+		 * result[3]= (Integer)memo in attesa
+		 * result[4]= (Integer)memo completati
+		 * result[5]= (Integer)memo archiviati
+		 * result[6]= (Integer)memo attivi
+		 * result[7]= (Integer)memo totali
 		 */
-		Object[] result=new Object[7];
+		Object[] result=new Object[8];
+		String pending="SELECT COUNT(*) AS wei FROM memodatanew WHERE end<curDate()";
 		String prior1="SELECT COUNT(*) AS ehi FROM ";
 		String prior2=" WHERE user='"+verificaStringa(user.getNickname())+"' AND prior='";
 		String comp1="SELECT COUNT(*) AS wei FROM ";
@@ -906,26 +934,31 @@ public class MemoDBManager implements Iterable<Memo>{
 				result[2]=i;	
 			}//priorità bassa
 			lmo.close();
+			if(!admin)
+				pending=pending+" AND user='"+verificaStringa(this.user.getNickname())+"'";
+			ResultSet pend=stmt.executeQuery(pending);
+			if(pend.next())
+				result[3]=pend.getString("wei");
 			if(admin)
 				str=comp1+mo+" WHERE completed='1'";
 			else str=comp1+mo+comp2+"1'";
 			ResultSet comp=stmt.executeQuery(str);
 			if(comp.next())
-				result[3]=comp.getString("wei");						//completati
+				result[4]=comp.getString("wei");						//completati
 			comp.close();
 			if(admin)
 				str=comp1+mo+" WHERE completed='0'";
 			else str=comp1+mo+comp2+"0'";
 			ResultSet arch=stmt.executeQuery(str);
 			if(arch.next())
-				result[4]=arch.getString("wei");						//archiviati
+				result[5]=arch.getString("wei");						//archiviati
 			arch.close();
 			str="SELECT COUNT(*) as hehe FROM "+mn;
 			if(!admin)
 				str=str+" WHERE user='"+verificaStringa(user.getNickname())+"'";
 			ResultSet act=stmt.executeQuery(str);
 			if(act.next())
-				result[5]=act.getString("hehe");							//attivi		
+				result[6]=act.getString("hehe");							//attivi		
 			act.close();
 		}catch(SQLException e){
 			e.printStackTrace();
@@ -938,7 +971,7 @@ public class MemoDBManager implements Iterable<Memo>{
 				System.out.println("problemi durante la chiusura");
 			}
 		}
-		result[6]=size(false);
+		result[7]=size(false);
 		return result;
 	}
 	
@@ -952,7 +985,7 @@ public class MemoDBManager implements Iterable<Memo>{
 		int x=0;
 		//System.out.println(sql);
 		try{
-			conn=DriverManager.getConnection(DB_URL+dbName, "root", DBpassword);
+			conn=DriverManager.getConnection(DB_URL+dbName, DBuser, DBpassword);
 			stmt=conn.createStatement();
 			x=stmt.executeUpdate(sql);
 		}catch(MySQLIntegrityConstraintViolationException e){
@@ -962,6 +995,7 @@ public class MemoDBManager implements Iterable<Memo>{
 			e.printStackTrace();
 			System.out.println("Errore in apertura per query "+sql);
 		}finally{
+			System.out.println(sql);
 			try{
 				if(stmt!=null)
 					stmt.close();
@@ -984,12 +1018,14 @@ public class MemoDBManager implements Iterable<Memo>{
 		
 		ResultSet rs=null;
 		try{
-			conn=DriverManager.getConnection(DB_URL+dbName, "root", DBpassword);
+			conn=DriverManager.getConnection(DB_URL+dbName, DBuser, DBpassword);
 			stmt=conn.createStatement();
 			rs=stmt.executeQuery(sql);
 		}catch(SQLException e){
 			System.out.println("e");
 			e.printStackTrace();
+		}finally{
+			System.out.println(sql);
 		}
 		return rs;
 	}

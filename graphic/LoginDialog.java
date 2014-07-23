@@ -20,7 +20,14 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
+
+import org.apache.commons.codec.digest.DigestUtils;
+
+import util.User;
+
 import java.awt.Font;
+import java.util.HashSet;
+import java.util.Iterator;
 
 @SuppressWarnings("serial")
 public class LoginDialog extends JDialog implements ActionListener {
@@ -38,6 +45,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 	private GenHandler generale;
 	private JLabel lblIlNicknameDeve;
 	private JLabel lblAlmenoCaratteri;
+	private HashSet<User> userList;
 
 	
 	
@@ -72,6 +80,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		super(owner,true);
 		this.registrazione=registrazione;
 		this.autologin=autologin;
+		this.userList=new HashSet<User>();
 		this.generale=new GenHandler();
 		if(registrazione){
 			setContentPane(new ColoredPanel("./src/graphic/wallpapers/man.png"));
@@ -242,7 +251,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		buttonPane.add(cancelButton);
 		if(!registrazione){
 			variableLabel.setText("Accedi");
-			setBounds(100, 100, 350, 130);
+			setBounds(100, 100, 350, 160);
 			nameLabel.setVisible(false);
 			surnameLabel.setVisible(false);
 			genreLabel.setVisible(false);
@@ -272,6 +281,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 			lblIlNicknameDeve.setVisible(false);
 			lblAlmenoCaratteri.setVisible(false);
 			char[] c=passwordField.getPassword();
+			User user=null;
 			pass=String.copyValueOf(c);
 			nick=nickField.getText().trim();
 			if(nick.length()<=2){
@@ -286,6 +296,41 @@ public class LoginDialog extends JDialog implements ActionListener {
 				lblIlNicknameDeve.setVisible(true);
 				return;
 			}
+			if(registrazione){
+				if(userList.contains(nick)){
+					this.repaint();
+					lblIlNicknameDeve.setText(nick+" è già in uso");
+					lblIlNicknameDeve.setVisible(true);
+					return;
+				}//user CHeck
+				else if(nick.equals("guest")){
+					this.repaint();
+					if(nick.equals("guest"))
+						lblIlNicknameDeve.setText("Non puoi usare il nickname 'guest'");
+					else if(nick.equals("admin"))
+						lblIlNicknameDeve.setText("Non puoi usare il nickname 'admin'");
+					lblIlNicknameDeve.setVisible(true);
+					return;	
+				}//guest Check
+			}//solo se registrazione
+			else{
+				Iterator<User> it=userList.iterator();
+				boolean found=false;
+				
+				while(it.hasNext() && !found){
+					User y=it.next();
+					if(y.getNickname().equals(nick)){
+						found=true;
+						user=y;
+					}
+				}
+				if(user==null){
+					this.repaint();
+					lblIlNicknameDeve.setText("L'utente "+nick+" non esiste");
+					lblIlNicknameDeve.setVisible(true);
+					return;
+				}//check del nickname
+			}
 			if(pass.length()<4){
 				this.repaint();
 				lblAlmenoCaratteri.setText("La password deve avere almeno 4 caratteri");
@@ -298,6 +343,15 @@ public class LoginDialog extends JDialog implements ActionListener {
 				lblAlmenoCaratteri.setVisible(true);
 				return;
 			}
+			else{
+				String sha=DigestUtils.shaHex(pass);
+				if(!sha.equals(user.getPassword())){
+					this.repaint();
+					lblAlmenoCaratteri.setText("La password non è corretta");
+					lblAlmenoCaratteri.setVisible(true);
+					return;
+				}
+			}//check della password
 			if(registrazione){
 				name=nameField.getText().trim();
 				surname=surnameField.getText().trim();
@@ -315,6 +369,10 @@ public class LoginDialog extends JDialog implements ActionListener {
 		}
 	}
 	
+	public void setUserList(HashSet<User> users){
+		
+		this.userList=users;
+	}
 	public boolean isOk(){
 		
 		return oki;
@@ -348,6 +406,11 @@ public class LoginDialog extends JDialog implements ActionListener {
 	public static void main(String[] args) {
 		try {
 			LoginDialog dialog = new LoginDialog(null,false,false);
+			HashSet<User> users=new HashSet<User>();
+			users.add(new User("admin"));
+			users.add(new User("fabrizio"));
+			users.add(new User("roberto"));
+			dialog.setUserList(users);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {

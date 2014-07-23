@@ -2,6 +2,7 @@ package main;
 
 import java.util.*;
 
+import database.MemoDBManager;
 import util.*;
 
 
@@ -26,7 +27,7 @@ public class Keeper implements Iterable<Memo>{
 	private MemoList currentMemos;		
 	private LinkedHashSet<Memo> removenda;
 	private LinkedHashSet<Memo> nuovi;
-	private LinkedHashMap<Memo,Memo> mutanda;//che in latino significa "da modificare"..ma in italiano lol xD
+	private HashMap<Memo,Memo> mutanda;//che in latino significa "da modificare"..ma in italiano lol xD
 	private MemoDBManager manager;
 	private double completati;
 	private double scaduti;
@@ -34,13 +35,17 @@ public class Keeper implements Iterable<Memo>{
 	public Keeper(){
 		
 		this.user=new User("none");
+		this.manager=new MemoDBManager("memodatabase");
+	}
+	
+	public void start(){
+		
+		this.user=new User("none");
 		this.currentMemos=new MemoList();
 		this.removenda=new LinkedHashSet<Memo>();
 		this.nuovi=new LinkedHashSet<Memo>();
 		this.mutanda=new LinkedHashMap<Memo,Memo>();
-		this.manager=new MemoDBManager("memodatabase");
 	}
-	
 	/**
 	 * Aggiunge un nuovo task nella lista, aggiornando l'archivio
 	 * @param t
@@ -49,7 +54,7 @@ public class Keeper implements Iterable<Memo>{
 		
 		if(!t.isScaduto()){
 			nuovi.add(t);
-			return currentMemos.add(t,false);
+			return currentMemos.add(t, false);
 		}
 		else{
 			System.out.println("Il task e' gia' scaduto, pertanto non verra' aggiunto");
@@ -67,8 +72,8 @@ public class Keeper implements Iterable<Memo>{
 		
 		currentMemos.remove(vecchio);
 		nuovi.remove(vecchio);
-		currentMemos.add(nuovo,false);
 		mutanda.put(vecchio, nuovo);
+		System.out.println(mutanda.size());
 		
 	}
 	/**
@@ -77,7 +82,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public void completa(Memo m,boolean completato){
 		
-		if(user.getNickname().equals("guest")){
+		if(user.isGuest()){
 			System.out.println("Guest");
 			currentMemos.remove(m);
 			mutanda.remove(m);
@@ -103,7 +108,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public void scade(Memo m){
 		
-		if(user.getNickname().equals("guest")){
+		if(user.isGuest()){
 			scaduti++;
 			return;
 		}
@@ -188,7 +193,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public MemoList getTotalList(){
 		
-		if(user.getNickname().equals("guest")){
+		if(user.isGuest()){
 			MemoList ml=new MemoList(currentMemos);
 			for(Memo m: removenda)
 				if(ml.contains(m))
@@ -223,16 +228,20 @@ public class Keeper implements Iterable<Memo>{
 		p.add("Media");
 		p.add("Bassa");
 		MemoList ml=new MemoList();
-		if(!user.getNickname().equals("guest")){
-			formaQuery("always", "attivi", p);
-			ml=getRealList();
+		if(!user.isGuest()){
+			formaQuery("pending", "attivi", p);
+			ml=getCurrentList();
 		}
 		else
 			ml=new MemoList(currentMemos);
-		Iterator<Memo> it=ml.iterator();
-		while(it.hasNext())
-			if(!it.next().isScaduto())
-				it.remove();
+		for(Memo m:nuovi)
+			if(m.getEnd().compareTo(new Data())<0)
+				ml.add(m);
+		for(Memo m:mutanda.values())
+			if(m.getEnd().compareTo(new Data())<0)
+				ml.add(m);
+		for(Memo m:removenda)
+			ml.remove(m);
 		return ml;
 	}
 	
@@ -261,7 +270,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public void remove(Memo t){
 		
-		if(user.getNickname().equals("guest")){
+		if(user.isGuest()){
 			currentMemos.remove(t);
 			mutanda.remove(t);
 			nuovi.remove(t);
@@ -270,12 +279,12 @@ public class Keeper implements Iterable<Memo>{
 		Memo x=manager.get(t.description(), t.getEnd());
 		if(x!=null && x.equals(t) && !currentMemos.contains(t))		//significa che il memo è contenuto soltanto nel manager, ma non per forza anche in currentMemos
 			removenda.add(t);
-		else if(!manager.contains(t) && currentMemos.contains(t)){	//significa che il memo da eliminare è stato modificato di recente, quindi non c'è nel manager
+		else if(x==null && currentMemos.contains(t)){	//significa che il memo da eliminare è stato modificato di recente, quindi non c'è nel manager
 			mutanda.remove(t);
 			nuovi.remove(t);
 			currentMemos.remove(t);
 		}
-		else if(manager.contains(t) && currentMemos.contains(t)){
+		else if(x!=null && currentMemos.contains(t)){
 			currentMemos.remove(t);
 			nuovi.remove(t);
 			removenda.add(t);
@@ -288,11 +297,17 @@ public class Keeper implements Iterable<Memo>{
 	public void clear(){
 		
 		currentMemos.clear();
-		removenda.clear();
-		mutanda.clear();
-		nuovi.clear();
-		if(!user.getNickname().equals("guest"))
+		removenda= new LinkedHashSet<Memo>();
+		mutanda= new LinkedHashMap<Memo,Memo>();
+		nuovi=new LinkedHashSet<Memo>();
+		if(!user.isGuest())
 			manager.clear();
+	}
+	
+	public void cancellaStorico(){
+		
+		if(user.isGuest())
+		manager.cancellaStorico();
 	}
 	
 	/**
@@ -300,7 +315,7 @@ public class Keeper implements Iterable<Memo>{
 	 */
 	public void reset(){
 		
-		if(!user.equals("admin"))
+		if(!user.isAdmin())
 			return;
 		manager.reset();
 		clear();
@@ -312,13 +327,23 @@ public class Keeper implements Iterable<Memo>{
 	}
 	
 	/**
-	 * Ritorna true se il memo è contenuto nel database (sia se attivo che se scaduto)
+	 * Ritorna true se esiste nel database un memo identico ma con iD diverso
 	 * @param t
 	 * @return
 	 */
-	public boolean contains(Memo t){
+	public boolean containsEqualInDB(Memo t){
 		
-		return currentMemos.contains(t) && !removenda.contains(t);
+		MemoList ml=manager.list(true);
+		for(Memo m:ml){
+			String id=m.getId();
+			String desc=m.description();
+			Data end=m.getEnd();
+			if(!id.equals(t.getId()))
+				if(t.description().equals(desc))
+					if(t.getEnd().equals(end))
+						return true;
+		}
+		return false;
 	}
 
 	/**
@@ -330,6 +355,28 @@ public class Keeper implements Iterable<Memo>{
 	public void formaQuery(String data,String visual,LinkedList<String> prior){
 		
 		String query="SELECT * FROM ";
+		boolean[] dF=new boolean[4];
+		for(int i=0;i<dF.length;i++)
+			dF[i]=false;
+		boolean[] pF=new boolean[3];
+		for(int i=0;i<pF.length;i++)
+			pF[i]=true;
+		if(data.equals("standard")){
+			query=query+"memodatanew WHERE user='"+user.getNickname()+"' AND end<date_add(curdate(), interval 7 day) ORDER BY prior DESC, end";
+			dF[2]=true;
+			currentMemos.clear();
+			currentMemos=manager.processQuery(query,false);
+			for(Memo m: removenda)
+				if(!filtriViolati(pF,dF,m))
+					currentMemos.remove(m);
+			for(Memo m: nuovi)
+				if(!filtriViolati(pF,dF,m))
+					currentMemos.add(m);
+			for(Memo m: mutanda.values())
+				if(!filtriViolati(pF,dF,m))
+					currentMemos.add(m);
+			return;
+		}
 		switch(visual){
 		case "attivi": query=query+"memodatanew"; break;
 		default: query=query+"memodataold"; break;
@@ -338,25 +385,36 @@ public class Keeper implements Iterable<Memo>{
 		if(!data.equals("always")){
 			if(visual.equals("attivi")){	//visualizzare da oggi verso il futuro
 				switch(data){
+				case "pending":
+				dF[1]=true;
+				System.out.println("pending");
+				query=query+"AND end<now()";
+				break;
+				
 				case "oggi":
+				dF[0]=true;
 				query=query+"AND date_add(curdate() , interval 0 day)>=end";	
 				break;
 				
 				case "week":
+				dF[1]=true;
 				query=query+"AND date_add(curdate(), interval 7 day)>=end";
 				break;
 				
 				case "month":
+				dF[2]=true;
 				query=query+"AND month(end)=month(curdate())";
 				break;
 				
 				case "year":
+				dF[3]=true;
 				query=query+"AND year(end)=year(curdate())";
 				break;
 				
 				default: break;		//nel caso di always
 				}
-				query=query+" AND end>curdate()";
+				if(!data.equals("pending"))
+					query=query+" AND end>curdate()";
 			}
 			else{						//visualizzare da oggi verso il passato
 				switch(data){
@@ -385,26 +443,85 @@ public class Keeper implements Iterable<Memo>{
 			return;
 		}
 		if(prior.size()==1){
-			if(prior.get(0).equals("Alta"))
+			if(prior.get(0).equals("Alta")){
+				pF[1]=false;
+				pF[2]=false;
 				query=query+" AND prior='2'";
-			else if(prior.get(0).equals("Bassa"))
+			}
+			else if(prior.get(0).equals("Bassa")){
+				pF[0]=false;
+				pF[1]=false;
 				query=query+" AND prior='0'";
-			else query=query+" AND prior='1'";
+			}
+			else{
+				pF[0]=false;
+				pF[2]=false;
+				query=query+" AND prior='1'";
+			}
 		}
 		else if(prior.size()==2){
-			if(!prior.contains("Alta"))
+			if(!prior.contains("Alta")){
+				pF[0]=false;
 				query=query+" AND prior NOT LIKE '2'";
-			else if(!prior.contains("Bassa"))
+			}
+			else if(!prior.contains("Bassa")){
+				pF[2]=false;
 				query=query+" AND prior NOT LIKE '0'";
-			else query=query+" AND prior NOT LIKE '1'";
+			}
+			else{
+				pF[1]=false;
+				query=query+" AND prior NOT LIKE '1'";
+			}
 		}
 		query+=" ORDER BY prior DESC, end";
-		System.out.println(query);
 		boolean scaduti=(visual!="attivi");
 		currentMemos.clear();
 		currentMemos=manager.processQuery(query,scaduti);
+		if(!scaduti){
+			for(Memo m: removenda)
+				if(!filtriViolati(pF,dF,m))
+					currentMemos.remove(m);
+			for(Memo m: nuovi)
+				if(!filtriViolati(pF,dF,m))
+					currentMemos.add(m);
+			for(Memo m: mutanda.values())
+				if(!filtriViolati(pF,dF,m))
+					currentMemos.add(m);
+		}
 	}
 	
+	public static boolean filtriViolati(boolean[] pF,boolean[] dF,Memo m){
+			
+		int prior=m.priority();
+		Data d=m.getEnd();
+		if(!pF[0] && prior==2)
+			return true;
+		if(!pF[1] && prior==1)
+			return true;
+		if(!pF[2] && prior==0)
+			return true;
+		//ABBIAMO CONTROLLATO LE PRIORITA'
+		Data now=new Data();
+		if(dF[0]){ 			//entro oggi
+			if(Data.diff(d,now)>1)
+				return true;
+		}
+		else if(dF[1]){	//entro settimana
+			int tempo=Data.diff(d, now);
+			System.out.println(tempo);
+			if(Data.diff(d,now)>7)
+				return true;
+		}
+		else if(dF[2]){	//entro un mese
+			if(Data.diff(d,now)>Data.daysOfMonth(now.anno(),now.mese()))
+				return true;
+		}
+		else if(dF[3]){ //entro un anno
+			if(Data.diff(d,now)>Data.daysOfYear(now.anno()))
+				return true;
+		}
+		return false;
+	}	
 	/**
 	 * Ritorna la lista corrente di memo (utile se invocata immediatamente dopo una query personalizzata
 	 * @return
@@ -429,12 +546,18 @@ public class Keeper implements Iterable<Memo>{
 		return questa;
 	}
 	
+	public MemoList getStandardMemos(){
+		
+		return manager.getStandardMemos();
+	}
+	
 	public void salva(){
 		
 		for(Memo m: removenda)
 			manager.removeMemo(m);
-		for(Memo m: mutanda.keySet())
+		for(Memo m: mutanda.keySet()){
 			manager.modifyMemo(m, mutanda.get(m));
+		}
 		for(Memo m: currentMemos)
 			if(!manager.contains(m))
 				manager.insertMemo(m);
@@ -446,9 +569,9 @@ public class Keeper implements Iterable<Memo>{
 				manager.insertMemo(m);
 			}
 		}
-		removenda.clear();
-		mutanda.clear();
-		nuovi.clear();
+		removenda=new LinkedHashSet<Memo>();
+		mutanda=new LinkedHashMap<Memo,Memo>();
+		nuovi=new LinkedHashSet<Memo>();
 	}
 	
 	public int login(String user,String password){
@@ -460,8 +583,11 @@ public class Keeper implements Iterable<Memo>{
 		int x=manager.login(user, password);
 		if(x==0){
 			this.user=manager.getUser();
-			for(Memo m: manager.list(true))
-				currentMemos.add(m,true);
+			this.currentMemos=new MemoList();
+			this.removenda=new LinkedHashSet<Memo>();
+			this.nuovi=new LinkedHashSet<Memo>();
+			this.mutanda=new LinkedHashMap<Memo,Memo>();
+			currentMemos=manager.getStandardMemos();
 		}
 		int[] risu=manager.rapportoCompletati();
 		completati=risu[0];
@@ -471,17 +597,17 @@ public class Keeper implements Iterable<Memo>{
 	
 	public boolean logout(){
 		
-		if(this.user.getNickname().equals("guest")){
+		if(this.user.isGuest()){
 			currentMemos.clear();
-			removenda.clear();
-			mutanda.clear();
+			removenda=new LinkedHashSet<Memo>();
+			mutanda=new LinkedHashMap<Memo,Memo>();
 			this.user=new User("none");
 			return true;
 		}
 		if(manager.logout()){
 			currentMemos.clear();
-			removenda.clear();
-			mutanda.clear();
+			removenda=new LinkedHashSet<Memo>();
+			mutanda=new LinkedHashMap<Memo,Memo>();
 			this.user=new User("none");
 			return true;
 		}
@@ -504,9 +630,9 @@ public class Keeper implements Iterable<Memo>{
 		if(res==0){
 			if(login){
 				currentMemos.clear();
-				removenda.clear();
-				mutanda.clear();
-				nuovi.clear();
+				removenda=new LinkedHashSet<Memo>();
+				mutanda=new LinkedHashMap<Memo,Memo>();
+				nuovi=new LinkedHashSet<Memo>();
 				completati=0;
 				scaduti=0;
 				this.user=manager.getUser();
@@ -535,7 +661,7 @@ public class Keeper implements Iterable<Memo>{
 		return user;
 	}
 	
-	public String[] userList(){
+	public HashSet<User> userList(){
 		
 		return manager.userList();
 	}
@@ -548,8 +674,7 @@ public class Keeper implements Iterable<Memo>{
 		
 		return currentMemos.iterator();
 	}
-			
-	
+
 	public static void main(String[] args){
 		
 		Memo t1=new Memo("t1","b",2014,11,30,15,00);
@@ -559,6 +684,7 @@ public class Keeper implements Iterable<Memo>{
 		Memo t5=new Memo("t5","a",2015,2,2,13,00);
 		Memo t6=new Memo("t6","c",2013,12,13,12,60);
 		Keeper k=new Keeper();
+		k.start();
 		k.add(t1,t2,t3,t4,t5,t6);
 		/*try{
 			k.start();

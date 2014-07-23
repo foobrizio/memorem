@@ -33,6 +33,17 @@ public class ColoredPanel extends JPanel {
 		
 		this.sfondo=bim;
 	}
+	
+	public void setSfondo(String path){
+		
+		File f=new File(path);
+		try{
+			setImage(ImageIO.read(f));
+		}catch(IOException oie){
+			System.out.println("L'immagine non è stata trovata");
+		}
+	}
+	
 	@Override
 	public void paintComponent(Graphics g){
 		

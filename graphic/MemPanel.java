@@ -54,9 +54,8 @@ public class MemPanel extends JPanel implements ActionListener{
 	private JMenuBar bar;
 	private JMenu combo,rinvia;
 	private JMenuItem modifica,tipo;
-	private MyMenuItem elimina, completa,oneDay,threeDays,oneWeek,personalizza,archivia;
+	private MyMenuItem elimina, completa,oneDay,threeDays,oneWeek,oneMonth,personalizza,archivia;
 	private boolean tipoB;
-	private boolean scadenzanotificata;
 	private boolean iconaCambiata;
 	private Popup p;
 	private JPanel paneleft;
@@ -65,6 +64,7 @@ public class MemPanel extends JPanel implements ActionListener{
 	private MouseTrap mouse;
 	private JFileChooser jfc;
 	private JButton iconButton;
+	private String iconPath;
 	
 	/**
 	 * Costruttore di Default
@@ -77,18 +77,16 @@ public class MemPanel extends JPanel implements ActionListener{
 		this.jfc=null;
 		iconButton=null;
 		mouse=new MouseTrap();
-		scadenzanotificata=false;
 		//coloreClock=Color.BLACK;
 		tipoB=false; //se impostato a false il memo è attivo
 		bar=new JMenuBar();
-		bar.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		elimina=new MyMenuItem("elimina");
 		elimina.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		modifica=new JMenuItem("modifica");
+		modifica=new JMenuItem("modifica");	
 		modifica.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		tipo=new JMenuItem("cambia visualizzazione");
 		tipo.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		
+
 		rinvia = new JMenu("rinvia");
 		rinvia.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		archivia= new MyMenuItem("archivia");
@@ -99,6 +97,8 @@ public class MemPanel extends JPanel implements ActionListener{
 		threeDays.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		oneWeek = new MyMenuItem("1 settimana");
 		oneWeek.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
+		oneMonth = new MyMenuItem("1 mese");
+		oneMonth.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		personalizza = new MyMenuItem("personalizza");
 		personalizza.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		
@@ -116,6 +116,7 @@ public class MemPanel extends JPanel implements ActionListener{
 		rinvia.add(oneDay);
 		rinvia.add(threeDays);
 		rinvia.add(oneWeek);
+		rinvia.add(oneMonth);
 		rinvia.add(personalizza);
 		
 		combo.add(tipo);
@@ -127,9 +128,6 @@ public class MemPanel extends JPanel implements ActionListener{
 		elimina.addActionListener(this);
 		modifica.addActionListener(this);
 		tipo.addActionListener(this);
-		oneDay.addActionListener(this);
-		threeDays.addActionListener(this);
-		oneWeek.addActionListener(this);
 		personalizza.addActionListener(this);
 		//this.setOpaque(true);
 		setLayout(new BorderLayout(0, 0));
@@ -146,15 +144,17 @@ public class MemPanel extends JPanel implements ActionListener{
 			eee.printStackTrace();
 			System.out.println("eee nenta catanzarì");
 		}
-		File icona=new File("/home/fabrizio/workspace/MemoRem/src/graphic/icons/"+memo.getIcon());
+		File icona=new File(currentDir+"/src/graphic/icons/"+memo.getIcon());
 		if(!icona.exists())
 			memo.setIcon(".error.png");
-		icon=new ImageIcon(currentDir+"/src/graphic/icons/"+memo.getIcon());
+		iconPath=icona.getAbsolutePath();
+		icon=new ImageIcon(iconPath);
 		iconaCambiata=false;
-		putIcon();
+		boolean x=putIcon();
 		paneleft.setLayout(new BorderLayout(0, 0));
 		//iconTainer.setSize(20,20);
-		paneleft.add(iconTainer, BorderLayout.WEST);
+		if(x)
+			paneleft.add(iconTainer, BorderLayout.WEST);
 		orario=new JLabel(memo.endDate(),SwingConstants.LEFT);
 		orario.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		orario.setBackground(new Color(0,0,0,0));
@@ -163,6 +163,7 @@ public class MemPanel extends JPanel implements ActionListener{
 		orario.setVerticalAlignment(SwingConstants.CENTER);
 		orario.addMouseListener(mouse);
 		descrizione=new JLabel(memo.description(),SwingConstants.CENTER);
+		descrizione.addMouseListener(mouse);
 		//descrizione.setFont(descrizione.getFont().deriveFont(descrizione.getFont().getStyle() | Font.BOLD));
 		descrizione.setFont(new Font("Linux Libertine Mono", Font.BOLD | Font.ITALIC, 12));
 		descrizione.setVerticalAlignment(SwingConstants.CENTER);
@@ -232,6 +233,11 @@ public class MemPanel extends JPanel implements ActionListener{
 		
 		return oneWeek;
 	}
+	
+	public MyMenuItem getOneMonth(){
+		
+		return oneMonth;
+	}
 	/**
 	 * Segna un MemPanel come completato. Da allora non sarà più possibile modificarlo
 	 */
@@ -252,27 +258,41 @@ public class MemPanel extends JPanel implements ActionListener{
 	/**
 	 * Inserisce l'icona scelta all'interno del MemPanel. Fornire il metodo di un icon-chooser
 	 */
-	private void putIcon(){
+	@SuppressWarnings("unused")
+	private boolean putIcon(){
 		
 		Image im=icon.getImage();
 		BufferedImage bim=null;
 		try{
 			bim=new BufferedImage(im.getWidth(null), im.getHeight(null),BufferedImage.TYPE_INT_ARGB);
 		}catch( IllegalArgumentException iae){
-			icon=new ImageIcon("home/fabrizio/workspace/MemoRem/src/graphic/icons/.error.png");
-			bim=new BufferedImage(im.getWidth(null), im.getHeight(null),BufferedImage.TYPE_INT_ARGB);
+			if(iconPath.equals("home/fabrizio/workspace/MemoRem/src/graphic/icons/.error.png")){
+				iconPath="home/fabrizio/workspace/MemoRem/src/graphic/icons/note.png";
+				icon=new ImageIcon(iconPath);
+				return putIcon();
+			}
+			else if(iconPath.equals("home/fabrizio/workspace/MemoRem/src/graphic/icons/note.png")){
+				return false;
+			}
+			iconPath="home/fabrizio/workspace/MemoRem/src/graphic/icons/.error.png";
+			icon=new ImageIcon(iconPath);
+			return putIcon();
 		}
-		Graphics g=bim.createGraphics();
-		g.drawImage(im, 2, 10, 25, 25, null);
-		ImageIcon ii=new ImageIcon(bim);
-		if(iconTainer!=null)
-			paneleft.remove(iconTainer);
-		iconTainer=new JLabel(ii,SwingConstants.CENTER);
-		paneleft.add(iconTainer, BorderLayout.WEST);
-		iconTainer.setVisible(false);
-		iconTainer.setVisible(true);
-		if(mouse!=null)
-			iconTainer.addMouseListener(mouse);
+		if(bim!=null){
+			Graphics g=bim.createGraphics();
+			g.drawImage(im, 2, 10, 25, 25, null);
+			ImageIcon ii=new ImageIcon(bim);
+			if(iconTainer!=null)
+				paneleft.remove(iconTainer);
+			iconTainer=new JLabel(ii,SwingConstants.CENTER);
+			paneleft.add(iconTainer, BorderLayout.WEST);
+			iconTainer.setVisible(false);
+			iconTainer.setVisible(true);
+			if(mouse!=null)
+				iconTainer.addMouseListener(mouse);
+			return true;
+		}
+		return true;
 		
 	}
 	
@@ -300,10 +320,20 @@ public class MemPanel extends JPanel implements ActionListener{
 		oneDay.setBackground(coloreSfondo);
 		threeDays.setBackground(coloreSfondo);
 		oneWeek.setBackground(coloreSfondo);
+		oneMonth.setBackground(coloreSfondo);
 		personalizza.setBackground(coloreSfondo);
-		setBackground(new Color(coloreSfondo.getRed(),coloreSfondo.getGreen(),coloreSfondo.getBlue()));
+		setBackground(coloreSfondo);
 		
 		setBorder(new LineBorder(coloreSfondo.darker()));			//definisce il bordo del memo
+	}
+	
+	public void setMemo(Memo m){
+		
+		this.memo=m;
+		setColour(m.priority());
+		this.descrizione.setText(m.description());
+		this.orario.setText(m.getEnd().toString());
+		tipoB=false;
 	}
 	
 	/**
@@ -318,8 +348,9 @@ public class MemPanel extends JPanel implements ActionListener{
 		 * se il memo è scaduto cambiano i tasti
 		 */
 		if(this.memo.isScaduto()){
-			if(scadenzanotificata==false){
-				scadenzanotificata=true;
+			if(!memo.isNotificato()){
+				System.out.println("è appena scaduto");
+				memo.setScadenzaNotificata();
 				modifica.setVisible(false);
 				rinvia.setVisible(true);
 				archivia.setVisible(true);
@@ -330,14 +361,29 @@ public class MemPanel extends JPanel implements ActionListener{
 			return false;
 		}
 		else{
-			scadenzanotificata=false;
 			modifica.setVisible(true);
 			rinvia.setVisible(false);
 			archivia.setVisible(false);
-			tipoB=true;
-			tipo.doClick();
+			if(tipoB)
+				orario.setText(memo.countDown());
 			return false;
 		}
+	}
+	
+	@Override
+	public void addMouseMotionListener(MouseMotionListener m){
+		
+		descrizione.addMouseMotionListener(m);
+		orario.addMouseMotionListener(m);
+		combo.addMouseMotionListener(m);
+	}
+	
+	@Override
+	public void removeMouseMotionListener(MouseMotionListener m){
+		
+		descrizione.removeMouseMotionListener(m);
+		orario.removeMouseMotionListener(m);
+		combo.removeMouseMotionListener(m);
 	}
 	
 	/**
@@ -354,31 +400,18 @@ public class MemPanel extends JPanel implements ActionListener{
 		
 		else if(evt.getSource()==modifica || evt.getSource()==personalizza){
 			
-			p.setModified(true);
-			Data d=memo.getEnd();
-			//p.setOld(memo);
-			p.setDesc(memo.description());
-			p.setPrior(memo.priority());
-			p.setYear(d.anno());
-			p.setMonth(d.mese()-1);
-			p.setDay(d.giorno()-1);
-			p.setHour(d.ora());
-			p.setMinute(d.minuto());
-			p.setOld(memo);
-			p.setVisible(true);
+			p.modifica(memo);
 			p.addWindowListener(new WindowAdapter(){
 				
 				@Override
 				public void windowDeactivated(WindowEvent arg0) {
-					if(p.getOk()){
+					if(p.isOk()){
 						MemPanel.this.setVisible(false);
-						if(p.getCreated().getEnd().compareTo(new Data())<0){
-							System.out.println("non posso accettare questa data");
-							MemPanel.this.setVisible(true);
-							return;
-						}
 						memo=p.getCreated();
-						orario.setText(memo.endDate());
+						if(!tipoB)
+							orario.setText(memo.endDate());
+						else 
+							orario.setText(memo.countDown());
 						descrizione.setText(memo.description());
 						MemPanel.this.setColour(memo.priority());
 					}
@@ -388,6 +421,7 @@ public class MemPanel extends JPanel implements ActionListener{
 			});	//WindowListener
 		}//modifica & personalizza
 		else if(evt.getSource()==tipo){
+			
 			if(!tipoB){
 				tipoB=true;
 				orario.setVisible(false);
@@ -442,6 +476,10 @@ public class MemPanel extends JPanel implements ActionListener{
 					}
 				}
 			}//iconTainer
+			else if(e.getSource()==descrizione){
+				System.out.println("dal database:"+memo.getPure());
+				System.out.println("ID:"+memo.getId());
+			}
 		}
 
 		@Override
@@ -490,12 +528,14 @@ public class MemPanel extends JPanel implements ActionListener{
 	public static void main(String [] args){
 		
 		JFrame f=new JFrame();
-		Memo uno=new Memo("alta priorità","high",2014,3,3,3,30);
+		Data d=new Data(2014,3,3,3,30);
+		Memo uno=new Memo("alta priorità",2,d,"bench.png");
 		Memo due=new Memo("media priorità",2015,3,3,3,30);
 		Memo tre=new Memo("bassa priorità","low",2014,3,3,3,30);
 		MemPanel mp=new MemPanel(uno);
 		MemPanel mp2=new MemPanel(due);
 		MemPanel mp3=new MemPanel(tre);
+
 		JPanel p=new JPanel();
 		p.setLayout(new BoxLayout(p,BoxLayout.Y_AXIS));
 		f.getContentPane().add(p,BorderLayout.NORTH);
@@ -508,6 +548,7 @@ public class MemPanel extends JPanel implements ActionListener{
 		p.add(mp2);
 		p.add(mp3);
 		System.out.println(p.getComponent(1).toString()+" height:"+p.getComponent(1).getX());
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);	
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mp3.setMemo(uno);
 	}
 }

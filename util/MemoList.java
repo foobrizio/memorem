@@ -202,9 +202,20 @@ public class MemoList implements Iterable<Memo>{
 	}
 	public boolean add(Memo t,boolean fromDB){
 		
+		Memo precedente=null;
 		if(!fromDB)
-			if(contains(t))		//non si può inserire qualcosa che esiste già
-				return false;
+			if(get(t.getId())!=null){
+				precedente=get(t.getId());
+				System.out.println("ce n'era già uno:"+precedente.description());
+				if(t.identici(precedente))
+					return false;
+				else{
+					if(precedente.getPure())
+						return false;
+					else
+						remove(precedente);
+				}
+			}
 		LinkedList<Memo> current;
 		switch(t.priority()){			//ora andiamo a controllare la priorità del task
 		case 2:/*high*/	current=highs;break;
@@ -213,12 +224,14 @@ public class MemoList implements Iterable<Memo>{
 		default: throw new IllegalArgumentException("Che cazzo di priorità ha???");
 		}
 		if(!fromDB){
-			int i=0;
-			for(;i<current.size();i++){
-				if(t.getEnd().compareTo(current.get(i).getEnd())<0)
-				break;
+			ListIterator<Memo> lit=current.listIterator();
+			while(lit.hasNext()){
+				if(t.getEnd().compareTo(lit.next().getEnd())<0){
+					lit.previous();
+					break;
+				}
 			}
-			current.add(i, t);
+			lit.add(t);
 		}
 		else
 			current.addLast(t);
@@ -227,7 +240,7 @@ public class MemoList implements Iterable<Memo>{
 	}//add
 
 	public boolean contains(Memo t){
-
+		
 		switch(t.priority()){
 		case 2:/*high*/	return highs.contains(t);
 		case 1:/*norm*/	return normals.contains(t);
@@ -273,6 +286,17 @@ public class MemoList implements Iterable<Memo>{
 		}
 		return null;
 	}
+	
+	public Memo get(String id){
+		
+		Iterator<Memo> it=iterator();
+		while(it.hasNext()){
+			Memo x=it.next();
+			if(x.getId().equals(id))
+				return x;
+		}
+		return null;
+	}
 
 	public int indexOf(Memo m){
 
@@ -295,6 +319,10 @@ public class MemoList implements Iterable<Memo>{
 		case 2: /*highs*/ 	result=highs.remove(t);		break;
 		default: System.out.println("memolist non contiene questo memo");return false;
 		}
+		if(result && t.description().equals("Laurea Manuel e Matteo"))
+			System.out.println("remove effettuata");
+		else if(t.description().equals("Laurea Manuel e Matteo"))
+			System.out.println("remove non effettuata");
 		if(result)
 			size--;
 		return result;

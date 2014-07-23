@@ -3,6 +3,7 @@ package util;
 public class User {
 	
 	private String nickname;
+	private String password;
 	private String nome;
 	private String cognome;
 	private boolean isMaschio;
@@ -57,16 +58,45 @@ public class User {
 		this.cognome = cognome;
 	}
 	
+	public String getPassword(){
+		
+		return password;
+	}
+	
+	public void setPassword(String password){
+		
+		this.password=password;
+	}
+	/**
+	 * Ritorna true se l'utente è di sesso maschile
+	 * @return
+	 */
 	public boolean isMaschio(){
 		
 		return isMaschio;
 	}
 	
+	/**
+	 * Ritorna true se l'utente è l'amministratore
+	 * @return
+	 */
+	public boolean isAdmin(){
+		
+		return nickname.equals("admin");
+	}
+	
+	/**
+	 * Ritorna true se l'utente è un ospite
+	 * @return
+	 */
+	public boolean isGuest(){
+		
+		return nickname.equals("guest");
+	}
+	
 	public boolean equals(User s){
 		
 		if(this.nickname.equals(s.nickname))
-			if(this.nome.equals(s.nome))
-				if(this.cognome.equals(s.cognome))
 					return true;
 		return false;
 	}

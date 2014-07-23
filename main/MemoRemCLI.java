@@ -4,7 +4,7 @@ import java.util.*;
 
 import util.*;
 
-public class MemoremCLI extends Thread{
+public class MemoRemCLI extends Thread{
 	
 	/**
 	 * 
@@ -19,7 +19,7 @@ public class MemoremCLI extends Thread{
 	private String OS;				//è il nome del sistema operativo che si utilizza
 	private static Scanner sc;				//verrà utilizzato per l'interfacca CLI
 	
-	public MemoremCLI(){
+	public MemoRemCLI(){
 		
 		OS=System.getProperty("os.name");
 		k=new Keeper();
@@ -65,6 +65,7 @@ public class MemoremCLI extends Thread{
 			}
 			else System.out.println("questo campo non puo' rimanere vuoto");
 		}//descrizione------------------------------------------------------
+		ok=false;
 		String priority="";
 		while(!ok){
 			System.out.print("Step 2/7: Inserire priorità");
@@ -74,10 +75,16 @@ public class MemoremCLI extends Thread{
 				System.out.print("(default: normal):");
 			priority=sc.nextLine().trim().toLowerCase();
 			if(priority.length()==0){
-				if(modifica)
-					priority=m.priority()+"";
+				if(modifica){
+					switch(m.priority()){
+					case 0: priority="low"; break;
+					case 2: priority="high"; break;
+					default: priority="normal"; break;
+					}
+				}
 				else
 					priority="normal";
+				ok=true;
 				break;
 			}
 			try{
@@ -112,11 +119,12 @@ public class MemoremCLI extends Thread{
 			else System.out.print("(default:"+data.anno()+"):");
 			String year=sc.nextLine();
 			try{
-				if(year.length()==0){
+				if(year.trim().length()==0){
 					if(modifica)
 						yearS=m.getEnd().anno();
 					else
 						yearS=data.anno();
+					ok=true;
 				}
 				else if(year.length()==4){
 					yearS=Integer.parseInt(year);
@@ -134,7 +142,7 @@ public class MemoremCLI extends Thread{
 		while(!ok){
 			System.out.print("Step 4/7: Inserire mese");
 			if(modifica)
-				System.out.println("( premi Invio per lasciare invariato)");
+				System.out.print("( premi Invio per lasciare invariato)");
 			System.out.print(":");
 			String x="";
 			try{
@@ -182,7 +190,7 @@ public class MemoremCLI extends Thread{
 			System.out.print("Step 6/7: Inserire ora");
 			if(modifica)
 				System.out.print("(premi Invio per lasciare invariato)");
-			System.out.println(":");
+			System.out.print(":");
 			String x=sc.nextLine();
 			try{
 				hour=Integer.parseInt(x);
@@ -216,6 +224,7 @@ public class MemoremCLI extends Thread{
 				System.out.println("Il minuto non è stato inserito correttamente");
 			}
 		}	//Il minuto è stato inserito correttamente
+		System.out.println(priority);
 		return new Memo(desc,priority,yearS,month,day,hour,minute);
 		
 	}
@@ -401,7 +410,7 @@ public class MemoremCLI extends Thread{
 		String password=sc.nextLine();
 		int result=k.login(user, password);
 		if(result==0){
-			MemoremCLI.user=k.getUser();
+			MemoRemCLI.user=k.getUser();
 			System.out.println("Benvenuto, "+user);
 			LinkedList<String> prior=new LinkedList<String>();
 			prior.add("Alta");
@@ -955,7 +964,7 @@ public class MemoremCLI extends Thread{
 	}
 	public static void main(String[] args){
 		
-		MemoremCLI t=new MemoremCLI();
+		MemoRemCLI t=new MemoRemCLI();
 		System.out.println(t.OS);
 		t.start();
 	}

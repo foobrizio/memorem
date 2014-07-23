@@ -17,13 +17,16 @@ public class Data implements Comparable<Data>, Serializable{
 	private int minuto;
 		
 	public Data(){
-			
+		
+		
 		GregorianCalendar gc=new GregorianCalendar();
 		this.anno=gc.get(GregorianCalendar.YEAR);
 		this.giorno=gc.get(GregorianCalendar.DAY_OF_MONTH);
 		this.minuto=gc.get(GregorianCalendar.MINUTE);
 		this.ora=gc.get(GregorianCalendar.HOUR_OF_DAY);
 		this.mese=gc.get(GregorianCalendar.MONTH)+1;
+		
+		//System.currentTimeMillis();
 	}
 	
 	public Data(int anno,int mese, int giorno, int ora, int minuto){
@@ -142,16 +145,11 @@ public class Data implements Comparable<Data>, Serializable{
 		else return true;
 	}
 	
-	public static int daysOfMonth(int year,int month){
-		
-		switch(month%12){
-		case 2: return bisestile(year)? 29: 28;
-		case 1: case 3: case 5: case 7: case 8: case 10: case 0: return 31;		//Gennaio,Marzo,Maggio,Luglio,Agosto,Ottobre,Dicembre
-		case 4: case 6: case 9: case 11: return 30;						//Aprile,Giugno,Settembre,Novembre
-		default: return 32;
-		}
-	}
-		
+	
+	
+	/**
+	 * Ritorna true se l'anno a è bisestile
+	 */
 	public static boolean bisestile(int a){ //indipendente da this, perchè static
 			
 		if(a<0) throw new IllegalArgumentException("anno minore di 0");
@@ -164,7 +162,13 @@ public class Data implements Comparable<Data>, Serializable{
 			return false;
 		return true;
 	} //bisestile
-		
+	
+	
+	/**
+	 * Ritorna il numero inserito nel mese corrispondente sottoforma di stringa
+	 * @param month
+	 * @return
+	 */
 	public static String monthToString(int month){
 			
 		switch((month)%12){
@@ -184,6 +188,9 @@ public class Data implements Comparable<Data>, Serializable{
 		}
 	}
 	
+	/**
+	 *	Trasforma la stringa inserita come parametro nel mese corrispondente
+	 */
 	public static int monthToInt(String month){
 		
 		month=month.trim().toLowerCase();
@@ -204,7 +211,9 @@ public class Data implements Comparable<Data>, Serializable{
 		}
 	}
 	
-	
+	/**
+	 *Ritorna il giorno della settimana di una specifica data. Variante dell'algoritmo doomsDay
+	 */
 	public static int dayOfWeek(int year,int month, int day){
 		
 		int ab=Integer.parseInt(String.valueOf(year).substring(0, 2)); //prime due cifre dell'anno
@@ -246,8 +255,85 @@ public class Data implements Comparable<Data>, Serializable{
 		//System.out.println("il nearestDoom è "+nearestDoom);
 		if(nearestDoom<0)
 			nearestDoom+=7;
-		return nearestDoom;
+		return nearestDoom;	
+	}
+	
+	/**
+	 * Ritorna il numero di giorni del mese month nell'anno year
+	 */
+	public static int daysOfMonth(int year,int month){
 		
+		switch(month%12){
+		case 2: return bisestile(year)? 29: 28;
+		case 1: case 3: case 5: case 7: case 8: case 10: case 0: return 31;		//Gennaio,Marzo,Maggio,Luglio,Agosto,Ottobre,Dicembre
+		case 4: case 6: case 9: case 11: return 30;						//Aprile,Giugno,Settembre,Novembre
+		default: return 32;
+		}
+	}
+	
+	/**
+	 * Ritorna il numero di giorni dell'anno inserito come parametro
+	 */
+	public static int daysOfYear(int year){
+		
+		if(bisestile(year))
+			return 366;
+		else return 365;
+	}
+	
+	/**
+	 * Ritorna la differenza in giorni tra due date 
+	 * @param uno
+	 * @param due
+	 * @return
+	 */
+	public static int diff(Data uno,Data due){
+		
+		int giorni=0;
+		Data prima,dopo;
+		if(uno.compareTo(due)<0){
+			prima=uno;
+			dopo=due;
+		}
+		else{
+			prima=due;
+			dopo=uno;
+		}	//ora sappiamo quale data precede l'altra nel calendario
+		int i=prima.anno;
+		for(;i<dopo.anno;i++){
+			if(dopo.anno-prima.anno==1){	//l'ultimo anno va controllato per bene
+				if(prima.mese>dopo.mese)
+					break;
+				else if(prima.mese==dopo.mese && prima.giorno>dopo.giorno)
+					break;	
+			}
+			giorni+=daysOfYear(i);
+		}//arrivati qui abbiamo le due date ad una distanza minore di 12 mesi.
+		prima.anno=i;
+		if(prima.anno!=dopo.anno){
+			giorni+=daysOfMonth(prima.anno,prima.mese)-prima.giorno;
+			while(prima.mese<12){
+				prima.mese=prima.mese+1;
+				giorni+=daysOfMonth(prima.anno,prima.mese);
+			}
+			prima.giorno=1;
+			prima.mese=1;
+			prima.anno=prima.anno+1;
+		}//a questo punto le due date si trovano nello stesso anno, si procede con il conto dei mesi
+		i=prima.mese;
+		for(;i<dopo.mese;i++){
+			if(dopo.mese-prima.mese==1){
+				if(prima.giorno>dopo.giorno)
+					break;
+			}
+			giorni+=daysOfMonth(prima.anno,prima.mese);
+			prima.mese=prima.mese+1;
+		}//a questo punto la distanza è minore di un mese, aggiungiamo giorno per giorno
+		while(prima.compareTo(dopo)<0){
+			prima=prima.domani();
+			giorni++;
+		}
+		return giorni;
 	}
 	/**
 	 * Ritorna la data in millisecondi a partire dal 1° gennaio 1970, ore 00:00
@@ -421,7 +507,8 @@ public class Data implements Comparable<Data>, Serializable{
 	public static void main(String[] args){
 		
 		Data fine=new Data(2014,5,31,16,0);
-		Data finepiuuno=new Data(2014,6,1,0,0);
+		Data nuova=new Data(2014,7,30,0,0);
+		System.out.println("Differenza date:"+Data.diff(new Data(), nuova));
 		System.out.println(fine.dateInMillis());
 		System.out.println(dayOfWeek(fine.anno,fine.mese,fine.giorno));
 		/*for(int i=0;i<12;i++){
@@ -443,7 +530,7 @@ public class Data implements Comparable<Data>, Serializable{
 			fine=fine.domani();
 			System.out.println(fine.toString());
 		}*/
-		System.out.println(Data.convertDateToString(fine));
-		System.out.println(fine.compareTo(finepiuuno));
+		//System.out.println(Data.convertDateToString(fine));
+		//System.out.println(fine.compareTo(finepiuuno));
 	}
 }
