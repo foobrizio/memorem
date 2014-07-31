@@ -25,9 +25,10 @@ public class Keeper{
 	 * La MemoList conterrà i memo da utilizzare e visualizzare in runtime
 	 */
 	private MemoList DBMemos;		
-	private LinkedHashSet<Memo> removenda;
-	private LinkedHashSet<Memo> nuovi;
+	private TreeSet<Memo> removenda;
+	private TreeSet<Memo> nuovi;
 	private HashMap<Memo,Memo> mutanda;//che in latino significa "da modificare"..ma in italiano lol xD
+	private TreeSet<Memo> today;
 	private double completati;
 	private double scaduti;
 	
@@ -41,9 +42,10 @@ public class Keeper{
 		
 		this.user=new User("none");
 		this.DBMemos=new MemoList();
-		this.removenda=new LinkedHashSet<Memo>();
-		this.nuovi=new LinkedHashSet<Memo>();
+		this.removenda=new TreeSet<Memo>();
+		this.nuovi=new TreeSet<Memo>();
 		this.mutanda=new LinkedHashMap<Memo,Memo>();
+		this.today=new TreeSet<Memo>();
 	}
 	/**
 	 * Aggiunge un nuovo task nella lista, aggiornando l'archivio
@@ -52,6 +54,8 @@ public class Keeper{
 	public boolean add(Memo t){
 		
 		if(!t.isScaduto()){
+			if(t.getEnd().isToday())
+				today.add(t);
 			System.out.println("Aggiunta di "+t.getId());
 			return nuovi.add(t);
 			
@@ -90,9 +94,10 @@ public class Keeper{
 	public void clear(){
 		
 		DBMemos.clear();
-		removenda= new LinkedHashSet<Memo>();
+		removenda= new TreeSet<Memo>();
 		mutanda= new LinkedHashMap<Memo,Memo>();
-		nuovi=new LinkedHashSet<Memo>();
+		nuovi=new TreeSet<Memo>();
+		today.clear();
 		if(!user.isGuest())
 			DBManager.clear(user);
 	}
@@ -108,6 +113,8 @@ public class Keeper{
 			System.out.println("Sono un guest");
 			mutanda.remove(m);
 			nuovi.remove(m);
+			if(today.contains(m))
+				today.remove(m);
 			completati++;
 			scaduti++;
 			return;
@@ -125,6 +132,8 @@ public class Keeper{
 			else
 				DBManager.archivia(user,m);
 		}
+		nuovi.remove(m);
+		today.remove(m);
 		mutanda.remove(m);
 		if(completato)
 			completati++;
@@ -158,6 +167,7 @@ public class Keeper{
 		
 		mutanda.clear();
 		nuovi.clear();
+		today.clear();
 		Iterator<Memo> it=DBMemos.iterator();
 		while(it.hasNext())
 			if(!it.next().isScaduto())
@@ -188,15 +198,14 @@ public class Keeper{
 		p.add("Media");
 		p.add("Bassa");
 		MemoList ml=new MemoList();
-		if(!user.isGuest()){
+		if(!user.isGuest())
 			formaQuery("pending", "attivi", p);
-			ml=new MemoList(getDBList());
-			System.out.println("ml:"+ml);
+		ml=new MemoList(getDBList());
+		for(Memo m:today){
+			System.out.println("DENTRO TODAY"+m);
+			if(!ml.contains(m) && m.isScaduto())
+				ml.add(m);
 		}
-		else
-			ml=new MemoList(DBMemos);
-		System.out.println("nuovi:"+nuovi.toString());
-		System.out.println("current:"+DBMemos.toString());
 		return ml;
 	}
 
@@ -218,7 +227,10 @@ public class Keeper{
 		
 		return DBManager.getStandardMemos(user);
 	}
-
+	public TreeSet<Memo> getTodayMemos(){
+		
+		return today;
+	}
 	/**
 	 * Ritorna la lista completa di memo contenuti nel Keeper
 	 * @return
@@ -462,10 +474,12 @@ public class Keeper{
 		User connesso=DBManager.login(user,password);
 		if(connesso!=null){
 			this.user=connesso;
-			this.removenda=new LinkedHashSet<Memo>();
-			this.nuovi=new LinkedHashSet<Memo>();
+			this.removenda=new TreeSet<Memo>();
+			this.nuovi=new TreeSet<Memo>();
 			this.mutanda=new LinkedHashMap<Memo,Memo>();
+			this.today=new TreeSet<Memo>();
 			DBMemos=new MemoList(DBManager.getStandardMemos(connesso));
+			today();
 		}
 		int[] risu=DBManager.rapportoCompletati(connesso);
 		completati=risu[0];
@@ -481,15 +495,19 @@ public class Keeper{
 		
 		if(this.user.isGuest()){
 			DBMemos.clear();
-			removenda=new LinkedHashSet<Memo>();
+			removenda=new TreeSet<Memo>();
 			mutanda=new LinkedHashMap<Memo,Memo>();
+			nuovi=new TreeSet<Memo>();
+			today=new TreeSet<Memo>();
 			this.user=new User("none");
 			return true;
 		}
 		if(DBManager.logout(user)){
 			DBMemos.clear();
-			removenda=new LinkedHashSet<Memo>();
+			removenda=new TreeSet<Memo>();
 			mutanda=new LinkedHashMap<Memo,Memo>();
+			nuovi=new TreeSet<Memo>();
+			today=new TreeSet<Memo>();
 			this.user=new User("none");
 			return true;
 		}
@@ -532,9 +550,14 @@ public class Keeper{
 	public void modifica(Memo vecchio,Memo nuovo){
 		
 		if(DBMemos.contains(vecchio))
-			System.out.println("rimosso da lista DB:"+DBMemos.remove(vecchio));
-		if(nuovi.contains(vecchio))
-			System.out.println("rimosso dai nuovi:"+nuovi.remove(vecchio));
+			DBMemos.remove(vecchio);
+		if(nuovi.contains(vecchio))	
+			nuovi.remove(vecchio); //il memo non è più considerato nuovo, ma modificato
+		if(today.contains(vecchio)){
+			today.remove(vecchio);
+			if(nuovo.getEnd().isToday())
+				today.add(nuovo);
+		}
 		mutanda.put(vecchio, nuovo);
 		
 	}
@@ -574,6 +597,7 @@ public class Keeper{
 			DBMemos.remove(t);
 			mutanda.remove(t);
 			nuovi.remove(t);
+			today.remove(t);
 			return;
 		}
 		Memo x=DBManager.get(user, t.description(), t.getEnd());
@@ -587,6 +611,7 @@ public class Keeper{
 			Memo y=mutanda.remove(t);
 			System.out.println("L'abbiamo trovato?:"+y);
 			nuovi.remove(t);
+			today.remove(t);
 			DBMemos.remove(t);
 			removenda.add(t);
 		}
@@ -595,6 +620,7 @@ public class Keeper{
 			Memo y=mutanda.remove(t);
 			System.out.println("L'abbiamo trovato?:"+y);
 			nuovi.remove(t);
+			today.remove(t);
 			removenda.add(t);
 		}
 	}
@@ -636,9 +662,9 @@ public class Keeper{
 			if(DBManager.insertMemo(user, m))
 				DBMemos.add(m);
 			
-		removenda=new LinkedHashSet<Memo>();
+		removenda=new TreeSet<Memo>();
 		mutanda=new LinkedHashMap<Memo,Memo>();
-		nuovi=new LinkedHashSet<Memo>();
+		nuovi=new TreeSet<Memo>();
 	}
 
 	/**
@@ -659,9 +685,9 @@ public class Keeper{
 		if(res==0){
 			if(login){
 				DBMemos.clear();
-				removenda=new LinkedHashSet<Memo>();
+				removenda=new TreeSet<Memo>();
 				mutanda=new LinkedHashMap<Memo,Memo>();
-				nuovi=new LinkedHashSet<Memo>();
+				nuovi=new TreeSet<Memo>();
 				completati=0;
 				scaduti=0;
 				this.user=utente;
@@ -718,6 +744,29 @@ public class Keeper{
 		return DBManager.statistiche(user);
 	}
 	
+	private void today(){
+		
+		String query="SELECT * FROM memodatanew WHERE user='"+user.getNickname()+"' AND date_add(curdate() , interval 0 day)>=end";
+		MemoList ml=DBManager.processQuery(user, query, true);
+		for(Memo m:ml)
+			this.today.add(m);
+	}
+	
+	public int updateMemos(){
+		
+		System.out.println("Update di: "+today.size());
+		Iterator<Memo> it=today.iterator();
+		int cont=0;
+		while(it.hasNext()){
+			Memo x=it.next();
+			if(x.isScaduto() && !x.isNotificato()){
+				x.setScadenzaNotificata();
+				cont++;
+			}
+		}
+		return cont;
+		
+	}
 	/**
 	 * Ritorna la lista degli utenti nel database
 	 * @return

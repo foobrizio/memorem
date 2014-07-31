@@ -211,7 +211,8 @@ public class DeferDialog extends JDialog implements ActionListener{
 	
 	public void gestisci(MemoList mmm){
 		
-		System.out.println("mmm:"+mmm);
+		
+		handled.clear();
 		if(this.ml==null){
 			if(mmm.size()==0)
 				return;

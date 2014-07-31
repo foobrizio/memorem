@@ -82,71 +82,6 @@ public class Data implements Comparable<Data>, Serializable{
 	}
 	
 	public int anno(){return anno;}
-	public int mese(){return mese;}
-	public int giorno(){return giorno;}
-	public int ora(){return ora;}
-	public int minuto(){return minuto;}
-	
-	/**
-	 * Riporta la data corrente al giorno dopo
-	 * @return
-	 */
-	public Data domani(){
-		
-		return new Data(this.anno,this.mese,(this.giorno+1),this.ora,this.minuto);
-	}
-	
-	/**
-	 * Riporta la data corrente al giorno prima
-	 * @return
-	 */
-	public Data ieri(){
-		
-		return new Data(this.anno,this.mese,(this.giorno-1),this.ora,this.minuto);
-	}
-	
-	/**
-	 * Ritorna la data sottoforma di stringa
-	 * @return
-	 */
-	public String getData(){
-		
-		return giorno+" "+Data.monthToString(mese)+" "+anno;
-	}
-	
-	/**
-	 * Ritorna l'ora sottoforma di stringa
-	 * @return
-	 */
-	public String getOra(){
-		
-		String h=ora+"";
-		if(ora<10)
-			h="0"+h;
-		String m=minuto+"";
-		if(minuto<10)
-			m="0"+m;
-		return h+":"+m;
-	}
-	
-	/**
-	 * Ritorna true se la data d ha stesso giorno,stesso mese e stesso anno di this
-	 * @param d
-	 * @return
-	 */
-	public boolean hasSameDay(Data d){
-		
-		if(d.anno!=this.anno)
-			return false;
-		else if(d.mese!=this.mese)
-			return false;
-		else if(d.giorno!=this.giorno)
-			return false;
-		else return true;
-	}
-	
-	
-	
 	/**
 	 * Ritorna true se l'anno a è bisestile
 	 */
@@ -162,55 +97,110 @@ public class Data implements Comparable<Data>, Serializable{
 			return false;
 		return true;
 	} //bisestile
-	
-	
+
 	/**
-	 * Ritorna il numero inserito nel mese corrispondente sottoforma di stringa
-	 * @param month
+	 * Confronta due date e stabilisce quale sia la più recente. Ritorna 0 se le date sono identiche,
+	 * -1 se this è meno recente di arg0, 1 altrimenti
+	 */
+	@Override
+	public int compareTo(Data arg0) {
+			
+		if(this.anno>arg0.anno)
+			return 1;
+		else if(this.anno<arg0.anno)
+			return -1;
+		else{
+			if(this.mese>arg0.mese)
+				return 1;
+			else if(this.mese<arg0.mese)
+				return -1;
+			else{
+				if(this.giorno>arg0.giorno)
+					return 1;
+				else if(this.giorno<arg0.giorno)
+					return -1;
+				else{
+					if(this.ora>arg0.ora)
+						return 1;
+					else if(this.ora<arg0.ora)
+						return -1;
+					else{
+						if(this.minuto>arg0.minuto)
+							return 1;
+						else if(this.minuto<arg0.minuto)
+							return -1;
+						else return 0;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Converte una data in un formato stringa compresso facilmente analizzabile
+	 * @param data
 	 * @return
 	 */
-	public static String monthToString(int month){
-			
-		switch((month)%12){
-		case 1: return "Gennaio";
-		case 2: return "Febbraio"; 
-		case 3: return "Marzo"; 
-		case 4: return "Aprile"; 
-		case 5: return "Maggio";
-		case 6: return "Giugno";
-		case 7: return "Luglio";
-		case 8: return "Agosto";
-		case 9: return "Settembre";
-		case 10: return "Ottobre";
-		case 11: return "Novembre";
-		case 0: return "Dicembre";
-		default: return "???";
-		}
-	}
-	
-	/**
-	 *	Trasforma la stringa inserita come parametro nel mese corrispondente
-	 */
-	public static int monthToInt(String month){
+	public static String convertDateToString(Data data){
 		
-		month=month.trim().toLowerCase();
-		switch(month){
-		case "gennaio": 	case "january": 	return 1;
-		case "febbraio": 	case "february":	return 2;
-		case "marzo": 		case "march":		return 3;
-		case "aprile": 		case "april":		return 4;
-		case "maggio": 		case "may":			return 5;
-		case "giugno": 		case "june":		return 6;
-		case "luglio": 		case "july":		return 7;
-		case "agosto": 		case "august":		return 8;
-		case "settembre": 	case "september":	return 9;
-		case "ottobre": 	case "october":		return 10;
-		case "novembre": 	case "november":	return 11;
-		case "dicembre": 	case "december":	return 12;
-		default: return -1;
-		}
+		String st=""+data.anno+"-";
+		if(data.mese<10)
+			st+="0";
+		st+=data.mese+"-";
+		if(data.giorno<10)
+			st+="0";
+		st+=data.giorno+" ";
+		if(data.ora<10)
+			st+="0";
+		st+=data.ora+":";
+		if(data.minuto<10)
+			st+="0";
+		st+=data.minuto;
+		return st;
 	}
-	
+
+	/**
+	 * Converte un orario in un formato stringa compresso facilmente analizzabile
+	 * @param data
+	 * @return
+	 */
+	public static String convertHourToString(Data data){
+		
+		String h="";
+		
+		return h;
+	}
+
+	public static Data convertStringToData(String data){
+		
+		
+		if(data.length()<16)
+			throw new IllegalArgumentException("La data passata al metodo non è conforme allo standard");
+		int anno= Integer.parseInt(data.substring(0, 4));
+		int mese= Integer.parseInt(data.substring(5,7));
+		int giorno= Integer.parseInt(data.substring(8,10));
+		int h= Integer.parseInt(data.substring(11,13));
+		int minuto= Integer.parseInt(data.substring(14,16));
+		return new Data(anno,mese,giorno,h,minuto);
+	}
+
+	/**
+	 * Converte il formato java.sql.Timestamp nel formato util.Data
+	 * @param stamp
+	 * @return
+	 */
+	public static Data convertTime(java.sql.Timestamp stamp){
+		
+		String total=stamp.toString();
+		int anno=Integer.parseInt(total.substring(0, 4));
+		int mese=Integer.parseInt(total.substring(5, 7));
+		int giorno=Integer.parseInt(total.substring(8,10));
+		int ora=Integer.parseInt(total.substring(11, 13));
+		int minuto=Integer.parseInt(total.substring(14,16));
+		return new Data(anno,mese,giorno,ora,minuto);
+		
+	}
+
 	/**
 	 *Ritorna il giorno della settimana di una specifica data. Variante dell'algoritmo doomsDay
 	 */
@@ -257,7 +247,43 @@ public class Data implements Comparable<Data>, Serializable{
 			nearestDoom+=7;
 		return nearestDoom;	
 	}
-	
+
+	/**
+	 * Ritorna la data in millisecondi a partire dal 1° gennaio 1970, ore 00:00
+	 * @return
+	 */
+	public long dateInMillis(){
+		
+		long mil=0;
+		for(int i=UNIX_EPOCH_TIME.anno;i<this.anno;i++){
+			if(bisestile(i))
+				mil+=SECONDS_X_YEAR+SECONDS_X_DAY;	//366 giorni
+			else mil+=SECONDS_X_YEAR;
+		} 	//abbiamo calcolato anche i bisestili
+		int diff_mesi=this.mese-1;
+		if(diff_mesi!=0){
+			int i=1;
+			while(i<this.mese){
+				mil+=daysOfMonth(i,this.anno)*SECONDS_X_DAY;
+				i++;
+			}
+		} //trovati anche i mesi
+		mil+=(this.giorno-1)*SECONDS_X_DAY;
+		mil+=(this.ora-1)*SECONDS_X_HOUR;
+		mil+=this.minuto*60;
+		//ora prima di ritornare il tempo ci assicuriamo di trovarci nell'ora legale o nell'ora solare
+		if(this.mese>=3 && this.mese<=10){
+			if(this.mese==3 || this.mese==10)	//ci troviamo a marzo
+				if(this.giorno>=25 && Data.dayOfWeek(this.anno, this.mese, this.giorno)==0)
+					mil-=SECONDS_X_HOUR;
+			else
+				mil-=SECONDS_X_HOUR;
+		
+		}
+		return mil*1000;
+		
+	}
+
 	/**
 	 * Ritorna il numero di giorni del mese month nell'anno year
 	 */
@@ -270,7 +296,7 @@ public class Data implements Comparable<Data>, Serializable{
 		default: return 32;
 		}
 	}
-	
+
 	/**
 	 * Ritorna il numero di giorni dell'anno inserito come parametro
 	 */
@@ -280,7 +306,7 @@ public class Data implements Comparable<Data>, Serializable{
 			return 366;
 		else return 365;
 	}
-	
+
 	/**
 	 * Ritorna la differenza in giorni tra due date 
 	 * @param uno
@@ -335,106 +361,16 @@ public class Data implements Comparable<Data>, Serializable{
 		}
 		return giorni;
 	}
+
 	/**
-	 * Ritorna la data in millisecondi a partire dal 1° gennaio 1970, ore 00:00
+	 * Riporta la data corrente al giorno dopo
 	 * @return
 	 */
-	public long dateInMillis(){
+	public Data domani(){
 		
-		long mil=0;
-		for(int i=UNIX_EPOCH_TIME.anno;i<this.anno;i++){
-			if(bisestile(i))
-				mil+=SECONDS_X_YEAR+SECONDS_X_DAY;	//366 giorni
-			else mil+=SECONDS_X_YEAR;
-		} 	//abbiamo calcolato anche i bisestili
-		int diff_mesi=this.mese-1;
-		if(diff_mesi!=0){
-			int i=1;
-			while(i<this.mese){
-				mil+=daysOfMonth(i,this.anno)*SECONDS_X_DAY;
-				i++;
-			}
-		} //trovati anche i mesi
-		mil+=(this.giorno-1)*SECONDS_X_DAY;
-		mil+=(this.ora-1)*SECONDS_X_HOUR;
-		mil+=this.minuto*60;
-		//ora prima di ritornare il tempo ci assicuriamo di trovarci nell'ora legale o nell'ora solare
-		if(this.mese>=3 && this.mese<=10){
-			if(this.mese==3 || this.mese==10)	//ci troviamo a marzo
-				if(this.giorno>=25 && Data.dayOfWeek(this.anno, this.mese, this.giorno)==0)
-					mil-=SECONDS_X_HOUR;
-			else
-				mil-=SECONDS_X_HOUR;
-		
-		}
-		return mil*1000;
-		
+		return new Data(this.anno,this.mese,(this.giorno+1),this.ora,this.minuto);
 	}
-	/**
-	 * Converte il formato java.sql.Timestamp nel formato util.Data
-	 * @param stamp
-	 * @return
-	 */
-	public static Data convertTime(java.sql.Timestamp stamp){
-		
-		String total=stamp.toString();
-		int anno=Integer.parseInt(total.substring(0, 4));
-		int mese=Integer.parseInt(total.substring(5, 7));
-		int giorno=Integer.parseInt(total.substring(8,10));
-		int ora=Integer.parseInt(total.substring(11, 13));
-		int minuto=Integer.parseInt(total.substring(14,16));
-		return new Data(anno,mese,giorno,ora,minuto);
-		
-	}
-	
-	/**
-	 * Converte una data in un formato stringa compresso facilmente analizzabile
-	 * @param data
-	 * @return
-	 */
-	public static String convertDateToString(Data data){
-		
-		String st=""+data.anno+"-";
-		if(data.mese<10)
-			st+="0";
-		st+=data.mese+"-";
-		if(data.giorno<10)
-			st+="0";
-		st+=data.giorno+" ";
-		if(data.ora<10)
-			st+="0";
-		st+=data.ora+":";
-		if(data.minuto<10)
-			st+="0";
-		st+=data.minuto;
-		return st;
-	}
-	
-	/**
-	 * Converte un orario in un formato stringa compresso facilmente analizzabile
-	 * @param data
-	 * @return
-	 */
-	public static String convertHourToString(Data data){
-		
-		String h="";
-		
-		return h;
-	}
-	
-	public static Data convertStringToData(String data){
-		
-		
-		if(data.length()<16)
-			throw new IllegalArgumentException("La data passata al metodo non è conforme allo standard");
-		int anno= Integer.parseInt(data.substring(0, 4));
-		int mese= Integer.parseInt(data.substring(5,7));
-		int giorno= Integer.parseInt(data.substring(8,10));
-		int h= Integer.parseInt(data.substring(11,13));
-		int minuto= Integer.parseInt(data.substring(14,16));
-		return new Data(anno,mese,giorno,h,minuto);
-	}
-	
+
 	public boolean equals(Data d){
 		
 		if(this.anno!=d.anno)
@@ -449,6 +385,129 @@ public class Data implements Comparable<Data>, Serializable{
 			return false;
 		return true;
 	}
+
+	/**
+	 * Ritorna la data sottoforma di stringa
+	 * @return
+	 */
+	public String getData(){
+		
+		return giorno+" "+Data.monthToString(mese)+" "+anno;
+	}
+
+	/**
+	 * Ritorna l'ora sottoforma di stringa
+	 * @return
+	 */
+	public String getOra(){
+		
+		String h=ora+"";
+		if(ora<10)
+			h="0"+h;
+		String m=minuto+"";
+		if(minuto<10)
+			m="0"+m;
+		return h+":"+m;
+	}
+
+	public int giorno(){return giorno;}
+
+	@Override
+	public int hashCode(){
+		
+		final int PRIMO=43;
+		return PRIMO*anno+PRIMO*mese+PRIMO*giorno+PRIMO*ora+PRIMO*minuto;
+	}
+
+	/**
+	 * Ritorna true se la data d ha stesso giorno,stesso mese e stesso anno di this
+	 * @param d
+	 * @return
+	 */
+	public boolean hasSameDay(Data d){
+		
+		if(d.anno!=this.anno)
+			return false;
+		else if(d.mese!=this.mese)
+			return false;
+		else if(d.giorno!=this.giorno)
+			return false;
+		else return true;
+	}
+
+	/**
+	 * Riporta la data corrente al giorno prima
+	 * @return
+	 */
+	public Data ieri(){
+		
+		return new Data(this.anno,this.mese,(this.giorno-1),this.ora,this.minuto);
+	}
+	
+	/**
+	 * Ritorna true se this equivale ad oggi
+	 * @return
+	 */
+	public boolean isToday(){
+		
+		Data d=new Data();
+		if(this.anno==d.anno && this.mese==d.mese && this.giorno==d.giorno)
+			return true;
+		else return false;
+	}
+
+	public int mese(){return mese;}
+	public int minuto(){return minuto;}
+	
+	/**
+	 *	Trasforma la stringa inserita come parametro nel mese corrispondente
+	 */
+	public static int monthToInt(String month){
+		
+		month=month.trim().toLowerCase();
+		switch(month){
+		case "gennaio": 	case "january": 	return 1;
+		case "febbraio": 	case "february":	return 2;
+		case "marzo": 		case "march":		return 3;
+		case "aprile": 		case "april":		return 4;
+		case "maggio": 		case "may":			return 5;
+		case "giugno": 		case "june":		return 6;
+		case "luglio": 		case "july":		return 7;
+		case "agosto": 		case "august":		return 8;
+		case "settembre": 	case "september":	return 9;
+		case "ottobre": 	case "october":		return 10;
+		case "novembre": 	case "november":	return 11;
+		case "dicembre": 	case "december":	return 12;
+		default: return -1;
+		}
+	}
+
+	/**
+	 * Ritorna il numero inserito nel mese corrispondente sottoforma di stringa
+	 * @param month
+	 * @return
+	 */
+	public static String monthToString(int month){
+			
+		switch((month)%12){
+		case 1: return "Gennaio";
+		case 2: return "Febbraio"; 
+		case 3: return "Marzo"; 
+		case 4: return "Aprile"; 
+		case 5: return "Maggio";
+		case 6: return "Giugno";
+		case 7: return "Luglio";
+		case 8: return "Agosto";
+		case 9: return "Settembre";
+		case 10: return "Ottobre";
+		case 11: return "Novembre";
+		case 0: return "Dicembre";
+		default: return "???";
+		}
+	}
+	
+	public int ora(){return ora;}
+
 	@Override
 	public String toString(){
 			
@@ -457,51 +516,6 @@ public class Data implements Comparable<Data>, Serializable{
 			minuto="0"+this.minuto;
 		String mese= monthToString(this.mese);
 		return ""+giorno+" "+mese+" "+anno+" "+ora+":"+minuto;
-	}
-	
-	@Override
-	public int hashCode(){
-		
-		final int PRIMO=43;
-		return PRIMO*anno+PRIMO*mese+PRIMO*giorno+PRIMO*ora+PRIMO*minuto;
-	}
-	
-	/**
-	 * Confronta due date e stabilisce quale sia la più recente. Ritorna 0 se le date sono identiche,
-	 * -1 se this è meno recente di arg0, 1 altrimenti
-	 */
-	@Override
-	public int compareTo(Data arg0) {
-			
-		if(this.anno>arg0.anno)
-			return 1;
-		else if(this.anno<arg0.anno)
-			return -1;
-		else{
-			if(this.mese>arg0.mese)
-				return 1;
-			else if(this.mese<arg0.mese)
-				return -1;
-			else{
-				if(this.giorno>arg0.giorno)
-					return 1;
-				else if(this.giorno<arg0.giorno)
-					return -1;
-				else{
-					if(this.ora>arg0.ora)
-						return 1;
-					else if(this.ora<arg0.ora)
-						return -1;
-					else{
-						if(this.minuto>arg0.minuto)
-							return 1;
-						else if(this.minuto<arg0.minuto)
-							return -1;
-						else return 0;
-					}
-				}
-			}
-		}
 	}
 	
 	public static void main(String[] args){

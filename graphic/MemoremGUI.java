@@ -274,8 +274,10 @@ public class MemoremGUI extends JFrame{
 								classic.add(mp);
 								calendar.add(m);
 							}
-							if(cont>0)
+							if(cont>0){
+								System.out.println("Dimensione del mio caos:"+k.getPending().size());
 								rinviaD.gestisci(new MemoList(k.getPending()));
+							}
 							if(memos>0)
 								classic.setVisible(true);
 							else{
@@ -306,7 +308,7 @@ public class MemoremGUI extends JFrame{
 						if(old!=null){
 							Data updated=mm.getEnd();
 							int diff=updated.giorno()-new Data().giorno();
-							rinvia(mm,diff);
+							MemoremGUI.this.rinvia(mm,diff,true);
 						}
 					}
 					else if(mm.isNotificato()){
@@ -317,6 +319,7 @@ public class MemoremGUI extends JFrame{
 						System.out.println("Come si gestisce questo????");
 					}
 				}//for
+				repaint();
 			}//rinviaD
 		}//windowDeactivated
 	}//DesmondMiles
@@ -460,20 +463,20 @@ public class MemoremGUI extends JFrame{
 				else if(((MyMenuItem)evt.getSource()).getText().equals("archivia")) //premuto il tasto archivia
 					MemoremGUI.this.completa(m,false);
 				else if(((MyMenuItem)evt.getSource()).getText().equals("1 giorno")){	//premuto il tasto 1 giorno
-					MemoremGUI.this.rinvia(m,1);
+					MemoremGUI.this.rinvia(m,1,false);
 					//((MyMenuItem)evt.getSource()).apochiudira();
 				}
 				else if(((MyMenuItem)evt.getSource()).getText().equals("3 giorni")){	//premuto il tasto 3 giorni
-					MemoremGUI.this.rinvia(m,3);
+					MemoremGUI.this.rinvia(m,3,false);
 					//((MyMenuItem)evt.getSource()).apochiudira();
 				}
 				else if(((MyMenuItem)evt.getSource()).getText().equals("1 settimana")){//premuto il tasto 1 settimana
-					MemoremGUI.this.rinvia(m,7);
+					MemoremGUI.this.rinvia(m,7,false);
 					//((MyMenuItem)evt.getSource()).apochiudira();
 				}
 				else if(((MyMenuItem)evt.getSource()).getText().equals("1 mese")){//premuto il tasto 1 mese
 					Data d=new Data();
-					MemoremGUI.this.rinvia(m,Data.daysOfMonth(d.anno(), d.mese()));
+					MemoremGUI.this.rinvia(m,Data.daysOfMonth(d.anno(), d.mese()),false);
 				}
 			}
 			else if(evt.getSource() instanceof PopItem){		//qui gestiamo i tasti del CalendarFrame
@@ -485,11 +488,11 @@ public class MemoremGUI extends JFrame{
 				else if(evt.getSource()==completa)
 					MemoremGUI.this.completa(completa.getMemo(),true);
 				else if(evt.getSource()==one)
-					MemoremGUI.this.rinvia(one.getMemo(),1);
+					MemoremGUI.this.rinvia(one.getMemo(),1,false);
 				else if(evt.getSource()==three)
-					MemoremGUI.this.rinvia(three.getMemo(),3);
+					MemoremGUI.this.rinvia(three.getMemo(),3,false);
 				else if(evt.getSource()==seven)
-					MemoremGUI.this.rinvia(seven.getMemo(),7);
+					MemoremGUI.this.rinvia(seven.getMemo(),7,false);
 				else if(evt.getSource()==custom)
 					p.modifica(custom.getMemo());
 			}//PopItems
@@ -799,6 +802,15 @@ public class MemoremGUI extends JFrame{
 	
 	private void checkMemos(){
 		
+		int res=k.updateMemos();
+		if(res>0){
+			classic.updateMemos();
+			MemoList ml=new MemoList(k.getPending());
+			rinviaD.gestisci(ml);
+		}
+	}
+	/*private void checkMemos(){
+		
 		if(visualHandler.getSelected().equals(classicRadio)){
 			if(vF[0].isSelected() && !dF[0].isSelected()){
 				int res=classic.updateMemos();
@@ -829,7 +841,7 @@ public class MemoremGUI extends JFrame{
 				((CalendarFrame)panel_2).getCustomRenderer().refresh();
 		}
 		panel_2.repaint();
-	}
+	}*/
 	
 	/**
 	 * Cambia la visualizzazione del Memorem dalla modalità classica alla modalità calendario
@@ -952,6 +964,23 @@ public class MemoremGUI extends JFrame{
 		//panel_2.setVisible(true);
 	}
 	
+	private void setProgressBarToolTip(){
+		
+		int x=k.percentualeCompletati();
+		if(x<=20)
+			progressBar.setToolTipText("Per te ci vorrebbe un MemoRem per ricordarti che esiste MemoRem");
+		else if(x<=40)
+			progressBar.setToolTipText("Mmm francamente sei un pò scarso..");
+		else if(x<=60)
+			progressBar.setToolTipText("Dai, impegnati un pò di più");
+		else if(x<=80)
+			progressBar.setToolTipText("Sei andato molto bene, ma puoi ancora fare di più");
+		else if(x<99)
+			progressBar.setToolTipText("Wow, sei un mostro!!!");
+		else
+			progressBar.setToolTipText("Non ne hai mancato uno!!! Ma riesci anche a dedicare del tempo per te stesso?");
+	}
+	
 	/**
 	 * Metodo che viene richiamato quando l'admin si connette o si disconnette, fornendogli comandi 
 	 * che gli altri utenti non possono vedere
@@ -1040,18 +1069,7 @@ public class MemoremGUI extends JFrame{
 		timer.schedule(orologio, 0,1000);
 		int x=k.percentualeCompletati();
 		progressBar.setValue(x);
-		if(x<=20)
-			progressBar.setToolTipText("Per te ci vorrebbe un MemoRem per ricordarti che esiste MemoRem");
-		else if(x<=40)
-			progressBar.setToolTipText("Mmm francamente sei un pò scarso..");
-		else if(x<=60)
-			progressBar.setToolTipText("Dai, impegnati un pò di più");
-		else if(x<=80)
-			progressBar.setToolTipText("Sei andato molto bene, ma puoi ancora fare di più");
-		else if(x<99)
-			progressBar.setToolTipText("Wow, sei un mostro!!!");
-		else
-			progressBar.setToolTipText("Non ne hai mancato uno!!! Ma riesci anche a dedicare del tempo per te stesso?");
+		setProgressBarToolTip();
 		mntmLogin.setEnabled(false);
 		mntmLogout.setEnabled(true);
 		//JOptionPane.showMessageDialog(this, "Buongiorno, "+k.getUser().toString());
@@ -1258,23 +1276,25 @@ public class MemoremGUI extends JFrame{
 		calendar.remove(m);
 		classic.remove(m);
 		progressBar.setValue(k.percentualeCompletati());
+		setProgressBarToolTip();
 	}
 	
 	/**
 	 * rinvia un memo scaduto del numero di giorni indicato. Ritorna true se la nuova data viola
 	 * i filtri preposti dal classic
 	 */
-	public void rinvia(Memo m,int giorni){
+	public void rinvia(Memo m,int giorni,boolean alreadyDone){
 		
+		System.out.println("Rinviamo "+m);
 		Data nuova=new Data();
-		for(int i=0;i<giorni;i++)
-			nuova=nuova.domani();
-		calendar.remove(m);
 		Memo nuovo=new Memo(m);
-		nuovo.setEnd(nuova);
-		classic.modifica(m,nuovo);
+		if(!alreadyDone){
+			for(int i=0;i<giorni;i++)
+				nuova=nuova.domani();
+			nuovo.setEnd(nuova);
+		}
+		calendar.remove(m);
 		k.modifica(m, nuovo);
-		//k.add(nuovo);
 		calendar.add(nuovo);
 		boolean[] priors=new boolean[3];
 		for(int i=0;i<3;i++)
@@ -1291,5 +1311,9 @@ public class MemoremGUI extends JFrame{
 			data[2]=true;
 		else if(x.equals("In quest'anno"))
 			data[3]=true;
+		if(Keeper.filtriViolati(priors, data, nuovo))
+			classic.remove(m);
+		else
+			classic.modifica(m,nuovo);
 	}
 }
