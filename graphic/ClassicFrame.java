@@ -155,7 +155,12 @@ public class ClassicFrame extends JInternalFrame{
 					if(personal.size()>1)
 						dynamic.getComponent(0).removeMouseMotionListener(mouseM);
 				}*/
-				return dynamic.add(c,indexOf);
+				Component added=dynamic.add(c,indexOf);
+				if(added!=null){
+					repaint();
+					return added;
+				}
+				
 			}
 		}
 		return null;
@@ -186,24 +191,29 @@ public class ClassicFrame extends JInternalFrame{
 		repaint();
 	}
 	
-	public void modifica(MemPanel mp,Memo m){
+	public void modifica(Memo vecchio,Memo nuovo){
 		
 		Component[] panels=dynamic.getComponents();
 		boolean found=false;
+		MemPanel old=new MemPanel(vecchio);
 		for(int i=0;i<panels.length;i++){
-			if(!found && panels[i] instanceof MemPanel && ((MemPanel)panels[i]).getMemo().equals(m)){
-					((MemPanel)panels[i]).setMemo(m);
+			if(!found && panels[i] instanceof MemPanel && ((MemPanel)panels[i]).getMemo().equals(vecchio)){
+					((MemPanel)panels[i]).setMemo(nuovo);
 					found=true;
-					personal.remove(mp.getMemo());
-					personal.add(m);
+					old=(MemPanel)panels[i];
+					personal.remove(vecchio);
+					personal.add(nuovo);
 			}
-			else if(found){
-				int pos=personal.indexOf(m);
-				dynamic.remove(mp);
+			if(found){
+				int pos=personal.indexOf(nuovo);
+				MemPanel newOne=new MemPanel(nuovo);
+				newOne.passaTestimone(old);
 				//mp.addMouseMotionListener(mouseM);
-				dynamic.add(mp, pos);
+				dynamic.remove(old);
+				dynamic.add(newOne, pos);
 				dynamic.revalidate();
 				repaint();
+				return;
 			}
 		}
 	}

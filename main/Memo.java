@@ -253,7 +253,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		int dMe=end.mese()-ora.mese();
 		int dGi=end.giorno()-ora.giorno();
 		int dHo=end.ora()-ora.ora();
-		int dMi=end.minuto()-ora.minuto();
+		int dMi=end.minuto()-ora.minuto()-1;
 		if(dMi<0){
 			dMi=60+dMi;
 			dHo--;

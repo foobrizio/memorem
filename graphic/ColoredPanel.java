@@ -21,6 +21,8 @@ public class ColoredPanel extends JPanel {
 	public ColoredPanel(String pathImmagine){
 		
 		super(true);
+		if(pathImmagine==null)
+			return;
 		File f=new File(pathImmagine);
 		try{
 			setImage(ImageIO.read(f));
@@ -36,6 +38,10 @@ public class ColoredPanel extends JPanel {
 	
 	public void setSfondo(String path){
 		
+		if(path==null){
+			sfondo=null;
+			return;
+		}
 		File f=new File(path);
 		try{
 			setImage(ImageIO.read(f));

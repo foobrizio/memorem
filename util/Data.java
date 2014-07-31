@@ -172,18 +172,18 @@ public class Data implements Comparable<Data>, Serializable{
 	public static String monthToString(int month){
 			
 		switch((month)%12){
-		case 1: return "Jan";
-		case 2: return "Feb"; 
-		case 3: return "Mar"; 
-		case 4: return "Apr"; 
-		case 5: return "May";
-		case 6: return "Jun";
-		case 7: return "Jul";
-		case 8: return "Aug";
-		case 9: return "Sep";
-		case 10: return "Oct";
-		case 11: return "Nov";
-		case 0: return "Dec";
+		case 1: return "Gennaio";
+		case 2: return "Febbraio"; 
+		case 3: return "Marzo"; 
+		case 4: return "Aprile"; 
+		case 5: return "Maggio";
+		case 6: return "Giugno";
+		case 7: return "Luglio";
+		case 8: return "Agosto";
+		case 9: return "Settembre";
+		case 10: return "Ottobre";
+		case 11: return "Novembre";
+		case 0: return "Dicembre";
 		default: return "???";
 		}
 	}

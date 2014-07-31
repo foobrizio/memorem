@@ -172,10 +172,10 @@ public class MemoList implements Iterable<Memo>{
 
 	public MemoList(MemoList ml){
 
-		highs=ml.highs;
-		normals=ml.normals;
-		lows=ml.lows;
-		size=ml.size;
+		this.highs=new LinkedList<Memo>(ml.highs);
+		this.normals=new LinkedList<Memo>(ml.normals);
+		this.lows=new LinkedList<Memo>(ml.lows);
+		this.size=ml.size;
 	}
 
 	public int size(){
@@ -310,8 +310,6 @@ public class MemoList implements Iterable<Memo>{
 
 	public boolean remove(Memo t){
 
-		if( !contains(t) )//non si può rimuovere qualcosa che non c'è
-			return false;
 		boolean result;
 		switch ( t.priority() ){
 		case 0: /*lows*/ 	result=lows.remove(t);		break;
@@ -319,10 +317,6 @@ public class MemoList implements Iterable<Memo>{
 		case 2: /*highs*/ 	result=highs.remove(t);		break;
 		default: System.out.println("memolist non contiene questo memo");return false;
 		}
-		if(result && t.description().equals("Laurea Manuel e Matteo"))
-			System.out.println("remove effettuata");
-		else if(t.description().equals("Laurea Manuel e Matteo"))
-			System.out.println("remove non effettuata");
 		if(result)
 			size--;
 		return result;

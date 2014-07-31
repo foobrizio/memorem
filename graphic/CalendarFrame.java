@@ -502,6 +502,7 @@ public class CalendarFrame extends JInternalFrame{
 		}
 		//System.out.println("celleSelezionate:"+cellaSelezionata[0]+","+cellaSelezionata[1]);
 		this.renderer.colorizeCell(c, cellaSelezionata[0], cellaSelezionata[1]);
+		repaint();
 	}
 	
 	/**

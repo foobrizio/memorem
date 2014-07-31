@@ -76,6 +76,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 		
 		frecciaS = new JLabel("«««");
 		frecciaS.setFont(new Font("Comic Sans MS", Font.BOLD | Font.ITALIC, 16));
+		frecciaS.setToolTipText("Scorre a sinistra");
 		frecciaS.addMouseListener(mouse);
 		sl_contentPanel.putConstraint(SpringLayout.NORTH, frecciaS, 10, SpringLayout.NORTH, contentPanel);
 		sl_contentPanel.putConstraint(SpringLayout.WEST, frecciaS, 10, SpringLayout.WEST, contentPanel);
@@ -83,6 +84,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 		
 		frecciaD = new JLabel("»»»");
 		frecciaD.setFont(new Font("Comic Sans MS", Font.BOLD | Font.ITALIC, 16));
+		frecciaD.setToolTipText("Scorre a destra");
 		frecciaD.addMouseListener(mouse);
 		sl_contentPanel.putConstraint(SpringLayout.NORTH, frecciaD, 0, SpringLayout.NORTH, frecciaS);
 		sl_contentPanel.putConstraint(SpringLayout.EAST, frecciaD, -10, SpringLayout.EAST, contentPanel);
@@ -144,6 +146,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 		completa.setFont(comic);
 		sl_contentPanel.putConstraint(SpringLayout.EAST, completa, 0, SpringLayout.EAST, lblScadutoIl);
 		completa.addMouseListener(mouse);
+		completa.setToolTipText("Clicca e aggiungi un altro successo allo storico dei tuoi impegni");
 		contentPanel.add(completa);
 		
 		archivia = new JLabel("Archivia");
@@ -152,10 +155,12 @@ public class DeferDialog extends JDialog implements ActionListener{
 		sl_contentPanel.putConstraint(SpringLayout.NORTH, completa, 0, SpringLayout.NORTH, archivia);
 		sl_contentPanel.putConstraint(SpringLayout.WEST, archivia, 0, SpringLayout.WEST, dateLabel);
 		archivia.addMouseListener(mouse);
+		archivia.setToolTipText("Non sei riuscito a completare questo memo?");
 		contentPanel.add(archivia);
 		
 		rinvia = new JLabel("Rinvia");
 		rinvia.setFont(comic);
+		rinvia.setToolTipText("Clicca se hai bisogno più tempo per i tuoi impegni");
 		sl_contentPanel.putConstraint(SpringLayout.NORTH, rinvia, 0, SpringLayout.NORTH, completa);
 		sl_contentPanel.putConstraint(SpringLayout.WEST, rinvia, 54, SpringLayout.EAST, archivia);
 		rinvia.addMouseListener(mouse);
@@ -172,9 +177,13 @@ public class DeferDialog extends JDialog implements ActionListener{
 			vediDopo.setFont(comic);
 			vediDopo.setOpaque(false);
 			vediDopo.setBackground(new Color(0,0,0,0));
+			vediDopo.setBorderPainted(false);
 			vediDopo.setForeground(myBlue);
+			vediDopo.setToolTipText("Rimanda la decisione ad un secondo momento");
+			getRootPane().setDefaultButton(vediDopo);
 			vediDopo.addActionListener(this);
 			vediDopo.setFocusPainted(false);
+			vediDopo.addMouseListener(mouse);
 			//vediDopo.setActionCommand("Cancel");
 			buttonPane.add(vediDopo);
 
@@ -182,9 +191,12 @@ public class DeferDialog extends JDialog implements ActionListener{
 			chiudi = new JButton("Chiudi");
 			chiudi.setOpaque(false);
 			chiudi.setBackground(new Color(0,0,0,0));
+			chiudi.setBorderPainted(false);
 			chiudi.setForeground(myRed);
 			chiudi.setFont(comic);
+			chiudi.setToolTipText("Chiude la finestra");
 			chiudi.addActionListener(this);
+			chiudi.addMouseListener(mouse);
 			buttonPane.add(chiudi);
 		}
 		one=new JMenuItem("Rinvia a domani");
@@ -199,15 +211,17 @@ public class DeferDialog extends JDialog implements ActionListener{
 	
 	public void gestisci(MemoList mmm){
 		
+		System.out.println("mmm:"+mmm);
 		if(this.ml==null){
 			if(mmm.size()==0)
 				return;
-			this.ml=mmm;
+			this.ml=new MemoList(mmm);
 			pages=mmm.size();
 			prepareInterface();
 			setVisible(true);
 		}
 		else{
+			System.out.println("Ma questo non succede mai");
 			for(Memo m:mmm)
 				if(!ml.contains(m))
 					ml.add(m);
@@ -315,10 +329,10 @@ public class DeferDialog extends JDialog implements ActionListener{
 			}
 			else if(evt.getSource()==completa){
 				
-				Memo m=ml.get(curPage-1);
-				m.spunta();
-				handled.add(m);
-				ml.remove(m);
+				Memo m=ml.get(curPage-1);//prendo il memo vis nella pag
+				m.spunta();//rendo completato
+				handled.add(m);//add in lista dei gestiti 
+				ml.remove(m);// remove da memo da gestire
 			}
 			else if(evt.getSource()==archivia){
 				
@@ -352,39 +366,37 @@ public class DeferDialog extends JDialog implements ActionListener{
 		}
 		public void mouseEntered(MouseEvent evt){
 			
-			if(evt.getSource()==frecciaS){
+			if(evt.getSource()==frecciaS)
 				frecciaS.setForeground(Color.GREEN);
-			}
-			else if(evt.getSource()==frecciaD){
+			else if(evt.getSource()==frecciaD)
 				frecciaD.setForeground(Color.GREEN);
-			}
-			else if(evt.getSource()==completa){
+			else if(evt.getSource()==completa)
 				completa.setForeground(Color.GREEN);
-			}
-			else if(evt.getSource()==archivia){
+			else if(evt.getSource()==archivia)
 				archivia.setForeground(Color.RED);
-			}
-			else if(evt.getSource()==rinvia){
+			else if(evt.getSource()==rinvia)
 				rinvia.setForeground(descLabel.getForeground());
-			}
+			else if(evt.getSource()==vediDopo)
+				vediDopo.setBorderPainted(true);
+			else if(evt.getSource()==chiudi)
+				chiudi.setBorderPainted(true);
 		}
 		public void mouseExited(MouseEvent evt){
 			
-			if(evt.getSource()==frecciaS){
+			if(evt.getSource()==frecciaS)
 				frecciaS.setForeground(Color.WHITE.darker());
-			}
-			else if(evt.getSource()==frecciaD){
+			else if(evt.getSource()==frecciaD)
 				frecciaD.setForeground(Color.WHITE.darker());
-			}
-			else if(evt.getSource()==completa){
+			else if(evt.getSource()==completa)
 				completa.setForeground(Color.WHITE.darker());
-			}
-			else if(evt.getSource()==archivia){
+			else if(evt.getSource()==archivia)
 				archivia.setForeground(Color.WHITE.darker());
-			}
-			else if(evt.getSource()==rinvia){
+			else if(evt.getSource()==rinvia)
 				rinvia.setForeground(Color.WHITE.darker());
-			}
+			else if(evt.getSource()==vediDopo)
+				vediDopo.setBorderPainted(false);
+			else if(evt.getSource()==chiudi)
+				chiudi.setBorderPainted(false);
 		}
 	}
 	
@@ -436,6 +448,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			cur.setRevalued();
+			System.out.println("Rinviato:"+cur);
 			handled.add(cur);
 		}
 		else if(arg0.getSource()==three){
@@ -445,6 +458,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			cur.setRevalued();
+			System.out.println("Rinviato:"+cur);
 			handled.add(cur);
 		}
 		else if(arg0.getSource()==seven){
@@ -454,6 +468,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			cur.setRevalued();
+			System.out.println("Rinviato:"+cur);
 			handled.add(cur);
 		}
 		else if(arg0.getSource()==month){
@@ -463,6 +478,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			cur.setRevalued();
+			System.out.println("Rinviato:"+cur);
 			handled.add(cur);
 		}
 		aggiornaLabels();

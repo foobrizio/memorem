@@ -33,7 +33,7 @@ public class MemoremGUI extends JFrame{
 	 * innerVisualHandler gestisce la scelta del tipo di memo da visualizzare (scaduti o attivi)
 	 */
 	private Abbottonatore visualHandler, dataHandler, innerVisualHandler;
-	private JMenuItem mntmEsci,mntmNuova,mntmGuest,mntmSalva,mntmLogin,mntmLogout,mntmAggiungi,mntmCancella,mntmCancellaStorico,mntmReset,mntmRimuoviU,mntmAggiungiU,mntmModPass,mntmStatistiche;
+	private JMenuItem mntmEsci,mntmNuova,mntmGuest,mntmSalva,mntmLogin,mntmLogout,mntmAggiungi,mntmCancella,mntmCancellaStorico,mntmEliminaImpegni,mntmReset,mntmRimuoviU,mntmAggiungiU,mntmModPass,mntmStatistiche;
 	private JMenu mnNuovo,mnStrumenti,mnVisualizza,mnUtente,mnRimuoviU;
 	private JCheckBox mntmHints;
 	private JList<Object> utenti;
@@ -42,6 +42,7 @@ public class MemoremGUI extends JFrame{
 	private JInternalFrame panel_2;
 	private CalendarFrame calendar;
 	private ClassicFrame classic;
+	private WelcomeFrame welcome;
 	private Popup p;
 	private PopItem completa,elimina,modifica,one,three,seven,custom;
 	private LoginDialog logD;
@@ -163,9 +164,12 @@ public class MemoremGUI extends JFrame{
 				if( p.isOk() && p.getModified()){	//e possiamo andare avanti solamente se è stato premuto il tasto ok
 					Memo memo=p.getCreated();
 					Memo old=p.getOld();
-					modifica(old,memo);
-					mntmSalva.setEnabled(true);
-					checkMemos();
+					if(!memo.identici(old)){
+						MemoremGUI.this.modifica(old,memo);
+						checkMemos();
+					}
+					else
+						JOptionPane.showMessageDialog(MemoremGUI.this, "La modifica è nulla");
 				}
 				else if(p.isOk() && !p.getModified()){	//qui invece gestiamo la notifica di un aggiunta di memo
 					Memo m=p.getCreated();
@@ -192,7 +196,7 @@ public class MemoremGUI extends JFrame{
 					MemoList mlGuest=new MemoList();								
 					if(k.getUser().getNickname().equals("guest")){			//	Qui ci prendiamo i dati dei memo che
 						mlGuest=new MemoList();								//  erano stati creati finora dal guest
-						for(Memo m: k.getCurrentList())
+						for(Memo m: k.getDBList())
 							mlGuest.add(m,true);
 					}
 					//if(!(k.getUser().getNickname().equals("none")))
@@ -206,6 +210,15 @@ public class MemoremGUI extends JFrame{
 							guesty=true;
 						if(!guesty)
 							mntmLogout.doClick();
+						((ColoredPanel)panel).setSfondo("./src/graphic/wallpapers/wall5.jpg");
+						panel_2.dispose();
+						panel.remove(panel_2);
+						panel_2=classic;
+						panel.setOpaque(false);
+						panel.setBackground(new Color(0,0,0,0));
+						panel.add(panel_2, "cell 0 0 7 26,grow");
+						panel.setVisible(false);
+						panel.setVisible(true);
 						int res=k.signUp(nick,pass,name,surname,genre,true);
 						if(res==0){
 							if(mlGuest.size()>0){
@@ -227,14 +240,24 @@ public class MemoremGUI extends JFrame{
 					else if(!logD.isForRegistration() && logD.autologin()){				//abbiamo premuto "login"
 						
 						k.start();
-						int x=k.login(nick, pass);
-						if(x==0){
+						boolean x=k.login(nick, pass);
+						if(x){
+							((ColoredPanel)panel).setSfondo("./src/graphic/wallpapers/wall5.jpg");
+							panel_2.dispose();
+							panel.remove(panel_2);
+							panel_2=classic;
+							panel.setOpaque(false);
+							panel.setBackground(new Color(0,0,0,0));
+							panel.add(panel_2, "cell 0 0 7 26,grow");
+							panel.setVisible(false);
+							panel.setVisible(true);
 							enableButtons();
+							//faccio il login oram
 							login();
 							mntmGuest.setEnabled(false);
 							int memos=0;
 							int cont=0;
-							for(Memo m: k){
+							for(Memo m: k.getStandardMemos()){
 								memos++;
 								//System.out.println("login:"+m.getIcon());
 								MemPanel mp=new MemPanel(m);
@@ -251,23 +274,14 @@ public class MemoremGUI extends JFrame{
 								classic.add(mp);
 								calendar.add(m);
 							}
-							if(cont>0){
-								rinviaD.gestisci(k.getPending());
-								Toolkit.getDefaultToolkit().beep();
-							}
-							//panel_2=classic;
+							if(cont>0)
+								rinviaD.gestisci(new MemoList(k.getPending()));
 							if(memos>0)
 								classic.setVisible(true);
 							else{
 								panel_2.setVisible(true);
 								classic.setVisible(false);
 							}
-						}
-						else{
-							if(x==1)
-								JOptionPane.showMessageDialog(MemoremGUI.this,"L'utente non esiste");
-							else
-								JOptionPane.showMessageDialog(MemoremGUI.this,"Password sbagliata");
 						}
 					}
 					else if(logD.isForRegistration() && !logD.autologin()){		//semplice aggiunta di un utente, senza autologin
@@ -280,19 +294,27 @@ public class MemoremGUI extends JFrame{
 				}
 			}//loginDialog
 			else if(arg0.getSource()==rinviaD){
-				MemoList nuova=rinviaD.getHandled();
+				MemoList nuova=rinviaD.getHandled();//memolist= gestiti
 				for(Memo mm:nuova){
-					if(mm.isCompleted())
+					if(mm.isCompleted()){
+						System.out.println("completa");
 						MemoremGUI.this.completa(mm, true);
-					else if(mm.isNotificato())
-						MemoremGUI.this.completa(mm, false);
-					else{
+					}
+					else if(mm.getEnd().compareTo(new Data())>0){	//non è più scaduto
+						System.out.println("rinvia");
 						Memo old=k.getPending().get(mm.getId());
 						if(old!=null){
 							Data updated=mm.getEnd();
 							int diff=updated.giorno()-new Data().giorno();
 							rinvia(mm,diff);
 						}
+					}
+					else if(mm.isNotificato()){
+						System.out.println("archivia");
+						MemoremGUI.this.completa(mm, false);
+					}
+					else{
+						System.out.println("Come si gestisce questo????");
 					}
 				}//for
 			}//rinviaD
@@ -314,19 +336,22 @@ public class MemoremGUI extends JFrame{
 				System.exit(0);
 			}
 			else if(evt.getSource()==mntmNuova){			//premuto il tasto nuovo
-				logD=new LoginDialog(MemoremGUI.this,true,true);
-				logD.setUserList(k.userList());
-				logD.addWindowListener(watcher);
-				logD.setVisible(true);
+				logD.registrati(true);
 			}
 			else if(evt.getSource()==mntmGuest){
 				k.start();
 				k.login("guest", null);
 				classic.setVisible(false);
 				classic.setGuestInterface(true);
+				((ColoredPanel)panel).setSfondo("./src/graphic/wallpapers/wall5.jpg");
+				panel_2.dispose();
 				panel.remove(panel_2);
 				panel_2=classic;
+				panel.setOpaque(false);
+				panel.setBackground(new Color(0,0,0,0));
 				panel.add(panel_2, "cell 0 0 7 26,grow");
+				panel.setVisible(false);
+				panel.setVisible(true);
 				p=new Popup(MemoremGUI.this);
 				p.addWindowListener(watcher);
 				orologio=new InnerClock();
@@ -346,17 +371,26 @@ public class MemoremGUI extends JFrame{
 			else if(evt.getSource()==mntmLogin){			//premuto il tasto login
 
 				panel.add(panel_2, "cell 0 0 7 26,grow");
-				logD=new LoginDialog(MemoremGUI.this,false,true);
-				logD.setUserList(k.userList());
 				logD.addWindowListener(watcher);
-				logD.setVisible(true);
+				logD.login(true);
 			}
 			else if(evt.getSource()==mntmLogout){			//premuto il tasto logout
 				k.logout();
+				vF[0].setSelected(true);
+				vF[1].setSelected(false);
+				dF[0].setSelected(false);
+				classicRadio.setSelected(true);
+				calendarRadio.setSelected(false);
 				classic.clearMemos();
 				calendar.clear();
 				classic.setVisible(false);
+				((ColoredPanel)panel).setSfondo(null);
+				panel.setBackground(Color.WHITE);
+				panel.setOpaque(true);
 				panel.remove(panel_2);
+				panel_2=welcome;
+				welcome.setVisible(true);
+				panel.add(panel_2,"cell 0 0 7 26,grow");
 				mntmLogin.setEnabled(true);
 				mntmGuest.setEnabled(true);
 				progressBar.setValue(0);
@@ -366,10 +400,7 @@ public class MemoremGUI extends JFrame{
 				if(k.getUser().getNickname().equals("guest")){
 					int ans=JOptionPane.showConfirmDialog(MemoremGUI.this, "Per salvare le tue modifiche devi essere iscritto. Vuoi iscriverti ora?");
 					if(ans==JOptionPane.YES_OPTION){
-						logD=new LoginDialog(MemoremGUI.this,true,true);
-						logD.setUserList(k.userList());
-						logD.addWindowListener(watcher);
-						logD.setVisible(true);
+						logD.registrati(true);
 					}
 				}
 				else
@@ -382,15 +413,14 @@ public class MemoremGUI extends JFrame{
 				MemoremGUI.this.cancella();
 			else if(evt.getSource()==mntmCancellaStorico)	//premuto il tasto cancellaStorico
 				MemoremGUI.this.cancellaStorico();
+			else if(evt.getSource()==mntmEliminaImpegni)
+				MemoremGUI.this.eliminaImpegni();
 			else if(evt.getSource()==mntmReset)				//resetta il database
 				MemoremGUI.this.reset();
 			else if(evt.getSource()==mntmRimuoviU)			//rimuove utente
 				MemoremGUI.this.removeUser(k.getUser().getNickname());
 			else if(evt.getSource()==mntmAggiungiU){		//aggiunge un utente
-				logD=new LoginDialog(MemoremGUI.this,true,false);
-				logD.setUserList(k.userList());
-				logD.addWindowListener(watcher);
-				logD.setVisible(true);
+				logD.registrati(false);
 			}
 			else if(evt.getSource()==mntmModPass){
 				
@@ -400,7 +430,7 @@ public class MemoremGUI extends JFrame{
 			else if(evt.getSource()==okButton){
 				
 				String[] passwords=modPass.getPasswords();
-				int res=k.modificaPassword(passwords[0],passwords[1]);
+				int res=k.modificaPassword(passwords[1]);
 				if(res==0)
 					modPass.dispose();
 				else if(res==2)
@@ -494,6 +524,7 @@ public class MemoremGUI extends JFrame{
 		setTitle("MemoRem 1.0");								//titolo del frame
 		k=new Keeper();
 		rinviaD=new DeferDialog(this);
+		
 		setDefaultLookAndFeelDecorated(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
@@ -503,7 +534,7 @@ public class MemoremGUI extends JFrame{
 		
 		JMenuBar menuBar = new JMenuBar();						//la barra dei menu in alto
 		setJMenuBar(menuBar);
-		
+		rinviaD.addWindowListener(watcher);
 		mnNuovo = new JMenu("File");
 		menuBar.add(mnNuovo);
 		manageFileButtons();		//qui abbiamo creato e gestito i bottini del 1° JMenu
@@ -521,11 +552,18 @@ public class MemoremGUI extends JFrame{
 		menuBar.add(mnUtente);
 		manageUtenteButtons();
 		
-		panel = new ColoredPanel("./src/graphic/wallpapers/wall5.jpg");
+		//Creo il LoginDialog
+		logD=new LoginDialog(MemoremGUI.this);
+		logD.setUserList(k.userList());
+		logD.addWindowListener(watcher);
+		panel = new ColoredPanel(null);
+		panel.setBackground(Color.WHITE);
 		JPanel PBPanel=new JPanel();
 		setInternalFrameAtStart();
 		classic=new ClassicFrame(vF,pF,dF);
-		panel_2=classic;
+		welcome=new WelcomeFrame(logD);
+		welcome.setVisible(true);
+		panel_2=welcome;
 		panel.setLayout(new MigLayout("", "[][grow][grow][][][][grow]", "[grow][grow][grow][grow][grow][][][][][][][][][][][][][][][][][][][][][][grow][]"));
 		setContentPane(panel);
 		panel.add(panel_2, "cell 0 0 7 26,grow");
@@ -597,7 +635,6 @@ public class MemoremGUI extends JFrame{
 		innerVisualHandler.add(radioScaduti);
 		innerVisualHandler.setDefaultButton(radioAttivi);
 		vF[0]= radioAttivi; vF[1]= radioScaduti; //creiamo vF
-		//panel_2.setVisible(false);
 		
 	}
 	/**
@@ -707,9 +744,14 @@ public class MemoremGUI extends JFrame{
 		mntmCancella.addActionListener(listener);
 		mnStrumenti.add(mntmCancella);
 		
+		mntmEliminaImpegni = new JMenuItem("Elimina impegni");
+		mntmEliminaImpegni.addActionListener(listener);
+		mnStrumenti.add(mntmEliminaImpegni);
+		
 		mntmCancellaStorico = new JMenuItem("Cancella storico dei memo");
 		mntmCancellaStorico.addActionListener(listener);
 		mnStrumenti.add(mntmCancellaStorico);
+		
 	}
 	
 	private void manageVisualizzaButtons(){
@@ -761,14 +803,12 @@ public class MemoremGUI extends JFrame{
 			if(vF[0].isSelected() && !dF[0].isSelected()){
 				int res=classic.updateMemos();
 				if(res>0){
-					MemoList ml=k.getPending();
-					//System.out.println(ml);
+					MemoList ml=new MemoList(k.getPending());
 					rinviaD.gestisci(ml);
-					Toolkit.getDefaultToolkit().beep();
 				}
 			}
 			else{
-				MemoList ml=k.getPending();
+				MemoList ml=new MemoList(k.getPending());
 				MemoList t=new MemoList();
 				for(Memo m:ml)
 					if(m.isScaduto()){
@@ -781,7 +821,6 @@ public class MemoremGUI extends JFrame{
 					}
 				if(t.size()>0){
 					rinviaD.gestisci(t);
-					Toolkit.getDefaultToolkit().beep();
 				}
 			}
 		}
@@ -888,7 +927,7 @@ public class MemoremGUI extends JFrame{
 		else
 			classic.mnPriorit.setForeground(Color.BLACK);
 		k.formaQuery(data, visual, prioritatibus);
-		nuova=k.getCurrentList();
+		nuova=k.getRealList();
 		calendar.setMemolist(nuova);
 		classic.clearMemos();
 		for(Memo m:nuova){
@@ -975,7 +1014,7 @@ public class MemoremGUI extends JFrame{
 		calendar.setListener(p);
 		if(visualHandler.getSelected().equals(classicRadio))
 			((ClassicFrame)panel_2).clearMemos();
-		timer.schedule(orologio, 0,1000);
+		timer.schedule(orologio, 0,3000);
 		enableButtons();
 	}
 	
@@ -999,7 +1038,20 @@ public class MemoremGUI extends JFrame{
 		calendar=new CalendarFrame(new MemoList());
 		calendar.setListener(p);
 		timer.schedule(orologio, 0,1000);
-		progressBar.setValue(k.percentualeCompletati());
+		int x=k.percentualeCompletati();
+		progressBar.setValue(x);
+		if(x<=20)
+			progressBar.setToolTipText("Per te ci vorrebbe un MemoRem per ricordarti che esiste MemoRem");
+		else if(x<=40)
+			progressBar.setToolTipText("Mmm francamente sei un pò scarso..");
+		else if(x<=60)
+			progressBar.setToolTipText("Dai, impegnati un pò di più");
+		else if(x<=80)
+			progressBar.setToolTipText("Sei andato molto bene, ma puoi ancora fare di più");
+		else if(x<99)
+			progressBar.setToolTipText("Wow, sei un mostro!!!");
+		else
+			progressBar.setToolTipText("Non ne hai mancato uno!!! Ma riesci anche a dedicare del tempo per te stesso?");
 		mntmLogin.setEnabled(false);
 		mntmLogout.setEnabled(true);
 		//JOptionPane.showMessageDialog(this, "Buongiorno, "+k.getUser().toString());
@@ -1063,13 +1115,11 @@ public class MemoremGUI extends JFrame{
 		mntmSalva.setEnabled(true);
 		panel_2.setVisible(false);
 		panel_2.setVisible(true);
-		
-		//p.addWindowListener(this);
 	}//aggiungi
 	
 	public void modifica(Memo vecchio,Memo nuovo){
 		
-		if(k.getTotalList().get(nuovo.description(), nuovo.priority(), nuovo.getEnd())!=null){
+		if(k.containsEqualInDB(nuovo)){
 			JOptionPane.showMessageDialog(MemoremGUI.this, "Il memo esiste già");
 			return;
 		}
@@ -1099,22 +1149,8 @@ public class MemoremGUI extends JFrame{
 			case "In quest'anno" : data[3]=true;
 			}
 			if(!Keeper.filtriViolati(priors, data, nuovo)){
-				MemPanel mp=new MemPanel(nuovo);
-				mp.setBridges(p, jfc, iconButton);
-				if(nuovo.isCompleted()){
-					mp.completa();
-				}
-				else{
-					mp.getElimina().addActionListener(listener);
-					mp.getCompleta().addActionListener(listener);
-					mp.getArchivia().addActionListener(listener);
-					mp.getOneDay().addActionListener(listener);
-					mp.getThreeDays().addActionListener(listener);
-					mp.getOneWeek().addActionListener(listener);
-					mp.getOneMonth().addActionListener(listener);
-				}
-				classic.add(mp);	//l' InternalFrame è stato aggiornato
-				classic.remove(vecchio);
+				System.out.println("I filtri non sono violati");
+				classic.modifica(vecchio, nuovo);
 			}//filtriviolati
 			else
 				classic.remove(vecchio);
@@ -1146,11 +1182,27 @@ public class MemoremGUI extends JFrame{
 			mntmSalva.setEnabled(true);
 		}
 	}
-	
+	public void eliminaImpegni(){
+		
+		int choice=JOptionPane.showConfirmDialog(this, "I cambiamenti saranno irreversibili. Continuare?");
+		if(choice==JOptionPane.YES_OPTION){
+			if(k.memoAttivi()==0){
+				JOptionPane.showMessageDialog(this, "Non c'è nulla da eliminare");
+				return;
+			}
+			k.eliminaImpegni();
+			classic.clearMemos();
+			calendar.clear();
+		}
+	}
 	public void cancellaStorico(){
 		
 		int choice=JOptionPane.showConfirmDialog(this, "I cambiamenti saranno irreversibili. Continuare?");
 		if(choice==JOptionPane.YES_OPTION){
+			if(k.memoStorici()==0){
+				JOptionPane.showMessageDialog(this, "Non c'è nulla da eliminare");
+				return;
+			}
 			vF[0].doClick();
 			k.cancellaStorico();
 			progressBar.setValue(0);
@@ -1217,13 +1269,10 @@ public class MemoremGUI extends JFrame{
 		Data nuova=new Data();
 		for(int i=0;i<giorni;i++)
 			nuova=nuova.domani();
-		MemPanel mp=classic.get(m);
 		calendar.remove(m);
 		Memo nuovo=new Memo(m);
 		nuovo.setEnd(nuova);
-		if(mp!=null){
-			classic.modifica(mp,nuovo);
-		}
+		classic.modifica(m,nuovo);
 		k.modifica(m, nuovo);
 		//k.add(nuovo);
 		calendar.add(nuovo);
@@ -1242,7 +1291,5 @@ public class MemoremGUI extends JFrame{
 			data[2]=true;
 		else if(x.equals("In quest'anno"))
 			data[3]=true;
-		if(Keeper.filtriViolati(priors,data,nuovo))
-			mp.setVisible(false);
 	}
 }

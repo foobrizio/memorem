@@ -337,6 +337,25 @@ public class MemPanel extends JPanel implements ActionListener{
 	}
 	
 	/**
+	 * Trasferisce i bottoni da mp al nuovo MemPanel,in modo da avere gli ascoltatori dei vecchi memo 
+	 * già configurati
+	 * @param mp
+	 */
+	public void passaTestimone(MemPanel mp){
+		
+		this.completa=mp.completa;
+		this.archivia=mp.archivia;
+		this.modifica=mp.modifica;
+		this.elimina=mp.elimina;
+		this.rinvia=mp.rinvia;
+		this.oneDay=mp.oneDay;
+		this.oneMonth=mp.oneMonth;
+		this.oneWeek=mp.oneWeek;
+		this.threeDays=mp.threeDays;
+		this.personalizza=mp.personalizza;
+	}
+	
+	/**
 	 * Questo metodo esegue automaticamente delle funzionalità in base allo stato del memo
 	 * (se è attivo o scaduto).
 	 * @return true se il memo è appena scaduto e non era stato già notificato. False se è ancora attivo
@@ -370,22 +389,6 @@ public class MemPanel extends JPanel implements ActionListener{
 		}
 	}
 	
-	@Override
-	public void addMouseMotionListener(MouseMotionListener m){
-		
-		descrizione.addMouseMotionListener(m);
-		orario.addMouseMotionListener(m);
-		combo.addMouseMotionListener(m);
-	}
-	
-	@Override
-	public void removeMouseMotionListener(MouseMotionListener m){
-		
-		descrizione.removeMouseMotionListener(m);
-		orario.removeMouseMotionListener(m);
-		combo.removeMouseMotionListener(m);
-	}
-	
 	/**
 	 * gestisce i vari tasti
 	 */
@@ -401,24 +404,7 @@ public class MemPanel extends JPanel implements ActionListener{
 		else if(evt.getSource()==modifica || evt.getSource()==personalizza){
 			
 			p.modifica(memo);
-			p.addWindowListener(new WindowAdapter(){
-				
-				@Override
-				public void windowDeactivated(WindowEvent arg0) {
-					if(p.isOk()){
-						MemPanel.this.setVisible(false);
-						memo=p.getCreated();
-						if(!tipoB)
-							orario.setText(memo.endDate());
-						else 
-							orario.setText(memo.countDown());
-						descrizione.setText(memo.description());
-						MemPanel.this.setColour(memo.priority());
-					}
-					checkMemo(); //controlla che il memo appena creato sia idoneo e non sia a sua volta scaduto
-					MemPanel.this.setVisible(true);			
-				}
-			});	//WindowListener
+			
 		}//modifica & personalizza
 		else if(evt.getSource()==tipo){
 			
@@ -476,10 +462,6 @@ public class MemPanel extends JPanel implements ActionListener{
 					}
 				}
 			}//iconTainer
-			else if(e.getSource()==descrizione){
-				System.out.println("dal database:"+memo.getPure());
-				System.out.println("ID:"+memo.getId());
-			}
 		}
 
 		@Override

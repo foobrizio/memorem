@@ -1,33 +1,15 @@
 package graphic;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JTextField;
-import javax.swing.JLabel;
 
-import java.awt.Color;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JPasswordField;
-import javax.swing.JRadioButton;
+import java.awt.*;
+import java.awt.event.*;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
 import util.User;
-
-import java.awt.Font;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class LoginDialog extends JDialog implements ActionListener {
@@ -75,19 +57,13 @@ public class LoginDialog extends JDialog implements ActionListener {
 	/**
 	 * Create the dialog.
 	 */
-	public LoginDialog(JFrame owner,boolean registrazione,boolean autologin){
+	public LoginDialog(JFrame owner){
 		
 		super(owner,true);
-		this.registrazione=registrazione;
-		this.autologin=autologin;
 		this.userList=new HashSet<User>();
 		this.generale=new GenHandler();
-		if(registrazione){
-			setContentPane(new ColoredPanel("./src/graphic/wallpapers/man.png"));
-		}
-		else{
-			setContentPane(new ColoredPanel("./src/graphic/wallpapers/man.jpg"));
-		}
+		
+		setContentPane(new ColoredPanel("./src/graphic/wallpapers/man.png"));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -249,35 +225,13 @@ public class LoginDialog extends JDialog implements ActionListener {
 		cancelButton.setActionCommand("Cancel");
 		cancelButton.addActionListener(this);
 		buttonPane.add(cancelButton);
-		if(!registrazione){
-			variableLabel.setText("Accedi");
-			setBounds(100, 100, 350, 160);
-			nameLabel.setVisible(false);
-			surnameLabel.setVisible(false);
-			genreLabel.setVisible(false);
-			rdbtnMan.setVisible(false);
-			rdbtnWoman.setVisible(false);
-			nameField.setVisible(false);
-			surnameField.setVisible(false);
-		}
-		else{
-			variableLabel.setText("Registrati");
-			setBounds(100,100,450,230);
-			nameLabel.setVisible(true);
-			surnameLabel.setVisible(true);
-			genreLabel.setVisible(true);
-			rdbtnMan.setVisible(true);
-			rdbtnWoman.setVisible(true);
-			nameField.setVisible(true);
-			surnameField.setVisible(true);
-		}	
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
 		if(e.getSource()==okButton){
-			
+			repaint();
 			lblIlNicknameDeve.setVisible(false);
 			lblAlmenoCaratteri.setVisible(false);
 			char[] c=passwordField.getPassword();
@@ -297,7 +251,15 @@ public class LoginDialog extends JDialog implements ActionListener {
 				return;
 			}
 			if(registrazione){
-				if(userList.contains(nick)){
+				boolean esiste=false;
+				for(User s: userList){
+					if(s.getNickname().equals(nick)){
+						esiste=true;
+						break;
+					}
+				}
+				if(esiste){
+					System.out.println("utente esiste già");
 					this.repaint();
 					lblIlNicknameDeve.setText(nick+" è già in uso");
 					lblIlNicknameDeve.setVisible(true);
@@ -305,13 +267,26 @@ public class LoginDialog extends JDialog implements ActionListener {
 				}//user CHeck
 				else if(nick.equals("guest")){
 					this.repaint();
-					if(nick.equals("guest"))
+					if(nick.equals("guest")){
 						lblIlNicknameDeve.setText("Non puoi usare il nickname 'guest'");
-					else if(nick.equals("admin"))
-						lblIlNicknameDeve.setText("Non puoi usare il nickname 'admin'");
+						lblIlNicknameDeve.setVisible(true);
+					}
+					return;
+				}
+				else if(nick.equals("admin")){
+					lblIlNicknameDeve.setText("Non puoi usare il nickname 'admin'");
 					lblIlNicknameDeve.setVisible(true);
 					return;	
-				}//guest Check
+				}//guest & admin Check
+				else{		//verifichiamo che il nome non contenga caratteri proibiti
+					StringTokenizer st=new StringTokenizer(" "+nick+" ","'\\?()\"",false);
+					if(st.countTokens()>1){
+						lblIlNicknameDeve.setText("Non puoi utilizzare caratteri come ',\\,?,(,),\"");
+						lblIlNicknameDeve.setVisible(true);
+						return;
+					}
+					else nick=nick.trim();
+				}
 			}//solo se registrazione
 			else{
 				Iterator<User> it=userList.iterator();
@@ -343,7 +318,16 @@ public class LoginDialog extends JDialog implements ActionListener {
 				lblAlmenoCaratteri.setVisible(true);
 				return;
 			}
-			else{
+			else{		//verifichiamo che il nome non contenga caratteri proibiti
+				StringTokenizer st=new StringTokenizer(" "+pass+" ","'\\?()\"",false);
+				if(st.countTokens()>1){
+					lblAlmenoCaratteri.setText("Non puoi utilizzare caratteri come ',\\,?,(,),\"");
+					lblAlmenoCaratteri.setVisible(true);
+					return;
+				}
+				else nick=nick.trim();
+			}
+			if(!registrazione){
 				String sha=DigestUtils.shaHex(pass);
 				if(!sha.equals(user.getPassword())){
 					this.repaint();
@@ -358,6 +342,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 				genre=generale.getSelected();
 			}
 			oki=true;
+			System.out.println(nick);
 			setVisible(false);
 		}
 		else if(e.getSource()==cancelButton){
@@ -376,6 +361,53 @@ public class LoginDialog extends JDialog implements ActionListener {
 	public boolean isOk(){
 		
 		return oki;
+	}
+	
+	public void login(boolean autologin){
+		
+		lblIlNicknameDeve.setVisible(false);
+		lblAlmenoCaratteri.setVisible(false);
+		nickField.setText("");
+		passwordField.setText("");
+		nickField.requestFocusInWindow();
+		this.registrazione=false;
+		this.autologin=autologin;
+		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/man.jpg");
+		variableLabel.setText("Accedi");
+		setBounds(100, 100, 350, 160);
+		nameLabel.setVisible(false);
+		surnameLabel.setVisible(false);
+		genreLabel.setVisible(false);
+		rdbtnMan.setVisible(false);
+		rdbtnWoman.setVisible(false);
+		nameField.setVisible(false);
+		surnameField.setVisible(false);
+		setVisible(true);
+		
+	}
+	public void registrati(boolean autologin){
+		
+		lblIlNicknameDeve.setVisible(false);
+		lblAlmenoCaratteri.setVisible(false);
+		nickField.setText("");
+		passwordField.setText("");
+		nickField.requestFocusInWindow();
+		this.registrazione=true;
+		this.autologin=autologin;
+		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/man.png");
+		variableLabel.setText("Registrati");
+		setBounds(100,100,450,230);
+		nameLabel.setVisible(true);
+		surnameLabel.setVisible(true);
+		genreLabel.setVisible(true);
+		rdbtnMan.setVisible(true);
+		rdbtnWoman.setVisible(true);
+		nameField.setVisible(true);
+		nameField.setText("");
+		surnameField.setVisible(true);
+		surnameField.setText("");
+		setVisible(true);
+		
 	}
 	public boolean isForRegistration(){
 		
@@ -405,14 +437,14 @@ public class LoginDialog extends JDialog implements ActionListener {
 	 */
 	public static void main(String[] args) {
 		try {
-			LoginDialog dialog = new LoginDialog(null,false,false);
+			LoginDialog dialog = new LoginDialog(null);
 			HashSet<User> users=new HashSet<User>();
 			users.add(new User("admin"));
 			users.add(new User("fabrizio"));
 			users.add(new User("roberto"));
 			dialog.setUserList(users);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
+			dialog.registrati(true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

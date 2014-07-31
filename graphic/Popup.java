@@ -3,6 +3,8 @@ package graphic;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 import main.Memo;
 import util.Data;
 
@@ -28,8 +30,6 @@ public class Popup extends JDialog implements ActionListener{
 	private final Font comic=new Font("Comic Sans MS", Font.BOLD, 12);
 	
 	private final Color myYellow=new Color(255,255,150);
-	private final Color myBlue=new Color(150,200,255);
-	private final Color myRed=new Color(255,120,100);
 	
 	/**
 	 * Launch the application.
@@ -38,7 +38,7 @@ public class Popup extends JDialog implements ActionListener{
 		try {
 			Popup dialog = new Popup(null);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.aggiungi();
+			dialog.modifica(new Memo("",0,new Data()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -170,13 +170,6 @@ public class Popup extends JDialog implements ActionListener{
 		mese.addActionListener(this);
 		
 		//mese=new JComboBox<String>();
-		GridBagConstraints gbc_comboBox_mese = new GridBagConstraints();
-		gbc_comboBox_mese.gridwidth = 2;
-		gbc_comboBox_mese.insets = new Insets(0, 0, 5, 5);
-		gbc_comboBox_mese.fill = GridBagConstraints.HORIZONTAL;
-		gbc_comboBox_mese.gridx = 2;
-		gbc_comboBox_mese.gridy = 4;
-		contentPanel.add(mese, gbc_comboBox_mese);
 					
 		GridBagConstraints gbc_dayLabel = new GridBagConstraints();
 		gbc_dayLabel.anchor = GridBagConstraints.EAST;
@@ -229,6 +222,19 @@ public class Popup extends JDialog implements ActionListener{
 		gbc_comboBox_min.gridy = 5;
 		contentPanel.add(minuto, gbc_comboBox_min);
 
+		MouseAdapter mouseFocus=new MouseAdapter(){
+			
+			public void mouseEntered(MouseEvent evt){
+				
+				((JButton)evt.getSource()).setBorderPainted(true);
+			}
+			public void mouseExited(MouseEvent evt){
+				
+				((JButton)evt.getSource()).setBorderPainted(false);
+				((JButton)evt.getSource()).setFocusPainted(false);
+				Popup.this.repaint();
+			}
+		};
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		buttonPane.setOpaque(false);
@@ -236,14 +242,22 @@ public class Popup extends JDialog implements ActionListener{
 
 		okButton = new JButton("OK");
 		okButton.setActionCommand("OK");
+		okButton.setBackground(new Color(0,0,0,0));
 		buttonPane.add(okButton);
+		okButton.setBorderPainted(false);
 		getRootPane().setDefaultButton(okButton);
 		okButton.addActionListener(this);
+		okButton.addMouseListener(mouseFocus);
+		okButton.setFont(comic);
 	
 		cancelButton = new JButton("Cancel");
+		cancelButton.setBackground(new Color(0,0,0,0));
 		cancelButton.setActionCommand("Cancel");
+		cancelButton.setBorderPainted(false);
 		buttonPane.add(cancelButton);
 		cancelButton.addActionListener(this);
+		cancelButton.addMouseListener(mouseFocus);
+		cancelButton.setFont(comic);
 	
 	}
 	
@@ -267,7 +281,24 @@ public class Popup extends JDialog implements ActionListener{
 	private void manageMonth(){
 		
 		String mesi[]={ "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"};
-		mese = new JComboBox<String>(mesi);
+		if(mese==null){
+			mese=new JComboBox<String>(mesi);
+			this.mese.setSelectedIndex(this.data.mese()-1);
+		}
+		else{
+			int x=mese.getSelectedIndex();
+			contentPanel.remove(mese);
+			this.mese.setSelectedIndex(x);
+		}
+		this.mese = new JComboBox<String>(mesi);
+		GridBagConstraints gbc_comboBox_mese = new GridBagConstraints();
+		gbc_comboBox_mese.gridwidth = 2;
+		gbc_comboBox_mese.insets = new Insets(0, 0, 5, 5);
+		gbc_comboBox_mese.fill = GridBagConstraints.HORIZONTAL;
+		gbc_comboBox_mese.gridx = 2;
+		gbc_comboBox_mese.gridy = 4;
+		contentPanel.add(mese, gbc_comboBox_mese);
+		
 		//mese.setSelectedIndex(data.mese()-1);
 		manageDay();
 	}
@@ -285,7 +316,7 @@ public class Popup extends JDialog implements ActionListener{
 			giorno=new JComboBox<Integer>(giorni);
 			this.giorno.setSelectedIndex(this.data.giorno()-1);
 		}
-		else if(giorno!=null){
+		else{
 			int x=giorno.getSelectedIndex();
 			contentPanel.remove(giorno);
 			this.giorno = new JComboBox<Integer>(giorni);
@@ -316,16 +347,25 @@ public class Popup extends JDialog implements ActionListener{
 		modified=false;
 		titolo.setText("Aggiungi memo");
 		descrizione.setText("");
+		descrizione.setToolTipText("Inserisci qui una breve descrizione del memo");
 		prior.setSelectedIndex(1);
+		prior.setToolTipText("Inserisci qui il livello di priorità");
 		anno.setSelectedItem(data.anno());
+		anno.setToolTipText("Inserisci qui l'anno di scadenza del memo");
 		mese.setSelectedIndex(data.mese()-1);
+		mese.setToolTipText("Inserisci qui il mese di scadenza del memo");
 		giorno.setSelectedItem(data.giorno());
+		giorno.setToolTipText("Inserisci qui il giorno di scadenza del memo");
 		ora.setSelectedItem(data.ora());
+		ora.setToolTipText("Inserisci qui l'ora di scadenza del memo");
 		minuto.setSelectedItem(data.minuto());
+		minuto.setToolTipText("Inserisci qui il minuto di scadenza del memo");
 		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/new.jpg");
 		//titolo.setForeground(new Color(255,255,150));
-		titolo.setForeground(Color.BLACK);
+		titolo.setForeground(myYellow);
 		nome.setForeground(Color.BLACK);
+		okButton.setForeground(Color.BLACK);
+		cancelButton.setForeground(Color.BLACK);
 		prioritLabel.setForeground(Color.BLACK);
 		annoLabel.setForeground(Color.BLACK);
 		meseLabel.setForeground(Color.BLACK);
@@ -345,13 +385,22 @@ public class Popup extends JDialog implements ActionListener{
 		this.data=m.getEnd();
 		manageYear(data.anno());
 		descrizione.setText(m.description());
+		descrizione.setToolTipText("La descrizione del memo");
 		prior.setSelectedIndex(m.priority());
+		prior.setToolTipText("Il livello di priorità del memo");
 		anno.setSelectedItem(data.anno());
-		
+		anno.setToolTipText("L'anno di scadenza");
 		mese.setSelectedIndex(data.mese()-1);
+		mese.setToolTipText("Il mese di scadenza");
 		giorno.setSelectedItem(data.giorno());
+		giorno.setToolTipText("Il giorno di scadenza");
 		ora.setSelectedItem(data.ora());
+		ora.setToolTipText("L'ora di scadenza");
 		minuto.setSelectedItem(data.minuto());
+		minuto.setToolTipText("Il minuto di scadenza");
+		
+		okButton.setForeground(color);
+		cancelButton.setForeground(color);
 		titolo.setForeground(color);
 		nome.setForeground(color);
 		prioritLabel.setForeground(color);
@@ -394,6 +443,12 @@ public class Popup extends JDialog implements ActionListener{
 		else if(evt.getSource().equals(okButton)){
 			
 			String desc=descrizione.getText();
+			if(desc.length()>255){
+				avviso.setVisible(true);
+				avviso.setText("La descrizione non può superare i 255 caratteri");
+				descrizione.setText("");
+				return;
+			}
 			String pri1=(String)prior.getSelectedItem();
 			int pri2;
 			switch(pri1){
@@ -409,11 +464,16 @@ public class Popup extends JDialog implements ActionListener{
 			int o=(Integer)ora.getSelectedItem();
 			int mi=(Integer)minuto.getSelectedItem();
 			String id=null,icon=null;
+			Data end=new Data(y,m,d,o,mi);
 			if(modified){
 				id=old.getId();
 				icon=old.getIcon();
 			}
-			Data end=new Data(y,m,d,o,mi);
+			else{
+				id=DigestUtils.shaHex(desc+end.toString());
+				icon="note.png";
+			}
+			
 			System.out.println(end);
 			if(end.compareTo(new Data())>0){
 				avviso.setVisible(false);

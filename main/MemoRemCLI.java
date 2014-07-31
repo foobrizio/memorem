@@ -57,13 +57,16 @@ public class MemoRemCLI extends Thread{
 			System.out.print("Step 1/7: Inserire descrizione del Memo");
 			if(modifica)
 				System.out.print("( premi Invio per lasciare invariato)");
-			System.out.println(":");
+			System.out.print(": ");
 			desc=sc.nextLine().trim();
 			if(modifica && desc.length()==0){
 				desc=m.description();
 				ok=true;
 			}
-			else System.out.println("questo campo non puo' rimanere vuoto");
+			else if(desc.length()==0)
+				System.out.println("questo campo non puo' rimanere vuoto");
+			else 
+				ok=true;
 		}//descrizione------------------------------------------------------
 		ok=false;
 		String priority="";
@@ -143,7 +146,9 @@ public class MemoRemCLI extends Thread{
 			System.out.print("Step 4/7: Inserire mese");
 			if(modifica)
 				System.out.print("( premi Invio per lasciare invariato)");
-			System.out.print(":");
+			else
+				System.out.print("( default: "+Data.monthToString(new Data().mese())+")");
+			System.out.print(": ");
 			String x="";
 			try{
 				x=sc.nextLine();
@@ -151,7 +156,13 @@ public class MemoRemCLI extends Thread{
 					month=m.getEnd().mese();
 					ok=true;
 				}
-				else month=Integer.parseInt(x);
+				else if(!modifica && x.length()==0){
+					month=new Data().mese();
+					ok=true;
+				}
+				else
+					month=Integer.parseInt(x);
+				
 			}catch(NumberFormatException e){
 				//e.printStackTrace();
 				month=Data.monthToInt(x);
@@ -168,11 +179,17 @@ public class MemoRemCLI extends Thread{
 			System.out.print("Step 5/7: Inserire giorno");
 			if(modifica)
 				System.out.print("( premi Invio per lasciare invariato )");
-			System.out.print(":");
+			else
+				System.out.print("( default: oggi)");
+			System.out.print(": ");
 			try{
 				String x=sc.nextLine();
 				if(modifica && x.length()==0){
 					day=m.getEnd().giorno();
+					ok=true;
+				}
+				else if(!modifica && x.length()==0){
+					day=new Data().giorno();
 					ok=true;
 				}
 				else day=Integer.parseInt(x);
@@ -190,10 +207,17 @@ public class MemoRemCLI extends Thread{
 			System.out.print("Step 6/7: Inserire ora");
 			if(modifica)
 				System.out.print("(premi Invio per lasciare invariato)");
-			System.out.print(":");
+			else 
+				System.out.print("(default: "+new Data().ora()+")");
+			System.out.print(": ");
 			String x=sc.nextLine();
 			try{
-				hour=Integer.parseInt(x);
+				if(modifica && x.length()==0)
+					hour=m.getEnd().ora();
+				else if(!modifica && x.length()==0)
+					hour=new Data().ora();
+				else
+					hour=Integer.parseInt(x);
 				if(hour<0 || hour>23)
 					System.out.println("L'ora non è stata inserita correttamente");
 				else ok=true;
@@ -207,14 +231,20 @@ public class MemoRemCLI extends Thread{
 			System.out.print("Step 7/7: Inserire minuto");
 			if(modifica)
 				System.out.print("( premi Invio per lasciare invariato)");
-			System.out.print(":");
+			else
+				System.out.print("( default: "+new Data().minuto()+")");
+			System.out.print(": ");
 			String x=sc.nextLine();
 			try{
 				if(modifica && x.length()==0){
 					minute=m.getEnd().minuto();
 					ok=true;
 				}
-				else{
+				else if(!modifica && x.length()==0){
+					minute=new Data().minuto();
+					ok=true;
+				}
+				else{	
 					minute=Integer.parseInt(x);
 					if(minute<0 || minute>59)
 						System.out.println("Il minuto non è stato inserito correttamente");
@@ -408,8 +438,8 @@ public class MemoRemCLI extends Thread{
 		String user=sc.nextLine();
 		System.out.print("Inserire password: ");
 		String password=sc.nextLine();
-		int result=k.login(user, password);
-		if(result==0){
+		boolean result=k.login(user, password);
+		if(result){
 			MemoRemCLI.user=k.getUser();
 			System.out.println("Benvenuto, "+user);
 			LinkedList<String> prior=new LinkedList<String>();
@@ -417,7 +447,7 @@ public class MemoRemCLI extends Thread{
 			prior.add("Media");
 			prior.add("Bassa");
 			k.formaQuery("always", "attivi", prior);
-			MemoList ml=k.getCurrentList();
+			MemoList ml=k.getDBList();
 			int cont=0;
 			for(Memo m:ml)
 				if(m.isScaduto())
@@ -425,11 +455,8 @@ public class MemoRemCLI extends Thread{
 			if(cont!=0)
 				System.out.println("Ci sono "+cont+" memo scaduti che vanno gestiti");
 		}
-		else if(result==2){
-			System.out.println("La password è sbagliata");
-		}
-		else if(result==1){
-			System.out.println("L'utente non è stato trovato nel nostro database");
+		else{
+			System.out.println("La password non è corretta oppure l'utente non esiste");
 		}
 	}
 	
@@ -521,7 +548,10 @@ public class MemoRemCLI extends Thread{
 	public static void add(){
 		
 		Memo t=creaMemo(null);
-		k.add(t);
+		if(k.add(t))
+			System.out.println("Memo aggiunto");
+		else
+			System.out.println("Non è stato possibile aggiungere il memo");
 	}
 	
 	/**
@@ -917,6 +947,10 @@ public class MemoRemCLI extends Thread{
 		
 		System.out.print("Inserire la password corrente:");
 		String cur=sc.nextLine();
+		if(!cur.equals(user.getPassword())){
+			System.out.println("La password dell'utente è sbagliata!");
+			return;
+		}
 		System.out.println("Inserire nuova password:");
 		String nuova=sc.nextLine();
 		System.out.println("Conferma nuova password:");
@@ -925,7 +959,7 @@ public class MemoRemCLI extends Thread{
 			System.out.println("Le due password non combaciano");
 			return;
 		}
-		int result=k.modificaPassword(cur, nuova);
+		int result=k.modificaPassword(nuova);
 		switch(result){
 		case 0: System.out.println("password modificata"); return;
 		case 2: System.out.println("La password dell'utente è sbagliata"); return;

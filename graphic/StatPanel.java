@@ -48,60 +48,71 @@ public class StatPanel extends JDialog {
 		panel.add(lblNewLabel);
 		
 		JLabel lblNewLabel_1 = new JLabel("Alta:");
+		lblNewLabel_1.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblNewLabel_1.setBounds(24, 169, 33, 15);
 		panel.add(lblNewLabel_1);
 		
 		textH = new JTextField();
 		textH.setForeground(myRed);
 		textH.setBounds(75, 167, 53, 19);
+		textH.setToolTipText("Impegni ad alta priorità");
 		textH.setEditable(false);
 		panel.add(textH);
 		textH.setColumns(10);
 		
 		JLabel lblNewLabel_4 = new JLabel("Memo completati:");
+		lblNewLabel_4.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblNewLabel_4.setBounds(165, 136, 126, 15);
 		panel.add(lblNewLabel_4);
 		
 		textComp = new JTextField();
 		textComp.setBounds(309, 134, 52, 19);
+		textComp.setToolTipText("Impegni che sei riuscito a completare");
 		textComp.setForeground(Color.BLACK);
 		textComp.setEditable(false);
 		panel.add(textComp);
 		textComp.setColumns(10);
 		
 		JLabel lblNewLabel_2 = new JLabel("Media:");
+		lblNewLabel_2.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblNewLabel_2.setBounds(9, 200, 48, 15);
 		panel.add(lblNewLabel_2);
 		
 		textM = new JTextField();
 		textM.setForeground(myYellow);
+		textM.setToolTipText("Impegni a priorità standard");
 		textM.setBounds(75, 198, 53, 19);
 		textM.setEditable(false);
 		panel.add(textM);
 		textM.setColumns(10);
 		
 		JLabel lblNewLabel_5 = new JLabel("Memo archiviati:");
+		lblNewLabel_5.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblNewLabel_5.setBounds(175, 169, 116, 15);
 		panel.add(lblNewLabel_5);
 		
 		JLabel lblNewLabel_3 = new JLabel("Bassa:");
+		lblNewLabel_3.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblNewLabel_3.setBounds(9, 231, 48, 15);
 		panel.add(lblNewLabel_3);
 		
 		textL = new JTextField();
 		textL.setForeground(myBlue);
+		textL.setToolTipText("Impegni a bassa priorità");
 		textL.setBounds(75, 229, 53, 19);
 		textL.setEditable(false);
 		panel.add(textL);
 		textL.setColumns(10);
 		
 		JLabel lblMemoAttivi = new JLabel("Memo attivi:");
+		lblMemoAttivi.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblMemoAttivi.setBounds(204, 200, 87, 15);
 		panel.add(lblMemoAttivi);
 		
 		textArch = new JTextField();
 		textArch.setColumns(10);
 		textArch.setForeground(Color.WHITE);
+		textArch.setToolTipText("Gli impegni che non sei riuscito a portare a termine");
 		textArch.setBounds(309, 165, 52, 19);
 		textArch.setEditable(false);
 		panel.add(textArch);
@@ -109,6 +120,7 @@ public class StatPanel extends JDialog {
 		textActive = new JTextField();
 		textActive.setColumns(10);
 		textActive.setForeground(Color.WHITE);
+		textActive.setToolTipText("Gli impegni ancora da completare");
 		textActive.setBounds(309, 196, 52, 19);
 		textActive.setEditable(false);
 		panel.add(textActive);
@@ -119,13 +131,14 @@ public class StatPanel extends JDialog {
 		panel.add(label);
 		
 		textTotal = new JTextField();
+		textTotal.setToolTipText("Il numero completo di memo da te creati");
 		textTotal.setColumns(10);
 		textTotal.setForeground(Color.WHITE);
 		textTotal.setBounds(309, 227, 52, 19);
 		textTotal.setEditable(false);
 		panel.add(textTotal);
 		
-		JButton btnOk = new JButton("ok");
+		final JButton btnOk = new JButton("ok");
 		btnOk.addActionListener(new ActionListener(){
 			
 			public void actionPerformed(ActionEvent evt){
@@ -134,7 +147,23 @@ public class StatPanel extends JDialog {
 				return;
 			}
 		});
+		btnOk.addMouseListener(new MouseAdapter(){
+			
+			public void mouseEntered(MouseEvent evt){
+				
+				btnOk.setBorderPainted(true);
+			}
+			
+			public void mouseExited(MouseEvent evt){
+				
+				btnOk.setBorderPainted(false);
+				StatPanel.this.repaint();
+			}
+		});
 		btnOk.setBounds(165, 263, 53, 25);
+		btnOk.setBorderPainted(false);
+		btnOk.setBackground(new Color(0,0,0,0));
+		btnOk.setForeground(Color.RED);
 		panel.add(btnOk);
 		
 		nome = new JLabel("New label");
@@ -143,6 +172,7 @@ public class StatPanel extends JDialog {
 		panel.add(nome);
 		
 		lblMemoInAttesa = new JLabel("Memo in attesa:");
+		lblMemoInAttesa.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblMemoInAttesa.setBounds(175, 105, 116, 15);
 		panel.add(lblMemoInAttesa);
 		
@@ -151,6 +181,7 @@ public class StatPanel extends JDialog {
 		inAttesa.setEditable(false);
 		inAttesa.setColumns(10);
 		inAttesa.setBounds(309, 103, 52, 19);
+		inAttesa.setToolTipText("I memo che aspettano di essere gestiti da te");
 		panel.add(inAttesa);
 		setVisible(true);
 		
