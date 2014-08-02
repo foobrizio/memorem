@@ -248,6 +248,25 @@ public class MemoList implements Iterable<Memo>{
 		default: throw new IllegalArgumentException("Che cazzo di priorità ha???");
 		}
 	}//contains
+	
+	/**
+	 * Ricerca un memo che all'interno della lista corrisponda all'id inserito
+	 * @param id
+	 * @return
+	 */
+	public boolean contains(String id){
+		
+		for(Memo m:lows)
+			if(m.getId().equals(id))
+				return true;
+		for(Memo m:normals)
+			if(m.getId().equals(id))
+				return true;
+		for(Memo m:highs)
+			if(m.getId().equals(id))
+				return true;
+		return false;
+	}
 
 	public boolean containsAll(MemoList tl){
 
@@ -307,7 +326,12 @@ public class MemoList implements Iterable<Memo>{
 		default: return -1;
 		}
 	}
-
+	
+	/**
+	 * Complessita nel caso peggiore O(n);
+	 * @param t
+	 * @return
+	 */
 	public boolean remove(Memo t){
 
 		boolean result;
@@ -321,6 +345,37 @@ public class MemoList implements Iterable<Memo>{
 			size--;
 		return result;
 	}//remove singolo
+	
+	/**
+	 * Rimuove un elemento che nella lista corrisponde all'id inserito
+	 * @param id
+	 * @return
+	 */
+	public boolean remove(String id){
+		
+		Iterator<Memo> it=lows.iterator();
+		while(it.hasNext())
+			if(it.next().getId().equals(id)){
+				it.remove();
+				size--;
+				return true;
+			}
+		it=normals.iterator();
+		while(it.hasNext())
+			if(it.next().getId().equals(id)){
+				it.remove();
+				size--;
+				return true;
+			}
+		it=highs.iterator();
+		while(it.hasNext())
+			if(it.next().getId().equals(id)){
+				it.remove();
+				size--;
+				return true;
+			}
+		return false;
+	}
 	
 
 

@@ -215,10 +215,9 @@ public class DBManager{
 		executeUpdate(sql);
 	}
 	
-	private static boolean contains(User user, Memo memo,String table){
+	private static boolean contains(User user, String id,String table){
 		
-		if(user.equals("none"))				return false;	//nessun utente connesso
-		String sql="SELECT * FROM "+table+" WHERE user='"+user.getNickname()+"' AND id='"+memo.getId()+"'";
+		String sql="SELECT * FROM "+table+" WHERE user='"+user.getNickname()+"' AND id='"+id+"'";
 		ResultSet rs=executeQuery(sql);
 		int x=0;
 		try{ 
@@ -236,7 +235,7 @@ public class DBManager{
 		}
 		return x==1;
 	}
-
+	
 	private static boolean insertMemo(User user, Memo m,String table){
 		
 		String sql="";
@@ -467,7 +466,7 @@ public class DBManager{
 		if(!user.getNickname().equals(logged)){
 			return false;	//nessun utente connesso
 		}
-		return contains(user,m,mn);
+		return contains(user,m.getId(),mn);
 	}
 
 	public static boolean eliminaImpegni(User user){
@@ -730,34 +729,17 @@ public class DBManager{
 	 * @param vecchio, il memo dentro la tabella che verrà modificato
 	 * @return
 	 */
-	public static boolean modifyMemo(User user, Memo vecchio, Memo nuovo){
+	public static boolean modifyMemo(User user, String id, Memo nuovo){
 		
 		if(!user.getNickname().equals(logged))			return false;	//nessun utente connesso
-		if(!contains(user, vecchio,mn))
+		if(!contains(user, id,mn))
 			return false;
 		String sql="UPDATE "+mn+" SET";
-		boolean desc=nuovo.description().equals(vecchio.description());
-		boolean prior=nuovo.priority()==vecchio.priority();
-		boolean data=nuovo.getEnd().equals(vecchio.getEnd());
-		boolean icon=nuovo.getIcon().equals(vecchio.getIcon());
-		if(!desc)
-			sql+=" descrizione='"+verificaStringa(nuovo.description())+"'";
-		if(!prior){
-			if(!desc)
-				sql+=", ";
-			sql+=" prior='"+nuovo.priority()+"'";
-		}
-		if(!data){
-			if(!desc || !prior)
-				sql+=", ";
-			sql+=" end='"+Data.convertDateToString(nuovo.getEnd())+"'";
-		}
-		if(!icon){
-			if(!desc || !prior || !data)
-				sql+=", ";
-			sql+=" icon='"+verificaStringa(nuovo.getIcon())+"'";
-		}
-		sql+=" WHERE id='"+vecchio.getId()+"'";
+		sql+=" descrizione='"+verificaStringa(nuovo.description())+"'";
+		sql+=", prior='"+nuovo.priority()+"'";
+		sql+=", end='"+Data.convertDateToString(nuovo.getEnd())+"'";
+		sql+=", icon='"+verificaStringa(nuovo.getIcon())+"'";
+		sql+=" WHERE id='"+id+"'";
 		//System.out.println(sql);
 		return executeUpdate(sql)!=0;
 	}

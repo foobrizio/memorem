@@ -802,6 +802,8 @@ public class MemoremGUI extends JFrame{
 	
 	private void checkMemos(){
 		
+		if(k.getUser().getNickname().equals("none"))
+			return;
 		int res=k.updateMemos();
 		if(res>0){
 			classic.updateMemos();
@@ -1293,6 +1295,7 @@ public class MemoremGUI extends JFrame{
 				nuova=nuova.domani();
 			nuovo.setEnd(nuova);
 		}
+		mntmSalva.setEnabled(true);
 		calendar.remove(m);
 		k.modifica(m, nuovo);
 		calendar.add(nuovo);

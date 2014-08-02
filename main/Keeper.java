@@ -27,7 +27,7 @@ public class Keeper{
 	private MemoList DBMemos;		
 	private TreeSet<Memo> removenda;
 	private TreeSet<Memo> nuovi;
-	private HashMap<Memo,Memo> mutanda;//che in latino significa "da modificare"..ma in italiano lol xD
+	private HashMap<String,Memo> mutanda;//che in latino significa "da modificare"..ma in italiano lol xD
 	private TreeSet<Memo> today;
 	private double completati;
 	private double scaduti;
@@ -44,7 +44,7 @@ public class Keeper{
 		this.DBMemos=new MemoList();
 		this.removenda=new TreeSet<Memo>();
 		this.nuovi=new TreeSet<Memo>();
-		this.mutanda=new LinkedHashMap<Memo,Memo>();
+		this.mutanda=new HashMap<String,Memo>();
 		this.today=new TreeSet<Memo>();
 	}
 	/**
@@ -95,7 +95,7 @@ public class Keeper{
 		
 		DBMemos.clear();
 		removenda= new TreeSet<Memo>();
-		mutanda= new LinkedHashMap<Memo,Memo>();
+		mutanda= new HashMap<String,Memo>();
 		nuovi=new TreeSet<Memo>();
 		today.clear();
 		if(!user.isGuest())
@@ -214,9 +214,9 @@ public class Keeper{
 		MemoList questa=new MemoList(DBMemos);
 		for(Memo m: removenda)
 			questa.remove(m);
-		for(Memo m:mutanda.keySet()){
-			questa.remove(m);
-			questa.add(mutanda.get(m),false);
+		for(String id:mutanda.keySet()){
+			questa.remove(id);
+			questa.add(mutanda.get(id),false);
 		}
 		for(Memo m:nuovi)
 			questa.add(m,false);
@@ -244,20 +244,20 @@ public class Keeper{
 					ml.remove(m);
 			for(Memo m: nuovi)	//controllati i nuovi
 				ml.add(m,false);
-			for(Memo m: mutanda.keySet()){
-				if(ml.contains(m)){
+			for(String id: mutanda.keySet()){
+				if(ml.contains(id)){
 					System.out.println("Ma questo memo non dovrebbe essere contenuto");
-					ml.remove(m);
+					ml.remove(id);
 				}
-				ml.add(mutanda.get(m));
+				ml.add(mutanda.get(id));
 			}//controllata la mutanda (spero fosse pulita)
 			return ml;
 		}
 		MemoList ml=DBManager.list(user,false);			//qui ci sono tutti i memo del database
-		for(Memo m: mutanda.keySet()){
-			if(ml.contains(m))
-				ml.remove(m);
-			ml.add(mutanda.get(m));	
+		for(String id: mutanda.keySet()){
+			if(ml.contains(id))
+				ml.remove(id);
+			ml.add(mutanda.get(id));	
 		}//mutanda controllata
 		for(Memo m: nuovi){
 			if(ml.contains(m))
@@ -476,7 +476,7 @@ public class Keeper{
 			this.user=connesso;
 			this.removenda=new TreeSet<Memo>();
 			this.nuovi=new TreeSet<Memo>();
-			this.mutanda=new LinkedHashMap<Memo,Memo>();
+			this.mutanda=new HashMap<String,Memo>();
 			this.today=new TreeSet<Memo>();
 			DBMemos=new MemoList(DBManager.getStandardMemos(connesso));
 			today();
@@ -496,7 +496,7 @@ public class Keeper{
 		if(this.user.isGuest()){
 			DBMemos.clear();
 			removenda=new TreeSet<Memo>();
-			mutanda=new LinkedHashMap<Memo,Memo>();
+			mutanda=new HashMap<String,Memo>();
 			nuovi=new TreeSet<Memo>();
 			today=new TreeSet<Memo>();
 			this.user=new User("none");
@@ -505,7 +505,7 @@ public class Keeper{
 		if(DBManager.logout(user)){
 			DBMemos.clear();
 			removenda=new TreeSet<Memo>();
-			mutanda=new LinkedHashMap<Memo,Memo>();
+			mutanda=new HashMap<String,Memo>();
 			nuovi=new TreeSet<Memo>();
 			today=new TreeSet<Memo>();
 			this.user=new User("none");
@@ -558,7 +558,7 @@ public class Keeper{
 			if(nuovo.getEnd().isToday())
 				today.add(nuovo);
 		}
-		mutanda.put(vecchio, nuovo);
+		mutanda.put(vecchio.getId(), nuovo);
 		
 	}
 	/**
@@ -653,17 +653,17 @@ public class Keeper{
 		
 		for(Memo m: removenda)
 			DBManager.removeMemo(user,m);
-		for(Memo m: mutanda.keySet())
-			if(DBManager.modifyMemo(user,m, mutanda.get(m))){
-				DBMemos.remove(m);
-				DBMemos.add(mutanda.get(m));
+		for(String id: mutanda.keySet())
+			if(DBManager.modifyMemo(user, id, mutanda.get(id))){
+				DBMemos.remove(id);
+				DBMemos.add(mutanda.get(id));
 			}
 		for(Memo m: nuovi)
 			if(DBManager.insertMemo(user, m))
 				DBMemos.add(m);
 			
 		removenda=new TreeSet<Memo>();
-		mutanda=new LinkedHashMap<Memo,Memo>();
+		mutanda=new HashMap<String,Memo>();
 		nuovi=new TreeSet<Memo>();
 	}
 
@@ -686,7 +686,7 @@ public class Keeper{
 			if(login){
 				DBMemos.clear();
 				removenda=new TreeSet<Memo>();
-				mutanda=new LinkedHashMap<Memo,Memo>();
+				mutanda=new HashMap<String,Memo>();
 				nuovi=new TreeSet<Memo>();
 				completati=0;
 				scaduti=0;
