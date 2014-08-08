@@ -1,6 +1,7 @@
 package util;
 import java.util.GregorianCalendar;
 import java.io.*;
+import graphic.MemoremGUI.Lang;
 
 
 public class Data implements Comparable<Data>, Serializable{
@@ -15,6 +16,7 @@ public class Data implements Comparable<Data>, Serializable{
 	private int giorno;
 	private int ora;
 	private int minuto;
+	private Lang language;
 		
 	public Data(){
 		
@@ -25,7 +27,7 @@ public class Data implements Comparable<Data>, Serializable{
 		this.minuto=gc.get(GregorianCalendar.MINUTE);
 		this.ora=gc.get(GregorianCalendar.HOUR_OF_DAY);
 		this.mese=gc.get(GregorianCalendar.MONTH)+1;
-		
+		language=Lang.EN;
 		//System.currentTimeMillis();
 	}
 	
@@ -79,9 +81,11 @@ public class Data implements Comparable<Data>, Serializable{
 			}
 			this.giorno=daysOfMonth(this.anno,this.mese);
 		}
+		language=Lang.EN;
 	}
 	
 	public int anno(){return anno;}
+	
 	/**
 	 * Ritorna true se l'anno a è bisestile
 	 */
@@ -392,7 +396,26 @@ public class Data implements Comparable<Data>, Serializable{
 	 */
 	public String getData(){
 		
-		return giorno+" "+Data.monthToString(mese)+" "+anno;
+		if(language==Lang.EN){
+			System.out.println("è inglese");
+			StringBuilder sb=new StringBuilder(30);
+			sb.append(Data.monthToString(mese,Lang.EN)+" ");
+			sb.append(giorno);
+			if(giorno==1 || giorno==21 || giorno==31)
+				sb.append("st ");
+			else if(giorno==2 || giorno==22)
+				sb.append("nd ");
+			else if(giorno==3 || giorno==23)
+				sb.append("rd ");
+			else
+				sb.append("th ");
+			sb.append(anno);
+			return sb.toString();
+		}
+		System.out.println("non è inglese");
+		System.out.println(language);
+		return giorno+" "+Data.monthToString(mese,Lang.IT)+" "+anno;
+		
 	}
 
 	/**
@@ -462,24 +485,73 @@ public class Data implements Comparable<Data>, Serializable{
 	/**
 	 *	Trasforma la stringa inserita come parametro nel mese corrispondente
 	 */
-	public static int monthToInt(String month){
+	public static int monthToInt(String month, Lang lang){
 		
-		month=month.trim().toLowerCase();
-		switch(month){
-		case "gennaio": 	case "january": 	return 1;
-		case "febbraio": 	case "february":	return 2;
-		case "marzo": 		case "march":		return 3;
-		case "aprile": 		case "april":		return 4;
-		case "maggio": 		case "may":			return 5;
-		case "giugno": 		case "june":		return 6;
-		case "luglio": 		case "july":		return 7;
-		case "agosto": 		case "august":		return 8;
-		case "settembre": 	case "september":	return 9;
-		case "ottobre": 	case "october":		return 10;
-		case "novembre": 	case "november":	return 11;
-		case "dicembre": 	case "december":	return 12;
+		month=month.trim().substring(0, 3).toLowerCase();
+		if(lang==Lang.DE){
+			switch(month){
+			case "jan" : return 1;
+			case "feb" : return 2;
+			case "mar" : case "mär" 	: return 3;
+			case "apr" : return 4;
+			case "mai" : return 5;
+			case "jun" : return 6;
+			case "jul" : return 7;
+			case "aug" : return 8;
+			case "sep" : return 9;
+			case "okt" : return 10;
+			case "nov" : return 11;
+			case "dez" : return 12;
+			}
+		}
+		else if(lang==Lang.ES){
+			switch(month){
+			case "ene" : return 1;
+			case "feb" : return 2;
+			case "mar" : return 3;
+			case "abr" : return 4;
+			case "may" : return 5;
+			case "jun" : return 6;
+			case "jul" : return 7;
+			case "ago" : return 8;
+			case "sep" : return 9;
+			case "oct" : return 10;
+			case "nov" : return 11;
+			case "dic" : return 12;
+			}
+		}
+		else if(lang==Lang.IT){
+			switch(month){
+			case "gen": return 1;
+			case "feb": return 2;
+			case "mar": return 3;
+			case "apr": return 4;
+			case "mag": return 5;
+			case "giu": return 6;
+			case "lug": return 7;
+			case "ago": return 8;
+			case "set": return 9;
+			case "ott": return 10;
+			case "nov": return 11;
+			case "dic": return 12;
+			}
+		}
+		else switch(month){
+		case "jan": return 1;
+		case "feb": return 2;
+		case "mar": return 3;
+		case "apr": return 4;
+		case "may": return 5;
+		case "jun": return 6;
+		case "jul":	return 7;
+		case "aug":	return 8;
+		case "sep": return 9;
+		case "oct": return 10;
+		case "nov": return 11;
+		case "dec":	return 12;
 		default: return -1;
 		}
+		return -1;
 	}
 
 	/**
@@ -487,35 +559,90 @@ public class Data implements Comparable<Data>, Serializable{
 	 * @param month
 	 * @return
 	 */
-	public static String monthToString(int month){
-			
-		switch((month)%12){
-		case 1: return "Gennaio";
-		case 2: return "Febbraio"; 
-		case 3: return "Marzo"; 
-		case 4: return "Aprile"; 
-		case 5: return "Maggio";
-		case 6: return "Giugno";
-		case 7: return "Luglio";
-		case 8: return "Agosto";
-		case 9: return "Settembre";
-		case 10: return "Ottobre";
-		case 11: return "Novembre";
-		case 0: return "Dicembre";
-		default: return "???";
+	public static String monthToString(int month,Lang lang){
+		if(lang==Lang.IT)
+			switch((month)%12){
+			case 1: return "Gen";
+			case 2: return "Feb"; 
+			case 3: return "Mar"; 
+			case 4: return "Apr"; 
+			case 5: return "Mag";
+			case 6: return "Giu";
+			case 7: return "Lug";
+			case 8: return "Ago";
+			case 9: return "Set";
+			case 10: return "Ott";
+			case 11: return "Nov";
+			case 0: return "Dic";
+			default: return "???";
+			}
+		else if(lang==Lang.DE){
+			switch((month)%12){
+			case 1: return "Jan";
+			case 2: return "Feb"; 
+			case 3: return "Mar"; 
+			case 4: return "Apr"; 
+			case 5: return "Mai";
+			case 6: return "Jun";
+			case 7: return "Jul";
+			case 8: return "Aug";
+			case 9: return "Sep";
+			case 10: return "Okt";
+			case 11: return "Nov";
+			case 0: return "Dez";
+			default: return "???";
+			}
 		}
+		else if(lang==Lang.ES){
+			switch((month)%12){
+			case 1: return "Ene";
+			case 2: return "Feb"; 
+			case 3: return "Mar"; 
+			case 4: return "Abr"; 
+			case 5: return "May";
+			case 6: return "Jun";
+			case 7: return "Jul";
+			case 8: return "Ago";
+			case 9: return "Sep";
+			case 10: return "Oct";
+			case 11: return "Nov";
+			case 0: return "Dic";
+			default: return "???";
+			}
+		}
+		else if(lang==Lang.EN)
+			switch((month)%12){
+			case 1: return "Jan";
+			case 2: return "Feb"; 
+			case 3: return "Mar"; 
+			case 4: return "Apr"; 
+			case 5: return "May";
+			case 6: return "Jun";
+			case 7: return "Jul";
+			case 8: return "Aug";
+			case 9: return "Sep";
+			case 10: return "Oct";
+			case 11: return "Nov";
+			case 0: return "Dec";
+			default: return "???";
+			}
+		else return null;
 	}
 	
 	public int ora(){return ora;}
 
+	
+	public void setLanguage(Lang lang){
+		
+		this.language=lang;
+	}
 	@Override
 	public String toString(){
 			
 		String minuto=""+this.minuto;
 		if(this.minuto<10)
 			minuto="0"+this.minuto;
-		String mese= monthToString(this.mese);
-		return ""+giorno+" "+mese+" "+anno+" "+ora+":"+minuto;
+		return getData()+" "+ora+":"+minuto;
 	}
 	
 	public static void main(String[] args){

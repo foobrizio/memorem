@@ -1,5 +1,7 @@
 package graphic;
 
+import graphic.MemoremGUI.Lang;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -26,10 +28,20 @@ public class Popup extends JDialog implements ActionListener{
 	private Data data;
 	private JLabel titolo,nome,prioritLabel,annoLabel,meseLabel,dayLabel,oraLabel,minutoLabel;
 	private JLabel avviso;
-	
-	private final Font comic=new Font("Comic Sans MS", Font.BOLD, 12);
+	private Lang language;
 	
 	private final Color myYellow=new Color(255,255,150);
+	private final Font comic=new Font("Comic Sans MS", Font.BOLD, 12);
+	
+	private final String[] prioritaIT={ "Bassa", "Normale", "Alta"};
+	private final String[] prioritaEN={ "Low", "Normal", "High"};
+	private final String[] prioritaES={ "Baja", "Media", "Alta"};
+	private final String[] prioritaDE={ "Hoch", "Mittel", "Niedrig"};
+	private final String mesiIT[]={ "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"};
+	private final String mesiEN[]={ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+	private final String mesiES[]={ "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
+	private final String mesiDE[]={ "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
+	
 	
 	/**
 	 * Launch the application.
@@ -38,7 +50,9 @@ public class Popup extends JDialog implements ActionListener{
 		try {
 			Popup dialog = new Popup(null);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.modifica(new Memo("",0,new Data()));
+			dialog.setLanguage(Lang.EN);
+			//dialog.modifica(new Memo("",0,new Data()));
+			dialog.aggiungi();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -50,6 +64,8 @@ public class Popup extends JDialog implements ActionListener{
 	public Popup(JFrame owner){
 		
 		super(owner,true);
+		
+		this.language=Lang.EN;								//lingua di default;
 		
 		this.addWindowListener(new WindowAdapter(){
 			
@@ -69,19 +85,19 @@ public class Popup extends JDialog implements ActionListener{
 		titolo=new JLabel();
 		titolo.setFont(new Font("Comic Sans MS", Font.BOLD | Font.ITALIC, 14));
 		titolo.setHorizontalAlignment(SwingConstants.CENTER);
-		nome = new JLabel("Nome");
+		nome = new JLabel("Name");
 		nome.setFont(comic);
-		prioritLabel = new JLabel("Priorità");
+		prioritLabel = new JLabel("Priority");
 		prioritLabel.setFont(comic);
-		annoLabel = new JLabel("Anno");
+		annoLabel = new JLabel("Year");
 		annoLabel.setFont(comic);
-		meseLabel = new JLabel("Mese");
+		meseLabel = new JLabel("Month");
 		meseLabel.setFont(comic);
-		dayLabel = new JLabel("Giorno");
+		dayLabel = new JLabel("Day");
 		dayLabel.setFont(comic);
-		oraLabel = new JLabel("Ora");
+		oraLabel = new JLabel("Hour");
 		oraLabel.setFont(comic);
-		minutoLabel = new JLabel("Minuto");
+		minutoLabel = new JLabel("Minute");
 		minutoLabel.setFont(comic);
 		
 		getContentPane().setLayout(new BorderLayout());
@@ -101,7 +117,7 @@ public class Popup extends JDialog implements ActionListener{
 		gbc_titolo.gridy = 0;
 		contentPanel.add(titolo, gbc_titolo);
 		
-		avviso = new JLabel("Non puoi aggiungere un memo nel passato");
+		avviso = new JLabel("You can't add a memo with a date in the past");
 		avviso.setForeground(Color.RED);
 		avviso.setVisible(false);
 		GridBagConstraints gbc_avviso = new GridBagConstraints();
@@ -135,18 +151,7 @@ public class Popup extends JDialog implements ActionListener{
 		gbc_prioritLabel.gridy = 3;
 		contentPanel.add(prioritLabel, gbc_prioritLabel);
 		
-		String[] priorita={ "Bassa", "Normale", "Alta" };
-		prior = new JComboBox<String>(priorita);
-		//prior=new JComboBox<String>();
-		prior.setSelectedIndex(1);	//in questo modo la scelta di default è "normale"
-		
-		GridBagConstraints gbc_comboBox_2 = new GridBagConstraints();
-		gbc_comboBox_2.gridwidth = 3;
-		gbc_comboBox_2.insets = new Insets(0, 0, 5, 5);
-		gbc_comboBox_2.fill = GridBagConstraints.HORIZONTAL;
-		gbc_comboBox_2.gridx = 2;
-		gbc_comboBox_2.gridy = 3;
-		contentPanel.add(prior, gbc_comboBox_2);
+		managePrior();
 				
 		GridBagConstraints gbc_annoLabel = new GridBagConstraints();
 		gbc_annoLabel.anchor = GridBagConstraints.EAST;
@@ -167,7 +172,6 @@ public class Popup extends JDialog implements ActionListener{
 		contentPanel.add(meseLabel, gbc_meseLabel);
 		
 		manageMonth();
-		mese.addActionListener(this);
 		
 		//mese=new JComboBox<String>();
 					
@@ -260,6 +264,108 @@ public class Popup extends JDialog implements ActionListener{
 		cancelButton.setFont(comic);
 	
 	}
+	private void addToolTips(boolean modifica){
+		
+		if(!modifica){
+			if(language==Lang.IT){
+				minuto.setToolTipText("Seleziona qui il minuto di scadenza del memo");
+				descrizione.setToolTipText("Inserisci qui una breve descrizione del memo");
+				prior.setToolTipText("Seleziona qui il livello di priorità");
+				anno.setToolTipText("Seleziona qui l'anno di scadenza del memo");
+				mese.setToolTipText("Seleziona qui il mese di scadenza del memo");
+				giorno.setToolTipText("Seleziona qui il giorno di scadenza del memo");
+				ora.setToolTipText("Seleziona qui l'ora di scadenza del memo");
+			}
+			else if(language==Lang.ES){
+				minuto.setToolTipText("Seleccionar el minuto de fechas aquí");
+				descrizione.setToolTipText("Introduzca una breve descripción de la nota aquí");
+				prior.setToolTipText("Seleccionar el nivel de prioridad aquí");
+				anno.setToolTipText("Seleccionar año de expiración aquí");
+				mese.setToolTipText("Seleccionar mese de expiración aquí");
+				giorno.setToolTipText("Seleccionar día de expiración aquí");
+				ora.setToolTipText("Seleccionar hora de expiración aquí");
+			}
+			else if(language==Lang.DE){
+				minuto.setToolTipText("Wählen Ablauf Minute hier");
+				descrizione.setToolTipText("Legen Sie eine kurze Beschreibung der Memo hier");
+				prior.setToolTipText("Wählen Sie die Prioritätsstufe hier");
+				anno.setToolTipText("Wählen Ablauf Jahr hier");
+				mese.setToolTipText("Wählen Ablauf Monat hier");
+				giorno.setToolTipText("Wählen Ablauf Tag hier");
+				ora.setToolTipText("Wählen Ablauf Stunde hier");
+			}
+			else{
+				minuto.setToolTipText("Select expiry minute here");
+				descrizione.setToolTipText("Insert a brief description of memo here");
+				prior.setToolTipText("Select the level of priority here");
+				anno.setToolTipText("Select expiry year here");
+				mese.setToolTipText("Select expiry month here");
+				giorno.setToolTipText("Select expiry day here");
+				ora.setToolTipText("Select expiry hour here");
+			}
+		}
+		else{
+			if(language==Lang.IT){
+				descrizione.setToolTipText("La descrizione del memo");
+				prior.setToolTipText("Il livello di priorità del memo");
+				anno.setToolTipText("L'anno di scadenza");
+				mese.setToolTipText("Il mese di scadenza");
+				giorno.setToolTipText("Il giorno di scadenza");
+				ora.setToolTipText("L'ora di scadenza");
+				minuto.setToolTipText("Il minuto di scadenza");
+			}
+			else if(language==Lang.DE){
+				descrizione.setToolTipText("Memo Beschreibung");
+				prior.setToolTipText("Prioritätsstufe Memos");
+				anno.setToolTipText("Ablauf Jahr Memos");
+				mese.setToolTipText("Verfallmonats Memos");
+				giorno.setToolTipText("Memos Verfallstag");
+				ora.setToolTipText("Memos Ablauf Stunde");
+				minuto.setToolTipText("Memos Ablauf Minute");
+			}
+			else if(language==Lang.ES){
+				descrizione.setToolTipText("Descripción de Memo");
+				prior.setToolTipText("Memo's priority level");
+				anno.setToolTipText("Memo's expiry year");
+				mese.setToolTipText("Memo's expiry month");
+				giorno.setToolTipText("Memo's expiry day");
+				ora.setToolTipText("Memo's expiry hour");
+				minuto.setToolTipText("Memo's expiry minute");
+			}
+			else{
+				descrizione.setToolTipText("Memo's description");
+				prior.setToolTipText("El nivel de prioridad del memo");
+				anno.setToolTipText("El año de vencimiento");
+				mese.setToolTipText("El mes de vencimiento");
+				giorno.setToolTipText("El día de vencimiento");
+				ora.setToolTipText("La hora de vencimiento");
+				minuto.setToolTipText("La expiración minutos");
+			}
+		}
+		
+	}
+	
+	private void managePrior(){
+		
+		if(language==Lang.IT)
+			prior=new JComboBox<String>(prioritaIT);
+		else if(language==Lang.ES)
+			prior=new JComboBox<String>(prioritaES);
+		else if(language==Lang.DE)
+			prior=new JComboBox<String>(prioritaDE);
+		else
+			prior=new JComboBox<String>(prioritaEN);
+		
+		prior.setSelectedIndex(1);	//in questo modo la scelta di default è "normale"
+		GridBagConstraints gbc_comboBox_2 = new GridBagConstraints();
+		gbc_comboBox_2.gridwidth = 3;
+		gbc_comboBox_2.insets = new Insets(0, 0, 5, 5);
+		gbc_comboBox_2.fill = GridBagConstraints.HORIZONTAL;
+		gbc_comboBox_2.gridx = 2;
+		gbc_comboBox_2.gridy = 3;
+		contentPanel.add(prior, gbc_comboBox_2);
+	}
+	
 	
 	private void manageYear(int year){
 		Integer[] annos=new Integer[10];
@@ -280,24 +386,35 @@ public class Popup extends JDialog implements ActionListener{
 	
 	private void manageMonth(){
 		
-		String mesi[]={ "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"};
+		
 		if(mese==null){
-			mese=new JComboBox<String>(mesi);
+			if(language==Lang.IT)
+				mese=new JComboBox<String>(mesiIT);
+			else if(language==Lang.ES)
+				mese=new JComboBox<String>(mesiES);
+			else if(language==Lang.DE)
+				mese=new JComboBox<String>(mesiDE);
+			else
+				mese=new JComboBox<String>(mesiEN);
+			
 			this.mese.setSelectedIndex(this.data.mese()-1);
+			mese.addActionListener(this);
+			GridBagConstraints gbc_comboBox_mese = new GridBagConstraints();
+			gbc_comboBox_mese.gridwidth = 2;
+			gbc_comboBox_mese.insets = new Insets(0, 0, 5, 5);
+			gbc_comboBox_mese.fill = GridBagConstraints.HORIZONTAL;
+			gbc_comboBox_mese.gridx = 2;
+			gbc_comboBox_mese.gridy = 4;
+			mese.setVisible(true);
+			contentPanel.add(mese, gbc_comboBox_mese);
 		}
 		else{
 			int x=mese.getSelectedIndex();
-			contentPanel.remove(mese);
 			this.mese.setSelectedIndex(x);
+			
 		}
-		this.mese = new JComboBox<String>(mesi);
-		GridBagConstraints gbc_comboBox_mese = new GridBagConstraints();
-		gbc_comboBox_mese.gridwidth = 2;
-		gbc_comboBox_mese.insets = new Insets(0, 0, 5, 5);
-		gbc_comboBox_mese.fill = GridBagConstraints.HORIZONTAL;
-		gbc_comboBox_mese.gridx = 2;
-		gbc_comboBox_mese.gridy = 4;
-		contentPanel.add(mese, gbc_comboBox_mese);
+		//this.mese = new JComboBox<String>(mesi);
+		
 		
 		//mese.setSelectedIndex(data.mese()-1);
 		manageDay();
@@ -307,7 +424,7 @@ public class Popup extends JDialog implements ActionListener{
 		
 		Integer[] giorni;
 		String gdms=(String)mese.getSelectedItem();
-		int gdm=Data.daysOfMonth((Integer)anno.getSelectedItem(),Data.monthToInt(gdms));
+		int gdm=Data.daysOfMonth((Integer)anno.getSelectedItem(),Data.monthToInt(gdms,language));
 		giorni=new Integer[gdm];
 		for(int i=0;i<gdm;i++){
 			giorni[i]=new Integer(i+1);
@@ -341,98 +458,6 @@ public class Popup extends JDialog implements ActionListener{
 		}
 	}
 	
-	public void aggiungi(){
-		
-		data=new Data();
-		modified=false;
-		titolo.setText("Aggiungi memo");
-		descrizione.setText("");
-		descrizione.setToolTipText("Inserisci qui una breve descrizione del memo");
-		prior.setSelectedIndex(1);
-		prior.setToolTipText("Inserisci qui il livello di priorità");
-		anno.setSelectedItem(data.anno());
-		anno.setToolTipText("Inserisci qui l'anno di scadenza del memo");
-		mese.setSelectedIndex(data.mese()-1);
-		mese.setToolTipText("Inserisci qui il mese di scadenza del memo");
-		giorno.setSelectedItem(data.giorno());
-		giorno.setToolTipText("Inserisci qui il giorno di scadenza del memo");
-		ora.setSelectedItem(data.ora());
-		ora.setToolTipText("Inserisci qui l'ora di scadenza del memo");
-		minuto.setSelectedItem(data.minuto());
-		minuto.setToolTipText("Inserisci qui il minuto di scadenza del memo");
-		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/new.jpg");
-		//titolo.setForeground(new Color(255,255,150));
-		titolo.setForeground(myYellow);
-		nome.setForeground(Color.BLACK);
-		okButton.setForeground(Color.BLACK);
-		cancelButton.setForeground(Color.BLACK);
-		prioritLabel.setForeground(Color.BLACK);
-		annoLabel.setForeground(Color.BLACK);
-		meseLabel.setForeground(Color.BLACK);
-		dayLabel.setForeground(Color.BLACK);
-		oraLabel.setForeground(Color.BLACK);
-		minutoLabel.setForeground(Color.BLACK);
-		setVisible(true);
-	}
-
-	public void modifica(Memo m){
-		
-		modified=true;
-		this.old=m;
-		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/shadow.jpg");
-		titolo.setText("Modifica memo");
-		Color color=Color.WHITE;
-		this.data=m.getEnd();
-		manageYear(data.anno());
-		descrizione.setText(m.description());
-		descrizione.setToolTipText("La descrizione del memo");
-		prior.setSelectedIndex(m.priority());
-		prior.setToolTipText("Il livello di priorità del memo");
-		anno.setSelectedItem(data.anno());
-		anno.setToolTipText("L'anno di scadenza");
-		mese.setSelectedIndex(data.mese()-1);
-		mese.setToolTipText("Il mese di scadenza");
-		giorno.setSelectedItem(data.giorno());
-		giorno.setToolTipText("Il giorno di scadenza");
-		ora.setSelectedItem(data.ora());
-		ora.setToolTipText("L'ora di scadenza");
-		minuto.setSelectedItem(data.minuto());
-		minuto.setToolTipText("Il minuto di scadenza");
-		
-		okButton.setForeground(color);
-		cancelButton.setForeground(color);
-		titolo.setForeground(color);
-		nome.setForeground(color);
-		prioritLabel.setForeground(color);
-		annoLabel.setForeground(color);
-		meseLabel.setForeground(color);
-		dayLabel.setForeground(color);
-		oraLabel.setForeground(color);
-		minutoLabel.setForeground(color);
-		setVisible(true);
-		
-	}
-
-	public boolean isOk(){
-		
-		return okPressed;
-	}
-	
-	public boolean getModified(){
-		
-		return modified;
-	}
-	
-	public Memo getCreated(){
-		
-		return created;
-	}
-	
-	public Memo getOld(){
-		
-		return old;
-	}
-	
 	public void actionPerformed(ActionEvent evt){
 		
 		if(evt.getSource()==anno || evt.getSource()==mese){
@@ -445,21 +470,21 @@ public class Popup extends JDialog implements ActionListener{
 			String desc=descrizione.getText();
 			if(desc.length()>255){
 				avviso.setVisible(true);
-				avviso.setText("La descrizione non può superare i 255 caratteri");
+				if(language==Lang.IT)
+					avviso.setText("La descrizione non può superare i 255 caratteri");
+				else if(language==Lang.DE)
+					avviso.setText("Beschreibung kann nicht überholen 255 Zeichen");
+				else if(language==Lang.ES)
+					avviso.setText("La descripción no puede superar 255 caracteres");
+				else
+					avviso.setText("Description can't be more than 255 characters");
 				descrizione.setText("");
 				return;
 			}
-			String pri1=(String)prior.getSelectedItem();
-			int pri2;
-			switch(pri1){
-			case "Normale":pri2=1; break;
-			case "Alta":pri2=2;break;
-			case "Bassa":pri2=0;break;
-			default: pri2=-1;
-			}
+			int pri2=prior.getSelectedIndex();
 			int d=(Integer)giorno.getSelectedItem();
 			System.out.println(d);
-			int m=Data.monthToInt((String)mese.getSelectedItem());	
+			int m=Data.monthToInt((String)mese.getSelectedItem(),language);	
 			int y=(Integer)anno.getSelectedItem();
 			int o=(Integer)ora.getSelectedItem();
 			int mi=(Integer)minuto.getSelectedItem();
@@ -488,6 +513,14 @@ public class Popup extends JDialog implements ActionListener{
 				setVisible(false);
 			}
 			else{
+				if(language==Lang.IT)
+					avviso.setText("Non puoi aggiungere un memo con scadenza nel passato");
+				else if(language==Lang.DE)
+					avviso.setText("Sie können ein Memo in der Vergangenheit nicht hinzufügen");
+				else if(language==Lang.ES)
+					avviso.setText("No se puede añadir una nota en el pasado");
+				else
+					avviso.setText("You can't add a memo in the past");
 				avviso.setVisible(true);
 			}
 		}
@@ -497,5 +530,155 @@ public class Popup extends JDialog implements ActionListener{
 			created=null;
 			dispose();
 		}
+	}
+
+	public void aggiungi(){
+		
+		data=new Data();
+		modified=false;
+		if(language==Lang.IT)
+			titolo.setText("Aggiungi memo");
+		else if(language==Lang.ES)
+			titolo.setText("Añadir memo");
+		else if(language==Lang.DE)
+			titolo.setText("Memo hinzufügen");
+		else
+			titolo.setText("Add memo");
+		descrizione.setText("");
+		prior.setSelectedIndex(1);
+		anno.setSelectedItem(data.anno());
+		mese.setSelectedIndex(data.mese()-1);
+		giorno.setSelectedItem(data.giorno());
+		ora.setSelectedItem(data.ora());
+		minuto.setSelectedItem(data.minuto());
+		addToolTips(false);
+		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/new.jpg");
+		//titolo.setForeground(new Color(255,255,150));
+		titolo.setForeground(myYellow);
+		nome.setForeground(Color.BLACK);
+		okButton.setForeground(Color.BLACK);
+		cancelButton.setForeground(Color.BLACK);
+		prioritLabel.setForeground(Color.BLACK);
+		annoLabel.setForeground(Color.BLACK);
+		meseLabel.setForeground(Color.BLACK);
+		dayLabel.setForeground(Color.BLACK);
+		oraLabel.setForeground(Color.BLACK);
+		minutoLabel.setForeground(Color.BLACK);
+		setVisible(true);
+	}
+
+	public Memo getCreated(){
+		
+		return created;
+	}
+
+	public boolean getModified(){
+		
+		return modified;
+	}
+
+	public Memo getOld(){
+		
+		return old;
+	}
+
+	public boolean isOk(){
+		
+		return okPressed;
+	}
+
+	public void modifica(Memo m){
+		
+		modified=true;
+		this.old=m;
+		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/shadow.jpg");
+		if(language==Lang.IT || language==Lang.ES)
+			titolo.setText("Modifica memo");
+		else if(language==Lang.DE)
+			titolo.setText("Memo ändern");
+		else
+			titolo.setText("Modify memo");
+		Color color=Color.WHITE;
+		this.data=m.getEnd();
+		manageYear(data.anno());
+		descrizione.setText(m.description());
+		prior.setSelectedIndex(m.priority());
+		anno.setSelectedItem(data.anno());
+		mese.setSelectedIndex(data.mese()-1);
+		giorno.setSelectedItem(data.giorno());
+		ora.setSelectedItem(data.ora());
+		minuto.setSelectedItem(data.minuto());
+		okButton.setForeground(color);
+		cancelButton.setForeground(color);
+		titolo.setForeground(color);
+		nome.setForeground(color);
+		prioritLabel.setForeground(color);
+		annoLabel.setForeground(color);
+		meseLabel.setForeground(color);
+		dayLabel.setForeground(color);
+		oraLabel.setForeground(color);
+		minutoLabel.setForeground(color);
+		addToolTips(true);
+		setVisible(true);
+	}
+	
+	public void setLanguage(Lang language){
+		
+		if(this.language.equals(language))
+			return;
+		if(language==Lang.IT){
+			
+			prioritLabel.setText("Priorità");
+			nome.setText("Nome");
+			annoLabel.setText("Anno");
+			meseLabel.setText("Mese");
+			dayLabel.setText("Giorno");
+			oraLabel.setText("Ora");
+			minutoLabel.setText("Minuto");
+			this.language=language;
+			contentPanel.remove(mese);
+			contentPanel.remove(prior);
+		}
+		else if(language==Lang.EN){
+			
+			prioritLabel.setText("Priorität");
+			nome.setText("Vorname");
+			annoLabel.setText("Jahr");
+			meseLabel.setText("Monat");
+			dayLabel.setText("Tag");
+			oraLabel.setText("Stunde");
+			minutoLabel.setText("Minute");
+			this.language=language;
+			contentPanel.remove(mese);
+			contentPanel.remove(prior);	
+		}
+		else if(language==Lang.ES){
+		
+			prioritLabel.setText("Prioridad");
+			nome.setText("Nombre");
+			annoLabel.setText("Año");
+			meseLabel.setText("Mes");
+			dayLabel.setText("Día");
+			oraLabel.setText("Hora");
+			minutoLabel.setText("Minuto");
+			this.language=language;
+			contentPanel.remove(mese);
+			contentPanel.remove(prior);
+		}
+		else{
+			prioritLabel.setText("Priority");
+			nome.setText("Name");
+			annoLabel.setText("Year");
+			meseLabel.setText("Month");
+			dayLabel.setText("Day");
+			oraLabel.setText("Hour");
+			minutoLabel.setText("Minute");
+			this.language=language;
+			contentPanel.remove(mese);
+			contentPanel.remove(prior);
+		}
+		mese=null;
+		managePrior();
+		manageMonth();
 	}
 }

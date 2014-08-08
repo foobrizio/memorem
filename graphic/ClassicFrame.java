@@ -1,5 +1,7 @@
 package graphic;
 
+import graphic.MemoremGUI.Lang;
+
 import javax.swing.*;	//per JPanel e soci
 
 import main.Memo;
@@ -36,12 +38,13 @@ public class ClassicFrame extends JInternalFrame{
 	 * 			year		//	"in quest'anno"
 	 * 			always		//	"sempre"
 	 */
-	private JMenu mnFiltraPerData;
-	//private MouseMotion mouseM;
+	private JMenu mnData;
+	private Lang language;
 
 	
 	public ClassicFrame(JRadioButtonMenuItem[] vF, JCheckBoxMenuItem[] pF,JRadioButtonMenuItem[] dF){
 		
+		language=Lang.EN;
 		setResizable(false);		//il JInternalFrame non può cambiare forma
 		createContentPane();
 		//i prossimi tre passaggi servono per eliminare la barra in alto
@@ -84,26 +87,26 @@ public class ClassicFrame extends JInternalFrame{
 	private void createButtons(JRadioButtonMenuItem[] vF,JCheckBoxMenuItem[] pF,JRadioButtonMenuItem[] dF){
 		
 		//visualFilter
-		visual=new JMenu("Visualizza");
+		visual=new JMenu("Show");
 		visual.add(vF[0]);
 		visual.add(vF[1]);
 		menuBar.add(visual);
 		//priorFilter
-		mnPriorit = new JMenu("Filtra per priorità");
+		mnPriorit = new JMenu("Filter by priority");
 		mnPriorit.add(pF[0]);
 		mnPriorit.add(pF[1]);
 		mnPriorit.add(pF[2]);
 		menuBar.add(mnPriorit);
 		//dateFilter
-		mnFiltraPerData = new JMenu("Filtra per data");
-		mnFiltraPerData.add(dF[0]);
-		mnFiltraPerData.add(dF[1]);
-		mnFiltraPerData.add(dF[2]);
-		mnFiltraPerData.add(dF[3]);
-		mnFiltraPerData.add(dF[4]);
-		mnFiltraPerData.add(dF[5]);
-		mnFiltraPerData.add(dF[6]);
-		menuBar.add(mnFiltraPerData);
+		mnData = new JMenu("Filter by date");
+		mnData.add(dF[0]);
+		mnData.add(dF[1]);
+		mnData.add(dF[2]);
+		mnData.add(dF[3]);
+		mnData.add(dF[4]);
+		mnData.add(dF[5]);
+		mnData.add(dF[6]);
+		menuBar.add(mnData);
 	}
 	
 	private void createContentPane(){
@@ -115,31 +118,6 @@ public class ClassicFrame extends JInternalFrame{
 		
 	}
 	
-	public void setGuestInterface(boolean scelta){
-		
-		if(scelta){
-			//mnPriorit.setEnabled(false);
-			//visual.setEnabled(false);
-			//mnFiltraPerData.setEnabled(false);
-			menuBar.setEnabled(false);
-			menuBar.setVisible(false);
-		}
-		else{
-			menuBar.setEnabled(true);
-			menuBar.setVisible(true);
-		}
-		
-	}
-	/*
-	@Override
-	public void setVisible(boolean aFlag){
-		
-		if(aFlag)
-			System.out.println("Classic visibile");
-		else
-			System.out.println("Classic invisibile");
-		super.setVisible(aFlag);
-	}*/
 	/**
 	 * In questo modo ci assicuriamo che il PanelContainer contenga solamente MemPanel
 	 */
@@ -147,6 +125,7 @@ public class ClassicFrame extends JInternalFrame{
 	public Component add(Component c){		//qui dentro si può aggiungere soltanto MemPanels
 		
 		if(c instanceof MemPanel){
+			((MemPanel)c).setLanguage(language);
 			if(!personal.contains(((MemPanel)c).getMemo())){
 				personal.add(((MemPanel)c).getMemo(),false);
 				int indexOf=personal.indexOf(((MemPanel)c).getMemo());
@@ -166,6 +145,11 @@ public class ClassicFrame extends JInternalFrame{
 		return null;
 	}
 	
+	/**
+	 * Ritorna il memPanel relativo al memo corrispondente
+	 * @param m
+	 * @return
+	 */
 	public MemPanel get(Memo m){
 		
 		Component[] panels=dynamic.getComponents();
@@ -177,20 +161,11 @@ public class ClassicFrame extends JInternalFrame{
 		return null;
 	}
 	
-	public void remove(Memo m){		//funziona
-		
-		Component[] panels=dynamic.getComponents();
-		for(int i=0;i<panels.length;i++){
-			MemPanel mp=(MemPanel) panels[i];
-			if(mp.getMemo().equals(m)){
-				dynamic.remove(mp);
-				personal.remove(m);
-			}
-		}
-		dynamic.revalidate();
-		repaint();
-	}
-	
+	/**
+	 * Modifica il MemPanel contenente il vecchio memo, aggiornando i valori nuovi
+	 * @param vecchio
+	 * @param nuovo
+	 */
 	public void modifica(Memo vecchio,Memo nuovo){
 		
 		Component[] panels=dynamic.getComponents();
@@ -208,6 +183,7 @@ public class ClassicFrame extends JInternalFrame{
 				int pos=personal.indexOf(nuovo);
 				MemPanel newOne=new MemPanel(nuovo);
 				newOne.passaTestimone(old);
+				newOne.setLanguage(language);
 				//mp.addMouseMotionListener(mouseM);
 				dynamic.remove(old);
 				dynamic.add(newOne, pos);
@@ -219,14 +195,72 @@ public class ClassicFrame extends JInternalFrame{
 	}
 	
 	/**
-	 * Cancella i memo visualizzati nella finestra dynamic
+	 * Rimuove il MemPanel con dentro il memo m
+	 * @param m
 	 */
-	void clearMemos(){
+	public void remove(Memo m){		//funziona
 		
-		dynamic.removeAll();
-		personal.clear();
+		Component[] panels=dynamic.getComponents();
+		for(int i=0;i<panels.length;i++){
+			MemPanel mp=(MemPanel) panels[i];
+			if(mp.getMemo().equals(m)){
+				dynamic.remove(mp);
+				personal.remove(m);
+			}
+		}
+		dynamic.revalidate();
+		repaint();
 	}
 	
+	/**
+	 * Attiva o disattiva l'interfaccia guest
+	 * @param scelta
+	 */
+	public void setGuestInterface(boolean scelta){
+		
+		if(scelta){
+			menuBar.setEnabled(false);
+			menuBar.setVisible(false);
+		}
+		else{
+			menuBar.setEnabled(true);
+			menuBar.setVisible(true);
+		}
+	}
+	
+	/**
+	 * Setta la lingua del frame
+	 * @param language
+	 */
+	public void setLanguage(Lang language){
+		
+		if(this.language.equals(language))
+			return;
+		if(language==Lang.IT){
+			visual.setText("Visualizza");
+			mnPriorit.setText("Filtra per priorità");
+			mnData.setText("Filtra per data");
+		}
+		else if(language==Lang.EN){
+			
+			visual.setText("Show");
+			mnPriorit.setText("Filter by priority");
+			mnData.setText("Filter by date");
+		}
+		else if(language==Lang.ES){
+			
+			visual.setText("Ve");
+			mnPriorit.setText("Filtra por prioridad");
+			mnData.setText("Filtra por fecha");
+		}
+		else if(language==Lang.DE){
+			visual.setText("Gesieh");
+			mnPriorit.setText("Durchdringen für priorität");
+			mnData.setText("Durchdringen für zeitpunkt");
+			
+		}
+		this.language=language;
+	}
 	/**
 	 * Provvede all'aggiornamento dei memo, intuendo se alcuni sono scaduti.
 	 * @return il numero dei memo scaduti (solitamente 1, ma a volte alcuni memo scadono contemporaneamente)
@@ -245,27 +279,12 @@ public class ClassicFrame extends JInternalFrame{
 			}
 		return cont;
 	}
-	
-	/*private class MouseMotion implements MouseMotionListener{
-
-		@Override
-		public void mouseDragged(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void mouseMoved(MouseEvent arg0) {
-			
-			int y=arg0.getY();
-			if(y<=25)
-				menuBar.setVisible(true);
-			else{
-				menuBar.setVisible(false);
-				MenuSelectionManager.defaultManager().clearSelectedPath();
-			}
-		}
+	/**
+	 * Cancella i memo visualizzati nella finestra dynamic
+	 */
+	void clearMemos(){
 		
-		
-	}*/
+		dynamic.removeAll();
+		personal.clear();
+	}
 }

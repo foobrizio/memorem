@@ -1,5 +1,7 @@
 package graphic;
 
+import graphic.MemoremGUI.Lang;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -17,14 +19,17 @@ import util.*;
 @SuppressWarnings("serial")
 class ModelloTable extends AbstractTableModel{
 	
-	String[] days = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
+	String[] daysEN = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
+	String[] daysIT = {"Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"};
+	String[] daysDE = {"Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"};
+	String[] daysES = {"Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"};
 	int[] numDays = {31,28,31,30,31,30,31,31,30,31,30,31};
 	String[][] calendar = new String[7][7];
 	
 	public ModelloTable(){
 	
-		for(int i=0;i< days.length;++i)
-			calendar[0][i]=days[i];
+		for(int i=0;i< daysEN.length;++i)
+			calendar[0][i]=daysEN[i];
 		for(int i=1;i<7;++i)
 			for(int j=0;j<7;++j)
 				calendar[i][j]=" ";
@@ -57,6 +62,22 @@ class ModelloTable extends AbstractTableModel{
 			return calendar[riga][colonna];
 		else return "";
 	}
+	
+	public void setLanguage(Lang lang){
+		
+		if(lang==Lang.ES)
+			for(int i=0;i< daysES.length;++i)
+				calendar[0][i]=daysES[i];
+		else if(lang==Lang.IT)
+			for(int i=0;i< daysIT.length;++i)
+				calendar[0][i]=daysIT[i];
+		else if(lang==Lang.DE)
+			for(int i=0;i< daysDE.length;++i)
+				calendar[0][i]=daysDE[i];
+		else for(int i=0;i< daysEN.length;++i)
+				calendar[0][i]=daysEN[i];
+	}
+	
 	
 	@Override
 	public void setValueAt(Object value,int riga,int colonna){
@@ -116,8 +137,8 @@ public class CalendarFrame extends JInternalFrame{
 	private ModelloTable riccardino;
 	private JComboBox comboBox,comboMonth;
 	private Data oggi;
-	private final String[] months={"January","February","March","April","May","June","July", "August","September",
-			"October","November","December"};
+	private final String[] monthsEN={"January","February","March","April","May","June","July","August","September","October","November","December"};
+	private final String[] monthsIT={"Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"};
 	private final static Color myYellow=new Color(255,255,150);
 	private final static Color myBlue=new Color(150,200,255);
 	private final static Color myRed=new Color(255,120,100);
@@ -126,7 +147,109 @@ public class CalendarFrame extends JInternalFrame{
 	private Motion motion;
 	private int[] cellaSelezionata;
 	private int curMonth,curYear;
+	private Lang language;
 	
+	private class ComboHandler implements ActionListener {
+		
+	    public void actionPerformed(ActionEvent e) {
+	    	
+	    	curMonth=comboMonth.getSelectedIndex()+1;
+			curYear=comboBox.getSelectedIndex()+oggi.anno();
+	    	riccardino.setMonth(curYear, curMonth);
+	    	renderer.refresh();
+	    	table.repaint();
+	    }
+	}
+	/**
+	 * Classe interna che serve per gestire graficamente la tabella
+	 * @author fabrizio
+	 *
+	 */
+	@SuppressWarnings("serial") class CustomRenderer extends DefaultTableCellRenderer{
+	    
+		private JTable table;
+		private Color[][] griglia;
+		public CustomRenderer(JTable table){
+			
+			super();
+			this.table=table;
+			griglia=new Color[table.getRowCount()][table.getColumnCount()];
+		}
+		@Override
+		public Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int column)
+	    {
+			JLabel c=(JLabel) super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
+			if(row==0){
+	        	c.setBackground(Color.DARK_GRAY);
+	        	if(column==6)
+	        		c.setForeground(Color.RED.brighter());
+	        	else
+	        		c.setForeground(Color.YELLOW);
+	        }
+			else{
+				if(griglia[row][column]==null)
+					c.setBackground(Color.LIGHT_GRAY.brighter().brighter());
+				else
+					c.setBackground(griglia[row][column]);
+				c.setForeground(Color.BLACK);
+			}
+	        return c;
+	    }
+		
+		public void refresh(){
+			
+			griglia=new Color[table.getRowCount()][table.getColumnCount()];
+			MemoList forTheMonth=new MemoList();
+			if(ml==null)
+				System.out.println("ml è nulllll");
+			for( Memo m : ml){	//arrivati qui abbiamo la memolist aggiornata per il mese :D
+				Data end=m.getEnd();
+				int mese=end.mese();
+				int anno=end.anno();
+				if(mese==curMonth && anno==curYear)
+					forTheMonth.add(m,false);
+			}
+			for( Memo m : forTheMonth){		//ora inseriamo nella tabella i memo del mese
+				
+				int riga=1;		//nella riga 0 ci sono i nomi dei giorni, la riga 1 invece non è quasi mai piena
+				int colonna=0;
+				int maximum=0;
+				while(maximum<50){	//finchè non viene trovata la posizione giusta
+					int giorno=0;
+					String value=(String)table.getValueAt(riga, colonna);
+					if(value.trim().length()!=0){	//qui abbiamo una cella contenente un giorno
+						giorno=Integer.parseInt(value);
+						int memDay=m.getEnd().giorno();
+						if(memDay==giorno){	//abbiamo trovato la posizione giusta
+							cellaSelezionata[0]=riga;
+							cellaSelezionata[1]=colonna;
+							CalendarFrame.this.add(m);
+							break;
+						}
+						else{
+							if(colonna==6){
+								colonna=0;
+								riga++;
+							}
+							else colonna++;
+						}
+					}//se abbiamo selezionato un giorno
+					else{
+						if(colonna==6){
+							colonna=0;
+							riga++;
+						}
+						else colonna++;
+					}//se non abbiamo selezionato un giorno			
+				}//while
+			}//for
+		}
+		
+		public void colorizeCell(Color c,int row,int column){
+			
+			griglia[row][column]=c;
+		}
+	}
 	class Motion implements MouseMotionListener{
 		
 		private int rowSelected=-1;
@@ -161,6 +284,68 @@ public class CalendarFrame extends JInternalFrame{
 			}
 		}
 		
+	}
+	@SuppressWarnings("serial")
+	class Popopo extends JPopupMenu{
+		
+		private Color coloreSfondo;
+		private Memo m;
+		
+		public Popopo(Memo m){
+			
+			this.m=m;
+			elimina.setMemo(m);
+			completa.setMemo(m);
+			modifica.setMemo(m);
+			one.setMemo(m);
+			three.setMemo(m);
+			seven.setMemo(m);
+			custom.setMemo(m);
+			setOpaque(true);
+			switch(m.priority()){
+			case 0: coloreSfondo=myBlue; break;
+			case 1: coloreSfondo=myYellow; break;
+			case 2: coloreSfondo=myRed; break;
+			}
+			JMenu rinvia=new JMenu("Rinvia");
+			if(!m.isScaduto())
+				modifica.setMemo(m);
+			else{
+				//modifica.setVisible(false);
+				rinvia=new JMenu("Rinvia");
+				rinvia.add(one);
+				rinvia.add(three);
+				rinvia.add(seven);
+				rinvia.add(custom);
+			}
+			colora();
+			this.add(completa);
+			if(!m.isScaduto()){
+				this.add(modifica);
+			}
+			else{
+				rinvia.setBackground(coloreSfondo);
+				this.add(rinvia);
+			}
+			this.add(elimina);
+		}
+		
+		private void colora(){
+			
+			this.setBackground(coloreSfondo);
+			completa.setBackground(coloreSfondo);
+			modifica.setBackground(coloreSfondo);
+			elimina.setBackground(coloreSfondo);
+			one.setBackground(coloreSfondo);
+			three.setBackground(coloreSfondo);
+			seven.setBackground(coloreSfondo);
+			custom.setBackground(coloreSfondo);
+		}
+		
+		public Memo getMemo(){
+			
+			return m;
+		}
 	}
 	/**
 	 * Classe Adapter per il mouse
@@ -220,96 +405,6 @@ public class CalendarFrame extends JInternalFrame{
 		}
 	}
 	/**
-	 * Classe interna che serve per gestire graficamente la tabella
-	 * @author fabrizio
-	 *
-	 */
-	@SuppressWarnings("serial") class CustomRenderer extends DefaultTableCellRenderer{
-	    
-		private JTable table;
-		private Color[][] griglia;
-		public CustomRenderer(JTable table){
-			
-			super();
-			this.table=table;
-			griglia=new Color[table.getRowCount()][table.getColumnCount()];
-		}
-		@Override
-		public Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int column)
-	    {
-			JLabel c=(JLabel) super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
-			if(row==0){
-	        	c.setBackground(Color.DARK_GRAY);
-	        	if(column==6)
-	        		c.setForeground(Color.RED.brighter());
-	        	else
-	        		c.setForeground(Color.YELLOW);
-	        }
-			else{
-				if(griglia[row][column]==null)
-					c.setBackground(Color.LIGHT_GRAY.brighter().brighter());
-				else
-					c.setBackground(griglia[row][column]);
-				c.setForeground(Color.BLACK);
-			}
-	        return c;
-	    }
-		
-		public void refresh(){
-			
-			griglia=new Color[table.getRowCount()][table.getColumnCount()];
-			MemoList forTheMonth=new MemoList();;
-			for( Memo m : ml){	//arrivati qui abbiamo la memolist aggiornata per il mese :D
-				Data end=m.getEnd();
-				int mese=end.mese();
-				int anno=end.anno();
-				if(mese==curMonth && anno==curYear)
-					forTheMonth.add(m,false);
-			}
-			for( Memo m : forTheMonth){		//ora inseriamo nella tabella i memo del mese
-				
-				int riga=1;		//nella riga 0 ci sono i nomi dei giorni, la riga 1 invece non è quasi mai piena
-				int colonna=0;
-				int maximum=0;
-				while(maximum<50){	//finchè non viene trovata la posizione giusta
-					int giorno=0;
-					String value=(String)table.getValueAt(riga, colonna);
-					if(value.trim().length()!=0){	//qui abbiamo una cella contenente un giorno
-						giorno=Integer.parseInt(value);
-						int memDay=m.getEnd().giorno();
-						if(memDay==giorno){	//abbiamo trovato la posizione giusta
-							cellaSelezionata[0]=riga;
-							cellaSelezionata[1]=colonna;
-							CalendarFrame.this.add(m);
-							break;
-						}
-						else{
-							if(colonna==6){
-								colonna=0;
-								riga++;
-							}
-							else colonna++;
-						}
-					}//se abbiamo selezionato un giorno
-					else{
-						if(colonna==6){
-							colonna=0;
-							riga++;
-						}
-						else colonna++;
-					}//se non abbiamo selezionato un giorno			
-				}//while
-			}//for
-		}
-		
-		public void colorizeCell(Color c,int row,int column){
-			
-			griglia[row][column]=c;
-		}
-	}
-	
-	
-	/**
 	 * Create the frame.
 	 */
 	public CalendarFrame(MemoList ml){
@@ -326,7 +421,7 @@ public class CalendarFrame extends JInternalFrame{
 		for(int i=0;i<10;i++)
 			years[i]=String.valueOf(oggi.anno()+i);
 		comboBox = new JComboBox(years);
-		comboMonth = new JComboBox(months);
+		comboMonth = new JComboBox(monthsEN);
 		
 		thecat=new Tom();
 		motion=new Motion();
@@ -459,32 +554,10 @@ public class CalendarFrame extends JInternalFrame{
 		setVisible(true);
 	}
 	
-	public void setListener(Popup p){
-		this.p=p;
-	}
-	
 	private void colorizeTable(){
 		
 		for(int i=0;i<7;i++)
 			table.getColumnModel().getColumn(i).setCellRenderer(renderer);
-	}
-	
-	public CustomRenderer getCustomRenderer(){
-		
-		return renderer;
-	}
-	
-	
-	private class ComboHandler implements ActionListener {
-		
-	    public void actionPerformed(ActionEvent e) {
-	    	
-	    	curMonth=comboMonth.getSelectedIndex()+1;
-			curYear=comboBox.getSelectedIndex()+oggi.anno();
-	    	riccardino.setMonth(curYear, curMonth);
-	    	renderer.refresh();
-	    	table.repaint();
-	    }
 	}
 	
 	/**
@@ -505,6 +578,27 @@ public class CalendarFrame extends JInternalFrame{
 		repaint();
 	}
 	
+	/**
+	 * Elimina tutti i memo dal calendario. Va chiamato dopo un logout oppure dopo un reset del database
+	 */
+	public void clear(){
+		
+		ml.clear();
+		this.setVisible(false);
+		this.setVisible(true);
+		
+	}
+	
+	public CustomRenderer getCustomRenderer(){
+		
+		return renderer;
+	}
+
+	public MemoList getMemoList(){
+		
+		return ml;
+	}
+
 	/**
 	 * Rimuove un memo dal panel
 	 * @param m
@@ -556,16 +650,31 @@ public class CalendarFrame extends JInternalFrame{
 			}
 		}
 	}
-	
-	/**
-	 * Elimina tutti i memo dal calendario. Va chiamato dopo un logout oppure dopo un reset del database
-	 */
-	public void clear(){
+
+	public void setLanguage(Lang language){
 		
-		ml.clear();
-		this.setVisible(false);
-		this.setVisible(true);
-		
+		if(this.language==language)
+			return;
+		getContentPane().remove(comboMonth);
+		comboMonth=null;
+		if(language==Lang.IT){
+			comboMonth=new JComboBox<String>(monthsIT);
+		}
+		else if(language==Lang.EN){
+			comboMonth=new JComboBox<String>(monthsEN);
+		}
+		riccardino.setLanguage(language);
+		comboMonth.addActionListener(new ComboHandler());
+		comboMonth.setSelectedItem(comboMonth.getItemAt(oggi.mese()-1));
+		getContentPane().add(comboMonth, "16, 2, 9, 1, fill, default");
+		repaint();
+	}
+	public void setListener(Popup p){
+		this.p=p;
+	}
+
+	public void setMemolist(MemoList ml){
+		this.ml=ml;
 	}
 	
 	public void setPopItems(PopItem[] items){
@@ -578,80 +687,8 @@ public class CalendarFrame extends JInternalFrame{
 		seven=items[5];
 		custom=items[6];
 	}
-	
-	public MemoList getMemoList(){
-		
-		return ml;
-	}
-	
-	public void setMemolist(MemoList ml){
-		this.ml=ml;
-	}
-	
-	@SuppressWarnings("serial")
-	class Popopo extends JPopupMenu{
-		
-		private Color coloreSfondo;
-		private Memo m;
-		
-		public Popopo(Memo m){
-			
-			this.m=m;
-			elimina.setMemo(m);
-			completa.setMemo(m);
-			modifica.setMemo(m);
-			one.setMemo(m);
-			three.setMemo(m);
-			seven.setMemo(m);
-			custom.setMemo(m);
-			setOpaque(true);
-			switch(m.priority()){
-			case 0: coloreSfondo=myBlue; break;
-			case 1: coloreSfondo=myYellow; break;
-			case 2: coloreSfondo=myRed; break;
-			}
-			JMenu rinvia=new JMenu("Rinvia");
-			if(!m.isScaduto())
-				modifica.setMemo(m);
-			else{
-				//modifica.setVisible(false);
-				rinvia=new JMenu("Rinvia");
-				rinvia.add(one);
-				rinvia.add(three);
-				rinvia.add(seven);
-				rinvia.add(custom);
-			}
-			colora();
-			this.add(completa);
-			if(!m.isScaduto()){
-				this.add(modifica);
-			}
-			else{
-				rinvia.setBackground(coloreSfondo);
-				this.add(rinvia);
-			}
-			this.add(elimina);
-		}
-		
-		private void colora(){
-			
-			this.setBackground(coloreSfondo);
-			completa.setBackground(coloreSfondo);
-			modifica.setBackground(coloreSfondo);
-			elimina.setBackground(coloreSfondo);
-			one.setBackground(coloreSfondo);
-			three.setBackground(coloreSfondo);
-			seven.setBackground(coloreSfondo);
-			custom.setBackground(coloreSfondo);
-		}
-		
-		public Memo getMemo(){
-			
-			return m;
-		}
-	}
-	
-	
+
+
 	/**
 	 * Launch the application.
 	 */

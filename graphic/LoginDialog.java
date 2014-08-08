@@ -8,7 +8,9 @@ import java.awt.event.*;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
+import util.StringAnalyzer;
 import util.User;
+
 import java.util.*;
 
 @SuppressWarnings("serial")
@@ -28,6 +30,8 @@ public class LoginDialog extends JDialog implements ActionListener {
 	private JLabel lblIlNicknameDeve;
 	private JLabel lblAlmenoCaratteri;
 	private HashSet<User> userList;
+	private JLabel linguaLabel;
+	private JComboBox<String> languageBox;
 
 	
 	
@@ -68,15 +72,15 @@ public class LoginDialog extends JDialog implements ActionListener {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		GridBagLayout gbl_contentPanel = new GridBagLayout();
-		gbl_contentPanel.columnWidths = new int[]{131, 68, 0, 0, 114, 0, 0};
+		gbl_contentPanel.columnWidths = new int[]{131, 68, 0, 0, 0, 114, 0, 0};
 		gbl_contentPanel.rowHeights = new int[]{19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_contentPanel.columnWeights = new double[]{0.0, 1.0, 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gbl_contentPanel.columnWeights = new double[]{0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
 		gbl_contentPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		contentPanel.setLayout(gbl_contentPanel);
 		
 		variableLabel = new JLabel();
 		GridBagConstraints gbc_variableLabel = new GridBagConstraints();
-		gbc_variableLabel.gridwidth = 6;
+		gbc_variableLabel.gridwidth = 7;
 		gbc_variableLabel.insets = new Insets(0, 0, 5, 0);
 		gbc_variableLabel.gridx = 0;
 		gbc_variableLabel.gridy = 3;
@@ -95,7 +99,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		nickField = new JTextField();
 		nickField.setFont(new Font("Comic Sans MS", Font.PLAIN, 12));
 		GridBagConstraints gbc_nickField = new GridBagConstraints();
-		gbc_nickField.gridwidth = 4;
+		gbc_nickField.gridwidth = 5;
 		gbc_nickField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_nickField.insets = new Insets(0, 0, 5, 5);
 		gbc_nickField.gridx = 1;
@@ -103,11 +107,11 @@ public class LoginDialog extends JDialog implements ActionListener {
 		contentPanel.add(nickField, gbc_nickField);
 		nickField.setColumns(10);
 		
-		lblIlNicknameDeve = new JLabel("Il nickname deve avere almeno 3 caratteri");
+		lblIlNicknameDeve = new JLabel("Nickname must have at least 3 characters");
 		lblIlNicknameDeve.setForeground(Color.RED);
 		lblIlNicknameDeve.setVisible(false);
 		GridBagConstraints gbc_lblIlNicknameDeve = new GridBagConstraints();
-		gbc_lblIlNicknameDeve.gridwidth = 5;
+		gbc_lblIlNicknameDeve.gridwidth = 6;
 		gbc_lblIlNicknameDeve.insets = new Insets(0, 0, 5, 5);
 		gbc_lblIlNicknameDeve.gridx = 0;
 		gbc_lblIlNicknameDeve.gridy = 5;
@@ -125,7 +129,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		
 		passwordField = new JPasswordField();
 		GridBagConstraints gbc_passwordField = new GridBagConstraints();
-		gbc_passwordField.gridwidth = 4;
+		gbc_passwordField.gridwidth = 5;
 		gbc_passwordField.insets = new Insets(0, 0, 5, 5);
 		gbc_passwordField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_passwordField.gridx = 1;
@@ -133,17 +137,17 @@ public class LoginDialog extends JDialog implements ActionListener {
 		contentPanel.add(passwordField, gbc_passwordField);
 		contentPanel.setBackground(new Color(0,0,0,0));
 		
-		lblAlmenoCaratteri = new JLabel("la password deve avere almeno 4 caratteri");
+		lblAlmenoCaratteri = new JLabel("Password must have at least 4 characters");
 		lblAlmenoCaratteri.setForeground(Color.RED);
 		lblAlmenoCaratteri.setVisible(false);
 		GridBagConstraints gbc_lblAlmenoCaratteri = new GridBagConstraints();
-		gbc_lblAlmenoCaratteri.gridwidth = 5;
+		gbc_lblAlmenoCaratteri.gridwidth = 6;
 		gbc_lblAlmenoCaratteri.insets = new Insets(0, 0, 5, 5);
 		gbc_lblAlmenoCaratteri.gridx = 0;
 		gbc_lblAlmenoCaratteri.gridy = 7;
 		contentPanel.add(lblAlmenoCaratteri, gbc_lblAlmenoCaratteri);
 		
-		nameLabel = new JLabel("Nome");
+		nameLabel = new JLabel("Name");
 		nameLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
 		GridBagConstraints gbc_nameLabel = new GridBagConstraints();
 		gbc_nameLabel.anchor = GridBagConstraints.EAST;
@@ -155,14 +159,14 @@ public class LoginDialog extends JDialog implements ActionListener {
 		nameField = new JTextField();
 		nameField.setColumns(10);
 		GridBagConstraints gbc_nameField = new GridBagConstraints();
-		gbc_nameField.gridwidth = 4;
+		gbc_nameField.gridwidth = 5;
 		gbc_nameField.insets = new Insets(0, 0, 5, 5);
 		gbc_nameField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_nameField.gridx = 1;
 		gbc_nameField.gridy = 8;
 		contentPanel.add(nameField, gbc_nameField);
 		
-		surnameLabel = new JLabel("Cognome");
+		surnameLabel = new JLabel("Surname");
 		surnameLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
 		GridBagConstraints gbc_surnameLabel = new GridBagConstraints();
 		gbc_surnameLabel.anchor = GridBagConstraints.EAST;
@@ -174,14 +178,14 @@ public class LoginDialog extends JDialog implements ActionListener {
 		surnameField = new JTextField();
 		surnameField.setColumns(10);
 		GridBagConstraints gbc_surnameField = new GridBagConstraints();
-		gbc_surnameField.gridwidth = 4;
+		gbc_surnameField.gridwidth = 5;
 		gbc_surnameField.insets = new Insets(0, 0, 5, 5);
 		gbc_surnameField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_surnameField.gridx = 1;
 		gbc_surnameField.gridy = 9;
 		contentPanel.add(surnameField, gbc_surnameField);
 		
-		genreLabel = new JLabel("Genere");
+		genreLabel = new JLabel("Genre");
 		genreLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
 		GridBagConstraints gbc_genreLabel = new GridBagConstraints();
 		gbc_genreLabel.anchor = GridBagConstraints.EAST;
@@ -190,7 +194,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		gbc_genreLabel.gridy = 10;
 		contentPanel.add(genreLabel, gbc_genreLabel);
 		
-		rdbtnMan = new JRadioButton("Maschio");
+		rdbtnMan = new JRadioButton("M");
 		rdbtnMan.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
 		rdbtnMan.setSelected(true);
 		rdbtnMan.setOpaque(false);
@@ -202,16 +206,35 @@ public class LoginDialog extends JDialog implements ActionListener {
 		gbc_rdbtnMan.gridy = 10;
 		contentPanel.add(rdbtnMan, gbc_rdbtnMan);
 		
-		rdbtnWoman = new JRadioButton("Femmina");
+		rdbtnWoman = new JRadioButton("F");
 		rdbtnWoman.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
 		rdbtnWoman.addActionListener(generale);
 		rdbtnWoman.setBorder(null);
 		rdbtnWoman.setOpaque(false);
 		GridBagConstraints gbc_rdbtnWoman = new GridBagConstraints();
 		gbc_rdbtnWoman.insets = new Insets(0, 0, 0, 5);
-		gbc_rdbtnWoman.gridx = 3;
+		gbc_rdbtnWoman.gridx = 2;
 		gbc_rdbtnWoman.gridy = 10;
 		contentPanel.add(rdbtnWoman, gbc_rdbtnWoman);
+		
+		linguaLabel = new JLabel("Language");
+		GridBagConstraints gbc_lblLingua = new GridBagConstraints();
+		gbc_lblLingua.anchor = GridBagConstraints.EAST;
+		gbc_lblLingua.insets = new Insets(0, 0, 0, 5);
+		gbc_lblLingua.gridx = 4;
+		gbc_lblLingua.gridy = 10;
+		contentPanel.add(linguaLabel, gbc_lblLingua);
+		
+		String[] languages={"italiano","english","deutsch","español"};
+		languageBox=new JComboBox<String>(languages);
+		languageBox.setSelectedIndex(0);
+		//languageBox = new JComboBox<String>();
+		GridBagConstraints gbc_comboBox = new GridBagConstraints();
+		gbc_comboBox.insets = new Insets(0, 0, 0, 5);
+		gbc_comboBox.fill = GridBagConstraints.HORIZONTAL;
+		gbc_comboBox.gridx = 5;
+		gbc_comboBox.gridy = 10;
+		contentPanel.add(languageBox, gbc_comboBox);
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		buttonPane.setBackground(new Color(0,0,0,0));
@@ -240,13 +263,13 @@ public class LoginDialog extends JDialog implements ActionListener {
 			nick=nickField.getText().trim();
 			if(nick.length()<=2){
 				this.repaint();
-				lblIlNicknameDeve.setText("Il nickname deve avere almeno 3 caratteri");
+				lblIlNicknameDeve.setText("Nickname must have at least 3 characters");
 				lblIlNicknameDeve.setVisible(true);
 				return;
 			}
 			else if(nick.length()>16){
 				this.repaint();
-				lblIlNicknameDeve.setText("Il nickname non può avere più di 16 caratteri");
+				lblIlNicknameDeve.setText("Nickname can't have more than 16 characters");
 				lblIlNicknameDeve.setVisible(true);
 				return;
 			}
@@ -259,33 +282,28 @@ public class LoginDialog extends JDialog implements ActionListener {
 					}
 				}
 				if(esiste){
-					System.out.println("utente esiste già");
 					this.repaint();
-					lblIlNicknameDeve.setText(nick+" è già in uso");
+					lblIlNicknameDeve.setText(nick+" is already in use");
 					lblIlNicknameDeve.setVisible(true);
 					return;
 				}//user CHeck
 				else if(nick.equals("guest")){
 					this.repaint();
 					if(nick.equals("guest")){
-						lblIlNicknameDeve.setText("Non puoi usare il nickname 'guest'");
+						lblIlNicknameDeve.setText("You can't use 'guest' as nickname");
 						lblIlNicknameDeve.setVisible(true);
 					}
 					return;
 				}
 				else if(nick.equals("admin")){
-					lblIlNicknameDeve.setText("Non puoi usare il nickname 'admin'");
+					lblIlNicknameDeve.setText("You can't use 'admin' as nickname");
 					lblIlNicknameDeve.setVisible(true);
 					return;	
 				}//guest & admin Check
-				else{		//verifichiamo che il nome non contenga caratteri proibiti
-					StringTokenizer st=new StringTokenizer(" "+nick+" ","'\\?()\"",false);
-					if(st.countTokens()>1){
-						lblIlNicknameDeve.setText("Non puoi utilizzare caratteri come ',\\,?,(,),\"");
+				else if(!StringAnalyzer.verificaStringa(nick)){
+						lblIlNicknameDeve.setText("You can't use characters as ',\\,?,(,),\"");
 						lblIlNicknameDeve.setVisible(true);
 						return;
-					}
-					else nick=nick.trim();
 				}
 			}//solo se registrazione
 			else{
@@ -301,37 +319,33 @@ public class LoginDialog extends JDialog implements ActionListener {
 				}
 				if(user==null){
 					this.repaint();
-					lblIlNicknameDeve.setText("L'utente "+nick+" non esiste");
+					lblIlNicknameDeve.setText("User "+nick+" does not exist");
 					lblIlNicknameDeve.setVisible(true);
 					return;
 				}//check del nickname
 			}
 			if(pass.length()<4){
 				this.repaint();
-				lblAlmenoCaratteri.setText("La password deve avere almeno 4 caratteri");
+				lblAlmenoCaratteri.setText("Password must have at least 4 characters");
 				lblAlmenoCaratteri.setVisible(true);
 				return;
 			}
 			else if(pass.length()>16){
 				this.repaint();
-				lblAlmenoCaratteri.setText("La password non può avere più di 16 caratteri");
+				lblAlmenoCaratteri.setText("Password can't be longer than 16 characters");
 				lblAlmenoCaratteri.setVisible(true);
 				return;
 			}
-			else{		//verifichiamo che il nome non contenga caratteri proibiti
-				StringTokenizer st=new StringTokenizer(" "+pass+" ","'\\?()\"",false);
-				if(st.countTokens()>1){
-					lblAlmenoCaratteri.setText("Non puoi utilizzare caratteri come ',\\,?,(,),\"");
+			else if(!StringAnalyzer.verificaStringa(pass)){		//verifichiamo che il nome non contenga caratteri proibiti
+					lblAlmenoCaratteri.setText("You can't use characters as ',\\,?,(,),\"");
 					lblAlmenoCaratteri.setVisible(true);
 					return;
-				}
-				else nick=nick.trim();
 			}
 			if(!registrazione){
 				String sha=DigestUtils.shaHex(pass);
 				if(!sha.equals(user.getPassword())){
 					this.repaint();
-					lblAlmenoCaratteri.setText("La password non è corretta");
+					lblAlmenoCaratteri.setText("Password is wrong");
 					lblAlmenoCaratteri.setVisible(true);
 					return;
 				}
@@ -373,7 +387,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		this.registrazione=false;
 		this.autologin=autologin;
 		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/man.jpg");
-		variableLabel.setText("Accedi");
+		variableLabel.setText("Sign in");
 		setBounds(100, 100, 350, 160);
 		nameLabel.setVisible(false);
 		surnameLabel.setVisible(false);
@@ -382,6 +396,8 @@ public class LoginDialog extends JDialog implements ActionListener {
 		rdbtnWoman.setVisible(false);
 		nameField.setVisible(false);
 		surnameField.setVisible(false);
+		linguaLabel.setVisible(false);
+		languageBox.setVisible(false);
 		setVisible(true);
 		
 	}
@@ -395,7 +411,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		this.registrazione=true;
 		this.autologin=autologin;
 		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/man.png");
-		variableLabel.setText("Registrati");
+		variableLabel.setText("Register");
 		setBounds(100,100,450,230);
 		nameLabel.setVisible(true);
 		surnameLabel.setVisible(true);
@@ -406,6 +422,8 @@ public class LoginDialog extends JDialog implements ActionListener {
 		nameField.setText("");
 		surnameField.setVisible(true);
 		surnameField.setText("");
+		linguaLabel.setVisible(true);
+		languageBox.setVisible(true);
 		setVisible(true);
 		
 	}
@@ -422,13 +440,18 @@ public class LoginDialog extends JDialog implements ActionListener {
 		
 		String[] result=new String[2];
 		if(registrazione)
-			result=new String[5];
+			result=new String[6];
 		result[0]=nick;
 		result[1]=pass;
 		if(registrazione){
 			result[2]=name;
 			result[3]=surname;
 			result[4]=genre+"";
+			String lang=(String)languageBox.getSelectedItem();
+			if(lang.equals("italiano"))
+				result[5]="it";
+			else
+				result[5]="en";
 		}
 		return result;
 	}

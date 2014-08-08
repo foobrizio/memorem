@@ -10,6 +10,7 @@ import javax.swing.border.EmptyBorder;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import util.User;
+import graphic.MemoremGUI.Lang;
 
 import com.jgoodies.forms.layout.*;
 import com.jgoodies.forms.factories.FormFactory;
@@ -28,6 +29,10 @@ public class ModPassDialog extends JDialog implements ActionListener{
 	private User user;
 	private JLabel oldAdvice;
 	private JLabel passAdvice;
+	private Lang language;
+	private JLabel confPass;
+	private JLabel newPass;
+	private JLabel oldPass;
 	
 	/**
 	 * Create the dialog.
@@ -36,6 +41,7 @@ public class ModPassDialog extends JDialog implements ActionListener{
 		setBounds(100, 100, 350, 230);
 		this.fakeButton=fake;
 		this.user=user;
+		this.language=Lang.EN;
 		setContentPane(new ColoredPanel("./src/graphic/wallpapers/password.jpg"));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -61,9 +67,9 @@ public class ModPassDialog extends JDialog implements ActionListener{
 				FormFactory.RELATED_GAP_ROWSPEC,
 				FormFactory.DEFAULT_ROWSPEC,}));
 		{
-			JLabel lblNewLabel = new JLabel("Vecchia password:");
-			lblNewLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-			contentPanel.add(lblNewLabel, "2, 4, right, default");
+			oldPass = new JLabel("Old password:");
+			oldPass.setHorizontalAlignment(SwingConstants.RIGHT);
+			contentPanel.add(oldPass, "2, 4, right, default");
 			contentPanel.setOpaque(false);
 			contentPanel.setBackground(new Color(0,0,0,0));
 		}
@@ -73,16 +79,16 @@ public class ModPassDialog extends JDialog implements ActionListener{
 			passVecchia.setColumns(10);
 		}
 		{
-			oldAdvice = new JLabel("La password utente è errata");
+			oldAdvice = new JLabel("The user's password is wrong");
 			oldAdvice.setVisible(false);
 			oldAdvice.setHorizontalAlignment(SwingConstants.CENTER);
 			oldAdvice.setForeground(Color.RED);
 			contentPanel.add(oldAdvice, "2, 6, 3, 1");
 		}
 		{
-			JLabel lblNewLabel_1 = new JLabel("Nuova password:");
-			lblNewLabel_1.setHorizontalAlignment(SwingConstants.RIGHT);
-			contentPanel.add(lblNewLabel_1, "2, 8, right, default");
+			newPass = new JLabel("New password:");
+			newPass.setHorizontalAlignment(SwingConstants.RIGHT);
+			contentPanel.add(newPass, "2, 8, right, default");
 		}
 		{
 			passNuova = new JPasswordField();
@@ -90,15 +96,15 @@ public class ModPassDialog extends JDialog implements ActionListener{
 			contentPanel.add(passNuova, "4, 8, fill, default");
 		}
 		{
-			passAdvice = new JLabel("Le due password non combaciano");
+			passAdvice = new JLabel("Passwords don't match");
 			passAdvice.setVisible(false);
 			passAdvice.setHorizontalAlignment(SwingConstants.CENTER);
 			passAdvice.setForeground(Color.RED);
 			contentPanel.add(passAdvice, "2, 10, 3, 1");
 		}
 		{
-			JLabel lblConfermaPassword = new JLabel("Conferma password:");
-			contentPanel.add(lblConfermaPassword, "2, 12, right, default");
+			confPass = new JLabel("Confirm password:");
+			contentPanel.add(confPass, "2, 12, right, default");
 		}
 		{
 			passConferma = new JPasswordField();
@@ -185,10 +191,44 @@ public class ModPassDialog extends JDialog implements ActionListener{
 			if(j<newP.length)
 				due=due+newP[j++];	
 		}
-		System.out.println("vecchia: "+una+", nuova: "+due);
 		result[0]=una;
 		result[1]=due;
 		return result;
+	}
+	
+	public void setLanguage(Lang lang){
+		
+		if(this.language.equals(lang))
+			return;
+		else if(lang==Lang.IT){
+			oldPass.setText("Vecchia password:");
+			newPass.setText("Nuova password:");
+			confPass.setText("Conferma password:");
+			oldAdvice.setText("La password utente è sbagliata");
+			passAdvice.setText("Le due password non combaciano");
+		}
+		else if(lang==Lang.DE){
+			oldPass.setText("Altes password:");
+			newPass.setText("Neues password:");
+			confPass.setText("Password bestätigen:");
+			oldAdvice.setText("Password des Benutzers ist falsch");
+			passAdvice.setText("Passwörter stimmen nicht überein");
+		}
+		else if(lang==Lang.ES){
+			oldPass.setText("Password anterior:");
+			newPass.setText("Nueva password:");
+			confPass.setText("Confirma password:");
+			oldAdvice.setText("La password de usuario es incorrecta");
+			passAdvice.setText("Las dos password no coinciden");
+		}
+		else{
+			oldPass.setText("Old password:");
+			newPass.setText("New password:");
+			confPass.setText("Confirm password:");
+			oldAdvice.setText("The user's password is wrong");
+			passAdvice.setText("Passwords don't match");
+		}
+		this.language=lang;
 	}
 	/**
 	 * Launch the application.

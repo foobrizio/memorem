@@ -24,6 +24,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 	private String id;
 	private boolean scadenzanotificata;
 	private boolean pure;
+	private String language;
 	
 	/*											*
 	 * 											*
@@ -39,6 +40,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		end=new Data(year,month,day,hour,minute);
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
+		language="it";
 	}
 	
 	/**
@@ -55,6 +57,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		scadenzanotificata=false;
 		this.id=id;
 		pure=true;
+		language="it";
 	}
 	
 	public Memo(String desc, String priority, int year, int month, int day, int hour, int minute){
@@ -67,6 +70,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
 		pure=false;
+		language="it";
 	}
 	
 	public Memo(String desc, Data end){
@@ -79,6 +83,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
 		pure=false;
+		language="it";
 	}
 	
 	public Memo(String desc, int priority, Data end){
@@ -91,6 +96,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
 		pure=false;
+		language="it";
 	}
 	
 	public Memo(String desc, int priority, Data end, String icon){
@@ -100,6 +106,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		completion=false;
 		this.icon=icon;
 		pure=false;
+		language="it";
 	}
 	
 	/**
@@ -116,6 +123,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.icon=m.icon;
 		this.id=m.id;
 		pure=false;
+		language="it";
 	}
 	
 	
@@ -247,7 +255,10 @@ public class Memo implements Comparable<Memo>, Serializable{
 	public String countDown(){
 		
 		if(completion)
-			return "COMPLETATO";
+			switch(language){
+			case "it": return "COMPLETATO";
+			case "en": return "COMPLETED";
+			}
 		Data ora=new Data();
 		int dAn=end.anno()-ora.anno();
 		int dMe=end.mese()-ora.mese();
@@ -271,7 +282,10 @@ public class Memo implements Comparable<Memo>, Serializable{
 			dAn--;
 		}
 		if(dAn<0){
-			return "SCADUTO";
+			switch(language){
+			case "it": return "SCADUTO";
+			case "en": return "EXPIRED";
+			}
 		}
 		String finale="";
 		if(dAn!=0)
@@ -281,8 +295,8 @@ public class Memo implements Comparable<Memo>, Serializable{
 		if(dGi!=0)
 			finale+=dGi+"d,";
 		if(dHo!=0)
-			finale+=dHo+"h,";
-		finale+=dMi+"min";
+			finale+=dHo+"hh,";
+		finale+=dMi+"mm";
 		return finale;
 	}
 	/**

@@ -152,7 +152,8 @@ public class DBManager{
 		String sql="CREATE TABLE IF NOT EXISTS hints"+
 		"("+
 		"hint VARCHAR(256) NOT NULL,"+
-		"hash CHAR(40) PRIMARY KEY)";
+		"hash CHAR(40) PRIMARY KEY,"+
+		"language CHAR(2) DEFAULT 'en')";
 		int res=executeUpdate(sql);
 		//System.out.println(res);
 		if(res!=0)
@@ -200,7 +201,8 @@ public class DBManager{
 		"nickname VARCHAR(16) PRIMARY KEY,"+
 		"password CHAR(40) NOT NULL,"+
 		"nome VARCHAR(16) DEFAULT '---',"+
-		"cognome VARCHAR(16) DEFAULT '---'"+
+		"cognome VARCHAR(16) DEFAULT '---',"+
+		"lingua CHAR(2) DEFAULT 'en'"+
 		")";
 		int res=executeUpdate(sql);
 		if(res!=0){
@@ -279,11 +281,68 @@ public class DBManager{
 		aiuti.add("Puoi aggiungere tutti i memo che vuoi dal tasto 'Aggiungi' nel menu 'Strumenti'");
 		aiuti.add("Puoi cancellare i tuoi memo in ogni momento premendo il tasto 'Cancella' nel menu 'Strumenti'. Attenzione, questa operazione è irreversibile.");
 		for(String s: aiuti){
-			String sql="INSERT INTO hints(hint,hash) VALUES(\""+s+"\",SHA(\""+s+"\"))";
+			String sql="INSERT INTO hints(hint,hash,language) VALUES(\""+s+"\",SHA(\""+s+"\"),'it')";
 			int result=executeUpdate(sql);
 			if(result!=0)
 				System.out.println("aiuto inserito");
-		}
+		}//italiano
+		aiuti.clear();
+		aiuti.add("You can complete a memo before its expiration by clicking on 'complete' button into 'Options' menu");
+		aiuti.add("The blue bar below shows the percentage between all notified memos and the ones you completed");
+		aiuti.add("You can notify a memo when it expires, suggesting if you reached to complete it or not (in this case you'll have to click on 'store' button into 'Options' menu)");
+		aiuti.add("You can show at will the history of your memos by using filters onto the inner toolbar");
+		aiuti.add("If you inserted a memo using wrong data, you can modify it through 'modify' button in 'Options' menu. If you instead wish to delete it, click on 'delete' button");
+		aiuti.add("Memos are colored according to their priority. A red memo is an urgent one, a yellow one indicates average priority and a blue one has low priority");
+		aiuti.add("You can show the countdown to the expiration of a memo simply by passing the cursor upon its expiry date. You can even permanently show it by clicking 'change view' in 'Options' menu");
+		aiuti.add("You can activate and deactivate hints by clicking 'hints' button in 'View' menu");
+		aiuti.add("When you use calendar interface you can add a memo just by double-clicking on the date in which you want to add your new memo");
+		aiuti.add("Memos in calendar interface are showed through different colors. Click with right button of your mouse to access the functions");
+		aiuti.add("Do you wish to know how many memos did you created so far and their features? Click on 'Stats' button in 'User' menu");
+		aiuti.add("You can add all memos you want through 'Add' button in 'Tools' menu");
+		aiuti.add("You can delete your memos at any time clicking 'Delete' button in 'Tools' menu. Pay attention, this operation is not reversible");
+		aiuti.add("From 'View' menu you can activate or deactivate calendar interface");
+		for(String s: aiuti){
+			String sql="INSERT INTO hints(hint,hash,language) VALUES(\""+s+"\",SHA(\""+s+"\"),'en')";
+			int result=executeUpdate(sql);
+			if(result!=0)
+				System.out.println("aiuto inserito");
+		}//english
+		aiuti.clear();
+		aiuti.add("Puedes completar un memo antes de su caducidad clicando en el botón 'completa' del menú 'opciones'.");
+		aiuti.add("La barra azul inferior indica la relación en porcentaje entre todos los memo notificados y aquellos que has completado.");
+		aiuti.add("Cuando un memo expira puedes notificarlo a la base de datos, indicando si has llegado a completarlo o si no lo has hecho a tiempo ( en este caso clicarás el botón 'archiva' en el menú 'opciones”').");
+		aiuti.add("Puedes visualizar cuando quieras el historial de tus memo utilizando los filtros presentes en la barra de instrumentos interna.");
+		aiuti.add("Si has inscrito un memo utilizando datos erróneos puedes modificarlos: utiliza el botón 'modifica' en el menú 'opciones'. Si por el contrario quieres eliminarlo bastará con apretar el botón 'elimina'.");
+		aiuti.add("Los memos están coloreados en base a su prioridad. Un memo rojo indicará que tiene prioridad alta, uno amarillo tiene prioridad normal y uno azul tiene prioridad baja.");
+		aiuti.add("Puedes ver la cuenta atrás de la caducidad de un memo simplemente pasando el ratón sobre su fecha de caducidad. Puedes ver la cuenta atrás de forma permanente apretando el botón 'cambia visualización' en el menú 'opciones'.");
+		aiuti.add("Puedes activar o desactivar los consejos apretando el botón 'consejos' en el menú 'visualización'.");
+		aiuti.add("Desde el menú 'visualización' puedes activar o desactivar la interfaz de calendario.");
+		aiuti.add("Cuando utilizas la interfaz de calendario puedes adjuntar un memo simplemente haciendo doble clic sobre la fecha en la que quieres adjuntarlo.");
+		aiuti.add("Los memo en la interfaz de calendario se muestran utilizando colores en la fecha. Clica con el botón derecho para acceder a las funciones.");
+		aiuti.add("¿Quieres ver cuantos memo has creado hasta el momento y sus características? Clica el botón 'Estadística' en el menú 'usuario'.");
+		aiuti.add("Puedes adjuntar todos los memo que quieras desde el botón 'Adjuntar' en el menú 'Instrumentos'.");
+		aiuti.add("Puedes borrar todos tus memo en cualquier momento apretando el botón 'Borra' en el menú 'Instrumentos'. Cuidado, esta operación en irreversible.");
+		for(String s: aiuti){
+			String sql="INSERT INTO hints(hint,hash,language) VALUES(\""+s+"\",SHA(\""+s+"\"),'es')";
+			int result=executeUpdate(sql);
+			if(result!=0)
+				System.out.println("aiuto inserito");
+		}//español
+		aiuti.clear();
+		aiuti.add("Sie können ein Memo vor Ablauf vervollständigen, indem Sie auf die Schaltfläche 'Complete' im Menü 'Optionen' anklicken");
+		aiuti.add("Der blaue Balken am unteren Rand zeigt die prozentuale Verhältnis zwischen allen Notizen und benachrichtigt  die, die Sie abgeschlossen haben.");
+		aiuti.add("Wenn ein Memo abläuft, können Sie es auf die Datenbank melden, der angibt, ob Sie es rechtzeitig abgeschlossen haben. (in diesem Fall gehen Sie im Menu Optionen um es archivieren.)");
+		aiuti.add("Sie können jederzeit Ihr Werdegang im Memo mit Hilfe von Filtern in der Werkzeugleiste kontrollieren.");
+		aiuti.add("Wenn Sie ein Memo mit falschen Daten eingegeben haben, können Sie es bearbeiten: Mit dem Button 'Bearbeiten' im Menü 'Optionen'. Wenn Sie nur Treffer löschen wollen dann mit der Taste 'Löschen'. ");
+		aiuti.add("Das Memo wird nach ihrer Priorität eingefärbt. Ein Memo zeigt rot dass eine hohe Priorität hat, hat mit normaler Priorität eine gelbe und eine blaue Hintergrund hat eine niedrige Priorität.");
+		aiuti.add("Sie können den Countdown nach der abgelaufene Zeit  kontrollieren in dem Sie mit der Maus über das Ablaufdatum fahren. Sie können den Countdown zu sehen,  durch Drücken der 'View Veränderungen' im Menü  'Optionen'");
+		aiuti.add("Sie können die Mithilfe aktivieren und deaktivieren in dem Sie im Menu auf Hinweis Drücken.");
+		aiuti.add("Im Menu 'Ansicht' können Sie mit aktivieren oder deaktivieren den Ablauf vom Kalender besichtigen. ");
+		aiuti.add("Wenn Sie die Schnittstelle in den Kalender verwenden, können Sie ein Memo hinzufügen einfach durch Doppelklick auf das Datum, an dem Sie es hinzufügen möchten. ");
+		aiuti.add("Die Termine für das Memo im Kalender sind durch Farben gekennzeichnet. Um die Funktionen zugreifen können benützen Sie die rechte Maustaste. ");
+		aiuti.add("Möchten Sie überprüfen, wie viele Memos Sie bisher und ihre Eigenschaften erstellt haben? Klicken Sie auf die 'Statistik' im Menü in der 'User' ");
+		aiuti.add("Sie können alle Notizen (Memo) 'Hinzufügen' in dem Sie im Menü die Werkzeugliste gebrauchen.");
+		aiuti.add("Sie können Ihre Memo jederzeit löschen, indem Sie die Taste 'Löschen' in der Werkzeugliste benützen. Achtung dieser Vorgang ist nicht Rückgängig!!!" );
 	}
 
 	private static boolean removeMemo(User user, Memo m, String table){
@@ -385,17 +444,21 @@ public class DBManager{
 	 */
 	public static int addUser(User user){
 		
-		if(logged.equals("admin"));
+		if(logged!=null && logged.equals("admin"));
 		String nome=user.getNome();
 		String cognome=user.getCognome();
-		char genere= user.isMaschio()? 'm': 'f';
+		String lingua;
+		switch(user.getLingua()){
+		case IT: lingua="it";break;
+		case DE: lingua="de";break;
+		case ES: lingua="es";break;
+		default: lingua="en";
+		}
 		if(nome==null)
 			user.setNome("---");
 		if(cognome==null)
 			user.setCognome("---");
-		boolean gen=true;
-		if(genere=='f')
-			gen=false;
+		boolean gen=user.isMaschio();
 		String sqlCheck="SELECT nickname FROM memousers WHERE nickname='"+user.getNickname()+"'";
 		ResultSet rs=executeQuery(sqlCheck);
 		boolean alreadyExist=false;
@@ -410,7 +473,7 @@ public class DBManager{
 		}
 		if(alreadyExist)
 			return 1;
-		String sql="INSERT INTO memousers(nickname,password,nome,cognome,genere) VALUES('"+user.getNickname()+"',SHA('"+user.getPassword()+"'),'"+verificaStringa(nome)+"','"+verificaStringa(cognome)+"',b'"+(gen?"1":"0")+"')";
+		String sql="INSERT INTO memousers(nickname,password,nome,cognome,genere,lingua) VALUES('"+user.getNickname()+"',SHA('"+user.getPassword()+"'),'"+verificaStringa(nome)+"','"+verificaStringa(cognome)+"',b'"+(gen?"1":"0")+"','"+lingua+"')";
 		int result=executeUpdate(sql);
 		if(result==1){
 			if(login(user.getNickname(),user.getPassword())!=null) //il login va a buon fine
@@ -514,11 +577,11 @@ public class DBManager{
 	 * Ritorna un array di String contenente i suggerimenti da visualizzare nel frame
 	 * @return
 	 */
-	public static String[] getHelps(){
+	public static String[] getHelps(String language){
 		
 		String[] helps=null;
-		String sql="SELECT COUNT(*) AS ehi FROM hints";
-		String sql2="SELECT * FROM hints";
+		String sql="SELECT COUNT(*) AS ehi FROM hints where language='"+language+"'";
+		String sql2="SELECT * FROM hints where language='"+language+"'";
 		ResultSet rs=executeQuery(sql);
 		try{
 			if(rs.next())
@@ -532,7 +595,7 @@ public class DBManager{
 		try{
 			int cont=0;
 			while(rs.next()){
-				helps[cont]="           "+rs.getString("hint")+"    ";
+				helps[cont]="   			        "+rs.getString("hint")+"    ";
 				cont++;
 			}
 		}catch(SQLException e){
@@ -591,7 +654,11 @@ public class DBManager{
 	 */
 	public static MemoList list(User user,boolean soloAttivi){
 		
-		if(!user.getNickname().equals(logged))				return null;	//nessun utente connesso
+		if(!user.getNickname().equals(logged)){
+			System.out.println("user:"+user);
+			System.out.println("logged:"+logged);
+			return null;	//nessun utente connesso
+		}
 		String sql="SELECT * FROM "+mn+" where user='"+verificaStringa(user.getNickname())+"' ORDER BY prior DESC, end";
 		String sql2="SELECT * FROM "+mo+" where user='"+verificaStringa(user.getNickname())+"' ORDER BY prior DESC, end";
 		ResultSet rs=executeQuery(sql);
@@ -647,7 +714,7 @@ public class DBManager{
 		
 		String sql="SELECT * FROM memousers WHERE nickname='"+user+"'";
 		ResultSet rs=executeQuery(sql);
-		String pass=null,nome=null,cognome=null;
+		String pass=null,nome=null,cognome=null,lingua=null;
 		boolean isM;
 		char genere='n';
 		try {
@@ -656,6 +723,7 @@ public class DBManager{
 				pass=rs.getString("password");
 				cognome=rs.getString("cognome");
 				isM=rs.getBoolean("genere");
+				lingua=rs.getString("lingua");
 				genere= isM? 'm' : 'f';
 			}
 		}catch(SQLException e){ 
@@ -669,7 +737,7 @@ public class DBManager{
 			String pass2=DigestUtils.shaHex(password);
 			if(pass.equals(pass2)){		//password corretta
 				logged=user;
-				return new User(user,nome,cognome,genere);
+				return new User(user,nome,cognome,genere,lingua);
 			}
 			else{
 				JOptionPane.showMessageDialog(null , "La password è sbagliata");	//password sbagliata
@@ -723,6 +791,24 @@ public class DBManager{
 		else return 1;
 	}
 
+	public static boolean modificaUtente(User vecchio, User aggiornato){
+		
+		if(logged.equals(vecchio.getNickname())){
+			logged=aggiornato.getNickname();
+			String sql="UPDATE memousers SET nome='"+aggiornato.getNome()+"', cognome='"+aggiornato.getCognome()+"', ";
+			sql+="b'"+(aggiornato.isMaschio()?"1":"0")+"', lingua='";
+			switch(aggiornato.getLingua()){
+			case IT: sql+="it' "; break;
+			case DE: sql+="de' "; break;
+			case ES: sql+="es' "; break;
+			default: sql+="en' ";
+			}
+			sql+="WHERE nickname='"+vecchio.getNickname()+"'";
+			int x=executeUpdate(sql);
+			return x==1;
+		}
+		return false;
+	}
 	/**
 	 * Modifica un memo esistente sulla tabella, aggiornandone i valori
 	 * @param nuovo, il memo con le modifiche che verranno passate alla query
@@ -1052,7 +1138,7 @@ public class DBManager{
 			System.out.println("l'utente esiste già");
 		}*/
 		//mdbm.addUser("fabrizio", "wewe");
-		User user=new User("fabrizio","Fabrizio","Gabriele",'m');
+		User user=new User("fabrizio","Fabrizio","Gabriele",'m',"it");
 		user.setPassword(DigestUtils.shaHex("uprising"));
 		login(user.getNickname(),user.getPassword());
 		//Memo patrick=new Memo("St Patrick's Day a Dublino",2015,3,17,0,0);

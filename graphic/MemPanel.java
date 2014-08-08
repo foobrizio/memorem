@@ -1,5 +1,7 @@
 package graphic;
 
+import graphic.MemoremGUI.Lang;
+
 import javax.swing.*;
 
 import java.awt.*;
@@ -31,12 +33,6 @@ public class MemPanel extends JPanel implements ActionListener{
 			
 			return MemPanel.this.memo;
 		}
-		
-		public void apochiudira(){
-			
-			MemPanel.this.setVisible(false);
-			MemPanel.this.setEnabled(false);
-		}
 	}
 	/**
 	 * 
@@ -65,14 +61,15 @@ public class MemPanel extends JPanel implements ActionListener{
 	private JFileChooser jfc;
 	private JButton iconButton;
 	private String iconPath;
+	private Lang language;
 	
 	/**
 	 * Costruttore di Default
-	 * @wbp.parser.constructor
 	 */
 	public MemPanel(Memo memo){
 		
 		this.memo=memo;
+		this.language=Lang.EN;
 		this.p=null;
 		this.jfc=null;
 		iconButton=null;
@@ -80,32 +77,41 @@ public class MemPanel extends JPanel implements ActionListener{
 		//coloreClock=Color.BLACK;
 		tipoB=false; //se impostato a false il memo è attivo
 		bar=new JMenuBar();
-		elimina=new MyMenuItem("elimina");
+		elimina=new MyMenuItem("delete");
+		elimina.setName("elimina");
 		elimina.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		modifica=new JMenuItem("modifica");	
+		modifica=new JMenuItem("modify");	
+		modifica.setName("modifica");
 		modifica.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		tipo=new JMenuItem("cambia visualizzazione");
+		tipo=new JMenuItem("change view");
 		tipo.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 
-		rinvia = new JMenu("rinvia");
+		rinvia = new JMenu("defer");
 		rinvia.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		archivia= new MyMenuItem("archivia");
+		archivia= new MyMenuItem("store");
+		archivia.setName("archivia");
 		archivia.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		oneDay = new MyMenuItem("1 giorno");
+		oneDay = new MyMenuItem("1 day");
+		oneDay.setName("1 giorno");
 		oneDay.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		threeDays = new MyMenuItem("3 giorni");
+		threeDays.setName("3 giorni");
 		threeDays.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		oneWeek = new MyMenuItem("1 settimana");
+		oneWeek = new MyMenuItem("1 week");
+		oneWeek.setName("1 settimana");
 		oneWeek.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		oneMonth = new MyMenuItem("1 mese");
+		oneMonth = new MyMenuItem("1 month");
+		oneMonth.setName("1 mese");
 		oneMonth.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		personalizza = new MyMenuItem("personalizza");
+		personalizza = new MyMenuItem("custom");
+		personalizza.setName("personalizza");
 		personalizza.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		
 		combo=new JMenu();
 		combo.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		combo.setText("Opzioni");
-		completa = new MyMenuItem("completa");
+		combo.setText("Options");
+		completa = new MyMenuItem("complete");
+		completa.setName("completa");
 		completa.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
 		combo.add(completa);
 		combo.add(archivia);
@@ -327,6 +333,73 @@ public class MemPanel extends JPanel implements ActionListener{
 		setBorder(new LineBorder(coloreSfondo.darker()));			//definisce il bordo del memo
 	}
 	
+	public void setLanguage(Lang lang){
+		
+		if(this.language==lang)
+			return;
+		if(lang==Lang.IT){
+			combo.setText("Opzioni");
+			modifica.setText("modifica");
+			rinvia.setText("rinvia");
+			elimina.setText("elimina");
+			completa.setText("completa");
+			archivia.setText("archivia");
+			tipo.setText("cambia visualizzazione");
+			oneDay.setText("1 giorno");
+			threeDays.setText("3 giorni");
+			oneWeek.setText("1 settimana");
+			oneMonth.setText("1 mese");
+			personalizza.setText("personalizza");
+		}
+		else if(lang==Lang.DE){
+			combo.setText("Optionen");
+			modifica.setText("Ändern");
+			rinvia.setText("Verzögerung");
+			elimina.setText("Löschen");
+			completa.setText("Absolvieren");
+			archivia.setText("Speicher");
+			tipo.setText("Ansicht wechseln");
+			oneDay.setText("1 Tag");
+			threeDays.setText("3 Tage");
+			oneWeek.setText("1 Woche");
+			oneMonth.setText("1 Monat");
+			personalizza.setText("Anpassen");
+		}
+		else if(lang==Lang.ES){
+			combo.setText("Opciones");
+			modifica.setText("modifica");
+			rinvia.setText("pospone");
+			elimina.setText("elimina");
+			completa.setText("completa");
+			archivia.setText("tienda");
+			tipo.setText("cambia las vistas");
+			oneDay.setText("1 día");
+			threeDays.setText("3 días");
+			oneWeek.setText("1 semana");
+			oneMonth.setText("1 mes");
+			personalizza.setText("personaliza");
+		}
+		else{
+			combo.setText("Options");
+			modifica.setText("modify");
+			rinvia.setText("postpone");
+			elimina.setText("delete");
+			completa.setText("complete");
+			archivia.setText("store");
+			tipo.setText("change view");
+			oneDay.setText("1 day");
+			threeDays.setText("3 days");
+			oneWeek.setText("1 week");
+			oneMonth.setText("1 month");
+			personalizza.setText("custom");
+		}
+		repaint();
+		Data end=this.memo.getEnd();
+		end.setLanguage(lang);
+		this.memo.setEnd(end);
+		this.language=lang;
+	}
+	
 	public void setMemo(Memo m){
 		
 		this.memo=m;
@@ -368,7 +441,6 @@ public class MemPanel extends JPanel implements ActionListener{
 		 */
 		if(this.memo.isScaduto()){
 			if(!memo.isNotificato()){
-				System.out.println("è appena scaduto");
 				memo.setScadenzaNotificata();
 				modifica.setVisible(false);
 				rinvia.setVisible(true);

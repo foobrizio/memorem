@@ -1,5 +1,7 @@
 package graphic;
 
+import graphic.MemoremGUI.Lang;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -31,6 +33,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 	private JLabel completa,archivia,rinvia;
 	private JMenuItem one,three,seven,month;
 	private Popopo popopo;
+	private Lang lang;
 
 	/**
 	 * Launch the application.
@@ -63,6 +66,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 		super(owner,true);
 		setBounds(100, 100, 550, 350);
 		setResizable(false);
+		this.lang=Lang.EN;
 		setContentPane(new ColoredPanel("./src/graphic/wallpapers/desk.jpg"));
 		UIManager.getLookAndFeelDefaults().put("Label.font", comic );
 		handled=new MemoList();
@@ -76,7 +80,6 @@ public class DeferDialog extends JDialog implements ActionListener{
 		
 		frecciaS = new JLabel("«««");
 		frecciaS.setFont(new Font("Comic Sans MS", Font.BOLD | Font.ITALIC, 16));
-		frecciaS.setToolTipText("Scorre a sinistra");
 		frecciaS.addMouseListener(mouse);
 		sl_contentPanel.putConstraint(SpringLayout.NORTH, frecciaS, 10, SpringLayout.NORTH, contentPanel);
 		sl_contentPanel.putConstraint(SpringLayout.WEST, frecciaS, 10, SpringLayout.WEST, contentPanel);
@@ -84,7 +87,6 @@ public class DeferDialog extends JDialog implements ActionListener{
 		
 		frecciaD = new JLabel("»»»");
 		frecciaD.setFont(new Font("Comic Sans MS", Font.BOLD | Font.ITALIC, 16));
-		frecciaD.setToolTipText("Scorre a destra");
 		frecciaD.addMouseListener(mouse);
 		sl_contentPanel.putConstraint(SpringLayout.NORTH, frecciaD, 0, SpringLayout.NORTH, frecciaS);
 		sl_contentPanel.putConstraint(SpringLayout.EAST, frecciaD, -10, SpringLayout.EAST, contentPanel);
@@ -99,7 +101,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			contentPanel.add(pageLabel);
 		}
 		{
-			descLabel = new JLabel("descrizione");
+			descLabel = new JLabel("description");
 			sl_contentPanel.putConstraint(SpringLayout.EAST, descLabel, 0, SpringLayout.EAST, frecciaD);
 			descLabel.setFont(new Font("Dialog", Font.BOLD | Font.ITALIC, 16));
 			sl_contentPanel.putConstraint(SpringLayout.NORTH, descLabel, 33, SpringLayout.SOUTH, frecciaS);
@@ -108,7 +110,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			contentPanel.add(descLabel);
 		}
 		{
-			lblScadutoIl = new JLabel("scaduto il:");
+			lblScadutoIl = new JLabel("expired on:");
 			sl_contentPanel.putConstraint(SpringLayout.NORTH, lblScadutoIl, 108, SpringLayout.SOUTH, descLabel);
 			lblScadutoIl.setFont(new Font("Comic Sans MS", Font.PLAIN, 16));
 			contentPanel.add(lblScadutoIl);
@@ -121,7 +123,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			contentPanel.add(dateLabel);
 		}
 		{
-			lblAlle = new JLabel("alle:");
+			lblAlle = new JLabel("at:");
 			sl_contentPanel.putConstraint(SpringLayout.NORTH, lblAlle, 16, SpringLayout.SOUTH, lblScadutoIl);
 			sl_contentPanel.putConstraint(SpringLayout.EAST, lblScadutoIl, 0, SpringLayout.EAST, lblAlle);
 			sl_contentPanel.putConstraint(SpringLayout.WEST, lblAlle, 66, SpringLayout.WEST, contentPanel);
@@ -130,7 +132,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			contentPanel.add(lblAlle);
 		}
 		{
-			timeLabel = new JLabel("ora");
+			timeLabel = new JLabel("hour");
 			sl_contentPanel.putConstraint(SpringLayout.WEST, timeLabel, 45, SpringLayout.EAST, lblAlle);
 			sl_contentPanel.putConstraint(SpringLayout.EAST, timeLabel, -50, SpringLayout.EAST, contentPanel);
 			sl_contentPanel.putConstraint(SpringLayout.WEST, dateLabel, 0, SpringLayout.WEST, timeLabel);
@@ -142,25 +144,25 @@ public class DeferDialog extends JDialog implements ActionListener{
 		Component horizontalGlue = Box.createHorizontalGlue();
 		contentPanel.add(horizontalGlue);
 		
-		completa= new JLabel("Completa");
+		completa= new JLabel("complete");
 		completa.setFont(comic);
 		sl_contentPanel.putConstraint(SpringLayout.EAST, completa, 0, SpringLayout.EAST, lblScadutoIl);
 		completa.addMouseListener(mouse);
-		completa.setToolTipText("Clicca e aggiungi un altro successo allo storico dei tuoi impegni");
+		
 		contentPanel.add(completa);
 		
-		archivia = new JLabel("Archivia");
+		archivia = new JLabel("store");
 		archivia.setFont(comic);
 		sl_contentPanel.putConstraint(SpringLayout.SOUTH, archivia, -10, SpringLayout.SOUTH, contentPanel);
 		sl_contentPanel.putConstraint(SpringLayout.NORTH, completa, 0, SpringLayout.NORTH, archivia);
 		sl_contentPanel.putConstraint(SpringLayout.WEST, archivia, 0, SpringLayout.WEST, dateLabel);
 		archivia.addMouseListener(mouse);
-		archivia.setToolTipText("Non sei riuscito a completare questo memo?");
+		
 		contentPanel.add(archivia);
 		
-		rinvia = new JLabel("Rinvia");
+		rinvia = new JLabel("delay");
 		rinvia.setFont(comic);
-		rinvia.setToolTipText("Clicca se hai bisogno più tempo per i tuoi impegni");
+		
 		sl_contentPanel.putConstraint(SpringLayout.NORTH, rinvia, 0, SpringLayout.NORTH, completa);
 		sl_contentPanel.putConstraint(SpringLayout.WEST, rinvia, 54, SpringLayout.EAST, archivia);
 		rinvia.addMouseListener(mouse);
@@ -173,13 +175,13 @@ public class DeferDialog extends JDialog implements ActionListener{
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			
-			vediDopo = new JButton("Vedi dopo");
+			vediDopo = new JButton("See later");
 			vediDopo.setFont(comic);
 			vediDopo.setOpaque(false);
 			vediDopo.setBackground(new Color(0,0,0,0));
 			vediDopo.setBorderPainted(false);
 			vediDopo.setForeground(myBlue);
-			vediDopo.setToolTipText("Rimanda la decisione ad un secondo momento");
+			
 			getRootPane().setDefaultButton(vediDopo);
 			vediDopo.addActionListener(this);
 			vediDopo.setFocusPainted(false);
@@ -188,76 +190,66 @@ public class DeferDialog extends JDialog implements ActionListener{
 			buttonPane.add(vediDopo);
 
 			
-			chiudi = new JButton("Chiudi");
+			chiudi = new JButton("Close");
 			chiudi.setOpaque(false);
 			chiudi.setBackground(new Color(0,0,0,0));
 			chiudi.setBorderPainted(false);
 			chiudi.setForeground(myRed);
 			chiudi.setFont(comic);
-			chiudi.setToolTipText("Chiude la finestra");
+			
 			chiudi.addActionListener(this);
 			chiudi.addMouseListener(mouse);
 			buttonPane.add(chiudi);
 		}
-		one=new JMenuItem("Rinvia a domani");
-		three=new JMenuItem("Rinvia di tre giorni");
-		seven=new JMenuItem("Rinvia di una settimana");
-		month=new JMenuItem("Rinvia di un mese");
+		one=new JMenuItem("Delay at tomorrow");
+		three=new JMenuItem("Delay by three days");
+		seven=new JMenuItem("Delay by one week");
+		month=new JMenuItem("Delay by one month");
 		one.addActionListener(this);
 		three.addActionListener(this);
 		seven.addActionListener(this);
 		month.addActionListener(this);
+		addToolTips();
 	}
 	
-	public void gestisci(MemoList mmm){
-		
-		
-		handled.clear();
-		if(this.ml==null){
-			if(mmm.size()==0)
-				return;
-			this.ml=new MemoList(mmm);
-			pages=mmm.size();
-			prepareInterface();
-			setVisible(true);
+	private void addToolTips(){
+		if(lang==Lang.IT){
+			chiudi.setToolTipText("Chiude la finestra");
+			vediDopo.setToolTipText("Rimanda la decisione ad un secondo momento");
+			rinvia.setToolTipText("Clicca se hai bisogno più tempo per i tuoi impegni");
+			completa.setToolTipText("Clicca e aggiungi un altro successo allo storico dei tuoi impegni");
+			archivia.setToolTipText("Non sei riuscito a completare questo memo?");
+			frecciaD.setToolTipText("Scorre a destra");
+			frecciaS.setToolTipText("Scorre a sinistra");
+		}
+		else if(lang==Lang.ES){
+			chiudi.setToolTipText("Cerrar la ventana");
+			vediDopo.setToolTipText("Posponer la decisión de un momento posterior");
+			rinvia.setToolTipText("Haga clic si necesita más tiempo");
+			completa.setToolTipText("Haga clic y añadir otro éxito !!");
+			archivia.setToolTipText("¿No se llega a completar esto?");
+			frecciaD.setToolTipText("Avanza a la derecha");
+			frecciaS.setToolTipText("Avanza a la izquierda");
+		}
+		else if(lang==Lang.DE){
+			chiudi.setToolTipText("Schließen Sie das Fenster");
+			vediDopo.setToolTipText("Verschieben Entscheidung auf einen späteren Zeitpunkt");
+			rinvia.setToolTipText("Klicken Sie auf, wenn Sie mehr Zeit benötigen");
+			completa.setToolTipText("Klicken Sie auf und fügen Sie einen weiteren Erfolg !!");
+			archivia.setToolTipText("Hast du nicht zu erreichen, um diese zu vervollständigen?");
+			frecciaD.setToolTipText("blättern Sie nach rechts");
+			frecciaS.setToolTipText("blättern Sie nach links");
 		}
 		else{
-			System.out.println("Ma questo non succede mai");
-			for(Memo m:mmm)
-				if(!ml.contains(m))
-					ml.add(m);
-			pages=ml.size();
-			prepareInterface();
-			setVisible(true);
+			chiudi.setToolTipText("Close the window");
+			vediDopo.setToolTipText("Postpone decision to a later time");
+			rinvia.setToolTipText("Click if you need more time");
+			completa.setToolTipText("Click and add another success!!");
+			archivia.setToolTipText("Didn't you reach to complete this?");
+			frecciaD.setToolTipText("Scroll right");
+			frecciaS.setToolTipText("Scroll left");
 		}
 	}
-	public MemoList getHandled(){
-		
-		return handled;
-	}
-	
-	private void setPopupMenu(){
-		
-		popopo.add(one);
-		popopo.add(three);
-		popopo.add(seven);
-		popopo.add(month);
-	}
-	
-	private void prepareInterface(){
-		
-		if(ml.size()==1)
-			frecciaD.setVisible(false);
-		frecciaS.setVisible(false);
-		curPage=1;
-		pages=ml.size();
-		pageLabel.setText("1/"+pages);
-		popopo=new Popopo();
-		popopo.colora();
-		setPopupMenu();
-		aggiornaLabels();
-	}
-	
 	private void aggiornaLabels(){
 		
 		pages=ml.size();
@@ -282,7 +274,21 @@ public class DeferDialog extends JDialog implements ActionListener{
 		timeLabel.setText(cur.getEnd().getOra());
 		setColors(cur.priority());
 	}
-	
+
+	private void prepareInterface(){
+		
+		if(ml.size()==1)
+			frecciaD.setVisible(false);
+		frecciaS.setVisible(false);
+		curPage=1;
+		pages=ml.size();
+		pageLabel.setText("1/"+pages);
+		popopo=new Popopo();
+		popopo.colora();
+		setPopupMenu();
+		aggiornaLabels();
+	}
+
 	private void setColors(int prior){
 		
 		frecciaS.setForeground(Color.WHITE.darker());
@@ -304,6 +310,100 @@ public class DeferDialog extends JDialog implements ActionListener{
 		dateLabel.setForeground(c);
 		timeLabel.setForeground(c);
 		popopo.colora();
+	}
+
+	private void setPopupMenu(){
+		
+		popopo.add(one);
+		popopo.add(three);
+		popopo.add(seven);
+		popopo.add(month);
+	}
+
+	public void gestisci(MemoList mmm){
+		
+		
+		handled.clear();
+		if(this.ml==null){
+			if(mmm.size()==0)
+				return;
+			this.ml=new MemoList(mmm);
+			pages=mmm.size();
+			prepareInterface();
+			setVisible(true);
+		}
+		else{
+			for(Memo m:mmm)
+				if(!ml.contains(m))
+					ml.add(m);
+			pages=ml.size();
+			prepareInterface();
+			setVisible(true);
+		}
+	}
+	public MemoList getHandled(){
+		
+		return handled;
+	}
+	
+	public void setLanguage(Lang lang){
+		
+		if(this.lang==lang)
+			return;	
+		if(lang==Lang.IT){
+			lblScadutoIl.setText("scaduto il:");
+			lblAlle.setText("alle:");
+			completa.setText("completa");
+			archivia.setText("archivia");
+			rinvia.setText("rinvia");
+			vediDopo.setText("Vedi dopo");
+			chiudi.setText("Chiudi");
+			one.setText("Rinvia a domani");
+			three.setText("Rinvia di tre giorni");
+			seven.setText("Rinvia di una settimana");
+			month.setText("Rinvia di un mese");
+		}
+		else if(lang==Lang.ES){
+			lblScadutoIl.setText("expirado el:");
+			lblAlle.setText("A las:");
+			completa.setText("completa");
+			archivia.setText("tienda");
+			rinvia.setText("pospone");
+			vediDopo.setText("Ve despues");
+			chiudi.setText("Cerra");
+			one.setText("Refiere hasta mañana");
+			three.setText("Refiere tres días");
+			seven.setText("Refiere a una semana");
+			month.setText("Refiere a un mes");
+		}
+		else if(lang==Lang.DE){
+			lblScadutoIl.setText("lief am:");
+			lblAlle.setText("um:");
+			completa.setText("komplett");
+			archivia.setText("dpeicher");
+			rinvia.setText("verzögerung");
+			vediDopo.setText("Siehe später");
+			chiudi.setText("Schließen");
+			one.setText("Verzögerung am morgen");
+			three.setText("Verzögerung um drei Tage");
+			seven.setText("Verzögerung um eine Woche");
+			month.setText("Verzögerung um einen Monat");
+		}
+		else{
+			lblScadutoIl.setText("expired on:");
+			lblAlle.setText("at:");
+			completa.setText("complete");
+			archivia.setText("store");
+			rinvia.setText("delay");
+			vediDopo.setText("See later");
+			chiudi.setText("Close");
+			one.setText("Delay at tomorrow");
+			three.setText("Delay by three days");
+			seven.setText("Delay by one week");
+			month.setText("Delay by one month");
+		}
+		addToolTips();
+		this.lang=lang;
 	}
 	
 	private class Mouse extends MouseAdapter{
@@ -364,6 +464,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 			else if(evt.getSource()==frecciaD){
 				frecciaD.setForeground(Color.GREEN);
 			}
+			repaint();
 		}
 		public void mouseEntered(MouseEvent evt){
 			
@@ -445,41 +546,33 @@ public class DeferDialog extends JDialog implements ActionListener{
 		
 		if(arg0.getSource()==one){
 			d=new Data().domani();
-			System.out.println(d);
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			cur.setRevalued();
-			System.out.println("Rinviato:"+cur);
 			handled.add(cur);
 		}
 		else if(arg0.getSource()==three){
 			for(int i=0;i<3;i++)
 				d=d.domani();
-			System.out.println(d);
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			cur.setRevalued();
-			System.out.println("Rinviato:"+cur);
 			handled.add(cur);
 		}
 		else if(arg0.getSource()==seven){
 			for(int i=0;i<7;i++)
 				d=d.domani();
-			System.out.println(d);
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			cur.setRevalued();
-			System.out.println("Rinviato:"+cur);
 			handled.add(cur);
 		}
 		else if(arg0.getSource()==month){
 			for(int i=0;i<30;i++)
 				d=d.domani();
-			System.out.println(d);
 			ml.remove(cur);
 			cur.setEnd(d.anno(), d.mese(), d.giorno(), d.ora(), d.minuto());
 			cur.setRevalued();
-			System.out.println("Rinviato:"+cur);
 			handled.add(cur);
 		}
 		aggiornaLabels();

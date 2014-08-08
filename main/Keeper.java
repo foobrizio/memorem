@@ -1,5 +1,7 @@
 package main;
 
+import graphic.MemoremGUI.Lang;
+
 import java.util.*;
 
 import database.DBManager;
@@ -35,6 +37,7 @@ public class Keeper{
 	public Keeper(){
 		
 		this.user=new User("none");
+		user.setLingua("en");
 		DBManager.prepareConnection("memodatabase");
 	}
 	
@@ -78,7 +81,18 @@ public class Keeper{
 	 */
 	public String[] aiuti(){
 		
-		return DBManager.getHelps();
+		String lang="en";
+		Lang x;
+		if(user==null)
+			x=Lang.EN;
+		else x=user.getLingua();
+		switch(x){
+		case IT: lang="it"; break;
+		case ES: lang="es"; break;
+		case DE: lang="de"; break;
+		default: lang="en"; break;
+		}
+		return DBManager.getHelps(lang);
 	}
 
 	
@@ -574,6 +588,13 @@ public class Keeper{
 		
 		return DBManager.modificaPassword(user,passN);
 	}
+	
+	public boolean modificaUtente(User vecchio, User aggiornato){
+		
+		if(this.user.equals(vecchio))
+			this.user=aggiornato;
+		return DBManager.modificaUtente(vecchio,aggiornato);
+	}
 
 	/**
 	 * Ritorna la percentuale di memo completati su memo totali
@@ -677,22 +698,23 @@ public class Keeper{
 	 * @param login: se true ci si connette al nuovo utente
 	 * @return
 	 */
-	public int signUp(String user,String password,String nome,String cognome,char genere,boolean login){
+	public int signUp(String user,String password,String nome,String cognome,char genere,String lingua,boolean login){
 		
-		User utente=new User(user,nome,cognome,genere);
+		User utente=new User(user,nome,cognome,genere,lingua);
 		utente.setPassword(password);
 		int res=DBManager.addUser(utente);
 		if(res==0){
 			if(login){
-				DBMemos.clear();
+				DBMemos=new MemoList();
 				removenda=new TreeSet<Memo>();
 				mutanda=new HashMap<String,Memo>();
 				nuovi=new TreeSet<Memo>();
 				completati=0;
 				scaduti=0;
+				DBManager.login(user, password);
 				this.user=utente;
 			}
-			System.out.println("Siamo loggati come "+this.user);
+			System.out.println("Siamo loggati come "+this.user.getNickname());
 		}
 		return res;
 	}
@@ -747,7 +769,7 @@ public class Keeper{
 	private void today(){
 		
 		String query="SELECT * FROM memodatanew WHERE user='"+user.getNickname()+"' AND date_add(curdate() , interval 0 day)>=end";
-		MemoList ml=DBManager.processQuery(user, query, true);
+		MemoList ml=DBManager.processQuery(user, query, false);
 		for(Memo m:ml)
 			this.today.add(m);
 	}

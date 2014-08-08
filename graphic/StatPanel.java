@@ -3,7 +3,7 @@ package graphic;
 import javax.swing.*;
 
 import main.Keeper;
-
+import graphic.MemoremGUI.Lang;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -23,9 +23,18 @@ public class StatPanel extends JDialog {
 	private JTextField textActive;
 	private JTextField textTotal;
 	private JTextField inAttesa;
-	private JLabel title, nome;
+	private JLabel title, nome, priorLabel;
 	private JPanel panel;
-	private JLabel lblMemoInAttesa;
+	private JLabel attesaLabel;
+	
+	private Lang language;
+	private JLabel compLabel;
+	private JLabel highLabel;
+	private JLabel medLabel;
+	private JLabel archLabel;
+	private JLabel lowLabel;
+	private JLabel activeLabel;
+	private JLabel totalLabel;
 	/**
 	 * Create the panel.
 	 */
@@ -38,81 +47,78 @@ public class StatPanel extends JDialog {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		panel.setLayout(null);
 		
-		title = new JLabel("Statistiche di");
+		language=Lang.EN;							//lingua di default;
+		
+		title = new JLabel("Stats by");
 		title.setHorizontalAlignment(SwingConstants.CENTER);
 		title.setBounds(75, 24, 274, 15);
 		panel.add(title);
 		
-		JLabel lblNewLabel = new JLabel("Priorità");
-		lblNewLabel.setBounds(75, 140, 53, 15);
-		panel.add(lblNewLabel);
+		priorLabel = new JLabel("Priority");
+		priorLabel.setBounds(75, 140, 53, 15);
+		panel.add(priorLabel);
 		
-		JLabel lblNewLabel_1 = new JLabel("Alta:");
-		lblNewLabel_1.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_1.setBounds(24, 169, 33, 15);
-		panel.add(lblNewLabel_1);
+		highLabel = new JLabel("High:");
+		highLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		highLabel.setBounds(24, 169, 33, 15);
+		panel.add(highLabel);
 		
 		textH = new JTextField();
 		textH.setForeground(myRed);
 		textH.setBounds(75, 167, 53, 19);
-		textH.setToolTipText("Impegni ad alta priorità");
 		textH.setEditable(false);
 		panel.add(textH);
 		textH.setColumns(10);
 		
-		JLabel lblNewLabel_4 = new JLabel("Memo completati:");
-		lblNewLabel_4.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_4.setBounds(165, 136, 126, 15);
-		panel.add(lblNewLabel_4);
+		compLabel = new JLabel("Completed memos:");
+		compLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		compLabel.setBounds(165, 136, 126, 15);
+		panel.add(compLabel);
 		
 		textComp = new JTextField();
 		textComp.setBounds(309, 134, 52, 19);
-		textComp.setToolTipText("Impegni che sei riuscito a completare");
 		textComp.setForeground(Color.BLACK);
 		textComp.setEditable(false);
 		panel.add(textComp);
 		textComp.setColumns(10);
 		
-		JLabel lblNewLabel_2 = new JLabel("Media:");
-		lblNewLabel_2.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_2.setBounds(9, 200, 48, 15);
-		panel.add(lblNewLabel_2);
+		medLabel = new JLabel("Normal:");
+		medLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		medLabel.setBounds(9, 200, 48, 15);
+		panel.add(medLabel);
 		
 		textM = new JTextField();
 		textM.setForeground(myYellow);
-		textM.setToolTipText("Impegni a priorità standard");
 		textM.setBounds(75, 198, 53, 19);
 		textM.setEditable(false);
 		panel.add(textM);
 		textM.setColumns(10);
 		
-		JLabel lblNewLabel_5 = new JLabel("Memo archiviati:");
-		lblNewLabel_5.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_5.setBounds(175, 169, 116, 15);
-		panel.add(lblNewLabel_5);
+		archLabel = new JLabel("Stored memos:");
+		archLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		archLabel.setBounds(175, 169, 116, 15);
+		panel.add(archLabel);
 		
-		JLabel lblNewLabel_3 = new JLabel("Bassa:");
-		lblNewLabel_3.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_3.setBounds(9, 231, 48, 15);
-		panel.add(lblNewLabel_3);
+		lowLabel = new JLabel("Low:");
+		lowLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		lowLabel.setBounds(9, 231, 48, 15);
+		panel.add(lowLabel);
 		
 		textL = new JTextField();
 		textL.setForeground(myBlue);
-		textL.setToolTipText("Impegni a bassa priorità");
 		textL.setBounds(75, 229, 53, 19);
 		textL.setEditable(false);
 		panel.add(textL);
 		textL.setColumns(10);
 		
-		JLabel lblMemoAttivi = new JLabel("Memo attivi:");
-		lblMemoAttivi.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblMemoAttivi.setBounds(204, 200, 87, 15);
-		panel.add(lblMemoAttivi);
+		activeLabel = new JLabel("Active memos:");
+		activeLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		activeLabel.setBounds(204, 200, 87, 15);
+		panel.add(activeLabel);
 		
 		textArch = new JTextField();
 		textArch.setColumns(10);
 		textArch.setForeground(Color.WHITE);
-		textArch.setToolTipText("Gli impegni che non sei riuscito a portare a termine");
 		textArch.setBounds(309, 165, 52, 19);
 		textArch.setEditable(false);
 		panel.add(textArch);
@@ -120,18 +126,16 @@ public class StatPanel extends JDialog {
 		textActive = new JTextField();
 		textActive.setColumns(10);
 		textActive.setForeground(Color.WHITE);
-		textActive.setToolTipText("Gli impegni ancora da completare");
 		textActive.setBounds(309, 196, 52, 19);
 		textActive.setEditable(false);
 		panel.add(textActive);
 		
-		JLabel label = new JLabel("Memo totali:");
-		label.setHorizontalAlignment(SwingConstants.RIGHT);
-		label.setBounds(181, 231, 110, 15);
-		panel.add(label);
+		totalLabel = new JLabel("All:");
+		totalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		totalLabel.setBounds(181, 231, 110, 15);
+		panel.add(totalLabel);
 		
 		textTotal = new JTextField();
-		textTotal.setToolTipText("Il numero completo di memo da te creati");
 		textTotal.setColumns(10);
 		textTotal.setForeground(Color.WHITE);
 		textTotal.setBounds(309, 227, 52, 19);
@@ -171,17 +175,16 @@ public class StatPanel extends JDialog {
 		nome.setBounds(85, 51, 224, 15);
 		panel.add(nome);
 		
-		lblMemoInAttesa = new JLabel("Memo in attesa:");
-		lblMemoInAttesa.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblMemoInAttesa.setBounds(175, 105, 116, 15);
-		panel.add(lblMemoInAttesa);
+		attesaLabel = new JLabel("Pending memos:");
+		attesaLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		attesaLabel.setBounds(175, 105, 116, 15);
+		panel.add(attesaLabel);
 		
 		inAttesa = new JTextField();
 		inAttesa.setText((String) null);
 		inAttesa.setEditable(false);
 		inAttesa.setColumns(10);
 		inAttesa.setBounds(309, 103, 52, 19);
-		inAttesa.setToolTipText("I memo che aspettano di essere gestiti da te");
 		panel.add(inAttesa);
 		setVisible(true);
 		
@@ -189,10 +192,33 @@ public class StatPanel extends JDialog {
 		calcolaStatistiche(k);
 	}
 	
+	private void addToolTips(){
+		
+		if(language==Lang.IT){
+			inAttesa.setToolTipText("I memo che aspettano di essere gestiti da te");
+			textTotal.setToolTipText("Il numero completo di memo da te creati");
+			textActive.setToolTipText("Gli impegni ancora da completare");
+			textArch.setToolTipText("Gli impegni che non sei riuscito a portare a termine");
+			textH.setToolTipText("Impegni ad alta priorità");
+			textComp.setToolTipText("Impegni che sei riuscito a completare");
+			textM.setToolTipText("Impegni a priorità standard");
+			textL.setToolTipText("Impegni a bassa priorità");
+		}
+		else if(language==Lang.EN){
+			inAttesa.setToolTipText("Memos that are waiting for you to decide what to do with them");
+			textTotal.setToolTipText("All memos created by you");
+			textActive.setToolTipText("Tasks that you didn't completed yet");
+			textArch.setToolTipText("Tasks that you didn't reach to complete");
+			textH.setToolTipText("High priority memos");
+			textComp.setToolTipText("Tasks that you completed");
+			textM.setToolTipText("Average priority memos");
+			textL.setToolTipText("Low priority memos");
+		}
+	}
 	private void calcolaStatistiche(Keeper k){
 		
 		if(k.getUser().getNickname().equals("admin")){
-			title.setText("Statistiche generali");
+			title.setText("General statistics");
 			nome.setVisible(false);
 		}
 		else{
@@ -235,7 +261,62 @@ public class StatPanel extends JDialog {
 		textTotal.setForeground(Color.WHITE);
 		textArch.setForeground(Color.WHITE);
 		inAttesa.setForeground(Color.WHITE);
+	}
+	
+	public void setLanguage(Lang language){
 		
+		if(this.language.equals(language))
+			return;
+		else if(language==Lang.IT){
+			title.setText("Statistiche di");
+			compLabel.setText("Memo completati:");
+			priorLabel.setText("Priorità");
+			highLabel.setText("Alta:");
+			lowLabel.setText("Bassa:");
+			medLabel.setText("Media:");
+			archLabel.setText("Memo archiviati:");
+			activeLabel.setText("Memo attivi:");
+			totalLabel.setText("Memo totali:");
+			attesaLabel.setText("Memo in attesa:");
+		}
+		else if(language==Lang.ES){
+			title.setText("Estadísticas");
+			compLabel.setText("Memos completados:");
+			priorLabel.setText("Prioridad");
+			highLabel.setText("Alta:");
+			lowLabel.setText("Baja:");
+			medLabel.setText("Media:");
+			archLabel.setText("Memos archivados:");
+			activeLabel.setText("Memos activos:");
+			totalLabel.setText("Memos totales:");
+			attesaLabel.setText("Memos en espera:");
+		}
+		else if(language==Lang.DE){
+			title.setText("Statistik von");
+			compLabel.setText("Abgeschlossen memos:");
+			priorLabel.setText("Priorität");
+			highLabel.setText("Hoch:");
+			lowLabel.setText("Niedrig:");
+			medLabel.setText("Normal:");
+			archLabel.setText("Memos gespeichert:");
+			activeLabel.setText("Aktive memos:");
+			totalLabel.setText("Alle:");
+			attesaLabel.setText("Anhängig memos:");
+		}
+		else{
+			title.setText("Stats by");
+			compLabel.setText("Completed memos:");
+			priorLabel.setText("Priority");
+			highLabel.setText("High:");
+			lowLabel.setText("Low:");
+			medLabel.setText("Normal:");
+			archLabel.setText("Stored memos:");
+			activeLabel.setText("Active memos:");
+			totalLabel.setText("All:");
+			attesaLabel.setText("Pending memos:");
+		}
+		this.language=language;
+		addToolTips();
 	}
 	
 	public static void main(String[] args){

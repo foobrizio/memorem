@@ -1,5 +1,7 @@
 package main;
 
+import graphic.MemoremGUI.Lang;
+
 import java.util.*;
 
 import util.*;
@@ -147,7 +149,7 @@ public class MemoRemCLI extends Thread{
 			if(modifica)
 				System.out.print("( premi Invio per lasciare invariato)");
 			else
-				System.out.print("( default: "+Data.monthToString(new Data().mese())+")");
+				System.out.print("( default: "+Data.monthToString(new Data().mese(),Lang.IT)+")");
 			System.out.print(": ");
 			String x="";
 			try{
@@ -165,7 +167,7 @@ public class MemoRemCLI extends Thread{
 				
 			}catch(NumberFormatException e){
 				//e.printStackTrace();
-				month=Data.monthToInt(x);
+				month=Data.monthToInt(x,Lang.IT);
 			}finally{
 				if(month>=0)
 					ok=true;
@@ -538,7 +540,8 @@ public class MemoRemCLI extends Thread{
 				System.out.println("Inserire il proprio genere. I seguenti input sono ammessi: maschio,male,uomo,man,m,femmina,female,donna,woman,f");
 			}
 		}
-		k.signUp(nick, password,nome,cognome,gen,true);
+		String lingua="it";
+		k.signUp(nick, password,nome,cognome,gen,lingua,true);
 		user=k.getUser();
 		
 	}

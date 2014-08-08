@@ -1,5 +1,6 @@
 package util;
 
+import graphic.MemoremGUI.Lang;;
 public class User {
 	
 	private String nickname;
@@ -7,11 +8,20 @@ public class User {
 	private String nome;
 	private String cognome;
 	private boolean isMaschio;
+	private Lang language;
 	
-	public User(String nickname,String nome,String cognome,char genere){
+	public User(String nickname,String nome,String cognome, char genere, String language){
 		this.nickname=nickname;
 		this.nome=nome;
 		this.cognome=cognome;
+		if(language.equals("it"))
+			this.language=Lang.IT;
+		else if(language.equals("en"))
+			this.language=Lang.EN;
+		else if(language.equals("es"))
+			this.language=Lang.ES;
+		else if(language.equals("de"))
+			this.language=Lang.DE;
 		genere=Character.toLowerCase(genere);
 		if(genere=='m')
 			isMaschio=true;
@@ -34,6 +44,28 @@ public class User {
 		isMaschio=true;
 	}
 
+	public String getCognome() {
+		return cognome;
+	}
+	public void setCognome(String cognome) {
+		this.cognome = cognome;
+	}
+	public Lang getLingua(){
+		return language;
+	}
+	public void setLingua(String language){
+		if(language.equals("it"))
+			this.language=Lang.IT;
+		else if(language.equals("en"))
+			this.language=Lang.EN;
+		else if(language.equals("es"))
+			this.language=Lang.ES;
+		else if(language.equals("de"))
+			this.language=Lang.DE;
+	}
+	public void setLingua(Lang language){
+		this.language=language;
+	}
 	public String getNickname() {
 		return nickname;
 	}
@@ -50,14 +82,6 @@ public class User {
 		this.nome = nome;
 	}
 
-	public String getCognome() {
-		return cognome;
-	}
-
-	public void setCognome(String cognome) {
-		this.cognome = cognome;
-	}
-	
 	public String getPassword(){
 		
 		return password;
@@ -74,6 +98,21 @@ public class User {
 	public boolean isMaschio(){
 		
 		return isMaschio;
+	}
+	
+	/**
+	 * Stabilisce che l'utente è maschio
+	 */
+	public void setMale(){
+		
+		isMaschio=true;
+	}
+	/**
+	 * Stabilisce che l'utente è femmina
+	 */
+	public void setFemale(){
+		
+		isMaschio=false;
 	}
 	
 	/**

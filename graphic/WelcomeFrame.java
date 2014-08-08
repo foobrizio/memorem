@@ -42,7 +42,7 @@ public class WelcomeFrame extends JInternalFrame {
 				FormFactory.RELATED_GAP_ROWSPEC,
 				FormFactory.DEFAULT_ROWSPEC,}));
 		
-		nuovaSessione = new JLabel("Iscriviti");
+		nuovaSessione = new JLabel("Sign up");
 		getContentPane().add(nuovaSessione, "2, 2");
 		nuovaSessione.setOpaque(false);
 		nuovaSessione.addMouseListener(mouse);
