@@ -438,9 +438,10 @@ public class DeferDialog extends JDialog implements ActionListener{
 			else if(evt.getSource()==archivia){
 				
 				Memo m=ml.get(curPage-1);
-				m.isNotificato();
+				m.setScadenzaNotificata();
 				handled.add(m);
 				ml.remove(m);
+				System.out.println("Dentro il defer:"+m);
 			}
 			else if(evt.getSource()==rinvia){
 				

@@ -70,7 +70,11 @@ public class WelcomeFrame extends JInternalFrame {
 		setOpaque(false);
 		g.drawImage(scaledImage, 1, 1, null);
 		super.paintComponent(g);
+	}
+	
+	public void setLogD(LoginDialog logD){
 		
+		this.logD=logD;
 	}
 	
 	private class Mouse extends MouseAdapter{

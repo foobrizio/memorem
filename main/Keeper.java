@@ -336,6 +336,11 @@ public class Keeper{
 			if(Data.diff(d,now)>Data.daysOfYear(now.anno()))
 				return true;
 		}
+		else if(dF[4]){	//già scaduto
+			System.out.println("wewe");
+			if(d.compareTo(now)>0)
+				return true;
+		}
 		return false;
 	}
 
@@ -345,10 +350,10 @@ public class Keeper{
 	 * @param visual
 	 * @param prior
 	 */
-	public void formaQuery(String data,String visual,LinkedList<String> prior){
+	public MemoList formaQuery(String data,String visual,LinkedList<String> prior){
 		
 		String query="SELECT * FROM ";
-		boolean[] dF=new boolean[4];
+		boolean[] dF=new boolean[5];
 		for(int i=0;i<dF.length;i++)
 			dF[i]=false;
 		boolean[] pF=new boolean[3];
@@ -356,7 +361,7 @@ public class Keeper{
 			pF[i]=true;
 		if(data.equals("standard")){
 			query=query+"memodatanew WHERE user='"+user.getNickname()+"' AND end<date_add(curdate(), interval 7 day) ORDER BY prior DESC, end";
-			dF[2]=true;
+			dF[1]=true;
 			DBMemos=DBManager.processQuery(user,query,false);
 			for(Memo m: removenda)
 				if(!filtriViolati(pF,dF,m))
@@ -369,7 +374,7 @@ public class Keeper{
 			for(Memo m: mutanda.values())
 				if(!filtriViolati(pF,dF,m))
 					DBMemos.add(m);
-			return;
+			return DBMemos;
 		}
 		switch(visual){
 		case "attivi": query=query+"memodatanew"; break;
@@ -380,7 +385,7 @@ public class Keeper{
 			if(visual.equals("attivi")){	//visualizzare da oggi verso il futuro
 				switch(data){
 				case "pending":
-				dF[1]=true;
+				dF[4]=true;
 				System.out.println("pending");
 				query=query+"AND end<now()";
 				break;
@@ -433,9 +438,8 @@ public class Keeper{
 			}
 		}//abbiamo analizzato in quale range di tempo bisogna visualizzare i memo
 		if(prior.size()==0){
-			System.out.println("ma che cazz");
 			DBMemos=new MemoList();
-			return;
+			return DBMemos;
 		}
 		if(prior.size()==1){
 			if(prior.get(0).equals("Alta")){
@@ -471,6 +475,18 @@ public class Keeper{
 		query+=" ORDER BY prior DESC, end";
 		boolean scaduti=(visual!="attivi");
 		DBMemos=DBManager.processQuery(user,query,scaduti);
+		MemoList questa=new MemoList(DBMemos);
+		for(Memo m: removenda)
+			questa.remove(m);
+		for(String id:mutanda.keySet()){
+			questa.remove(id);
+			if(!filtriViolati(pF, dF,mutanda.get(id)))
+				questa.add(mutanda.get(id),false);
+		}
+		for(Memo m:nuovi)
+			if(!filtriViolati(pF, dF,m))
+				questa.add(m,false);
+		return questa;
 	}
 
 	/**
@@ -622,28 +638,12 @@ public class Keeper{
 			return;
 		}
 		Memo x=DBManager.get(user, t.description(), t.getEnd());
-		boolean inDB=DBMemos.contains(t);
-		if(x!=null && x.equals(t) && !inDB){		//significa che il memo è contenuto soltanto nel database, ma non per forza anche in DBMemos
+		if(x!=null)
 			removenda.add(t);
-			System.out.println("Qui difficilmente ritorneremo");
-		}
-		else if(x==null && inDB){	//significa che il memo da eliminare è stato modificato di recente, quindi non c'è nel database
-			System.out.println("Qui difficilmente ritorneremo");
-			Memo y=mutanda.remove(t);
-			System.out.println("L'abbiamo trovato?:"+y);
-			nuovi.remove(t);
-			today.remove(t);
-			DBMemos.remove(t);
-			removenda.add(t);
-		}
-		else if(x!=null && inDB){
-			DBMemos.remove(t);
-			Memo y=mutanda.remove(t);
-			System.out.println("L'abbiamo trovato?:"+y);
-			nuovi.remove(t);
-			today.remove(t);
-			removenda.add(t);
-		}
+		DBMemos.remove(t);
+		mutanda.remove(t);
+		nuovi.remove(t);
+		today.remove(t);
 	}
 
 	/**

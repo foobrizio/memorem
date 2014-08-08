@@ -129,11 +129,6 @@ public class ClassicFrame extends JInternalFrame{
 			if(!personal.contains(((MemPanel)c).getMemo())){
 				personal.add(((MemPanel)c).getMemo(),false);
 				int indexOf=personal.indexOf(((MemPanel)c).getMemo());
-				/*if(indexOf==0){
-					c.addMouseMotionListener(mouseM);
-					if(personal.size()>1)
-						dynamic.getComponent(0).removeMouseMotionListener(mouseM);
-				}*/
 				Component added=dynamic.add(c,indexOf);
 				if(added!=null){
 					repaint();
@@ -212,6 +207,16 @@ public class ClassicFrame extends JInternalFrame{
 		repaint();
 	}
 	
+	/**
+	 * Fa apparire e scomparire la barra interna
+	 * @param flag
+	 */
+	public void setBarVisible(boolean flag){
+		
+		if(flag)
+			menuBar.setVisible(true);
+		else menuBar.setVisible(false);
+	}
 	/**
 	 * Attiva o disattiva l'interfaccia guest
 	 * @param scelta

@@ -595,7 +595,7 @@ public class DBManager{
 		try{
 			int cont=0;
 			while(rs.next()){
-				helps[cont]="   			        "+rs.getString("hint")+"    ";
+				helps[cont]="   	    "+rs.getString("hint")+"    ";
 				cont++;
 			}
 		}catch(SQLException e){

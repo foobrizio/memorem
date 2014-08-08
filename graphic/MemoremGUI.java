@@ -344,6 +344,7 @@ public class MemoremGUI extends JFrame{
 			}//loginDialog
 			else if(arg0.getSource()==rinviaD){
 				MemoList nuova=rinviaD.getHandled();//memolist= gestiti
+				
 				for(Memo mm:nuova){
 					if(mm.isCompleted())
 						MemoremGUI.this.completa(mm, true);
@@ -358,6 +359,7 @@ public class MemoremGUI extends JFrame{
 					else if(mm.isNotificato())
 						MemoremGUI.this.completa(mm, false);
 				}//for
+					
 				repaint();
 			}//rinviaD
 			else if(arg0.getSource()==userD){
@@ -695,8 +697,7 @@ public class MemoremGUI extends JFrame{
 			classic.mnPriorit.setForeground(Color.RED);
 		else
 			classic.mnPriorit.setForeground(Color.BLACK);
-		k.formaQuery(data, visual, prioritatibus);
-		nuova=k.getRealList();
+		nuova=k.formaQuery(data, visual, prioritatibus);
 		calendar.setMemolist(nuova);
 		classic.clearMemos();
 		for(Memo m:nuova){
@@ -1225,7 +1226,7 @@ public class MemoremGUI extends JFrame{
 		calendar.add(m);					//il CalendarFrame è stato aggiornato
 		if(visualHandler.getSelected().equals(classicRadio)){
 			boolean[] prior=new boolean[3];
-			boolean[] data=new boolean[4];
+			boolean[] data=new boolean[5];
 			for(int i=0;i<3;i++)
 				prior[i]=pF[i].isSelected();
 			for(int i=0;i<4;i++){
@@ -1234,6 +1235,7 @@ public class MemoremGUI extends JFrame{
 				case 1: data[i]=(dF[2].isSelected() || dF[6].isSelected())? true: false; break;	//settimana o standard
 				case 2: data[i]=dF[3].isSelected(); break;										//mese
 				case 3: data[i]=dF[4].isSelected(); break;										//anno
+				case 4: data[i]=dF[0].isSelected(); break;										//scaduti
 				}
 			}
 			if(!Keeper.filtriViolati(prior, data, m)){
@@ -1242,6 +1244,8 @@ public class MemoremGUI extends JFrame{
 				m.setEnd(d);
 				MemPanel mp=new MemPanel(m);
 				mp.setBridges(p, jfc, iconButton);
+				if(k.getTotalList().size()>0)
+					classic.setBarVisible(true);
 				if(m.isCompleted()){
 					mp.completa();
 				}
@@ -1350,6 +1354,8 @@ public class MemoremGUI extends JFrame{
 		mntmSalva.setEnabled(true);	
 		//progressBar.setValue(k.percentualeCompletati());
 		classic.remove(m);				//l'InternalFrame è stato aggiornato
+		if(k.getTotalList().size()==0)
+			classic.setBarVisible(false);
 		calendar.remove(m);				//il CalendarFrame è stato aggiornato
 		if(visualHandler.getSelected().equals(calendarRadio))
 			panel_2=calendar;
@@ -1439,6 +1445,9 @@ public class MemoremGUI extends JFrame{
 			mntmHints.setSelected(false);
 			scorrevole.setVisible(false);
 		}
+		System.out.println(k.userList());
+		logD.setUserList(k.userList());
+		welcome.setLogD(logD);
 		panel_2=welcome;
 		welcome.setVisible(true);
 		panel.add(panel_2,"cell 0 0 7 26,grow");
@@ -1496,7 +1505,7 @@ public class MemoremGUI extends JFrame{
 
 	public void nuovo(){
 		
-		setLanguage(k.getUser().getLingua());
+		p=new Popup(this);
 		enableSpecialPowers(false);
 		mntmGuest.setEnabled(false);
 		mntmLogin.setEnabled(false);
@@ -1505,7 +1514,6 @@ public class MemoremGUI extends JFrame{
 		panel_2=classic;
 		jfc=new JFileChooser();
 		jfc.addActionListener(listener); //aggiusta ezio
-		p=new Popup(this);
 		p.addWindowListener(watcher);
 		panel_2.setVisible(true);
 		timer=new Timer();
@@ -1515,6 +1523,7 @@ public class MemoremGUI extends JFrame{
 		if(visualHandler.getSelected().equals(classicRadio))
 			((ClassicFrame)panel_2).clearMemos();
 		timer.schedule(orologio, 0,3000);
+		setLanguage(k.getUser().getLingua());
 		enableButtons();
 	}
 	

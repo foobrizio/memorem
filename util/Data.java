@@ -397,7 +397,6 @@ public class Data implements Comparable<Data>, Serializable{
 	public String getData(){
 		
 		if(language==Lang.EN){
-			System.out.println("è inglese");
 			StringBuilder sb=new StringBuilder(30);
 			sb.append(Data.monthToString(mese,Lang.EN)+" ");
 			sb.append(giorno);
@@ -412,7 +411,6 @@ public class Data implements Comparable<Data>, Serializable{
 			sb.append(anno);
 			return sb.toString();
 		}
-		System.out.println("non è inglese");
 		System.out.println(language);
 		return giorno+" "+Data.monthToString(mese,Lang.IT)+" "+anno;
 		
