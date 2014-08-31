@@ -411,7 +411,7 @@ public class Data implements Comparable<Data>, Serializable{
 			sb.append(anno);
 			return sb.toString();
 		}
-		System.out.println(language);
+		//System.out.println(language);
 		return giorno+" "+Data.monthToString(mese,Lang.IT)+" "+anno;
 		
 	}

@@ -265,12 +265,16 @@ public class LoginDialog extends JDialog implements ActionListener {
 				this.repaint();
 				lblIlNicknameDeve.setText("Nickname must have at least 3 characters");
 				lblIlNicknameDeve.setVisible(true);
+				nickField.setText("");
+				passwordField.setText("");
 				return;
 			}
 			else if(nick.length()>16){
 				this.repaint();
 				lblIlNicknameDeve.setText("Nickname can't have more than 16 characters");
 				lblIlNicknameDeve.setVisible(true);
+				nickField.setText("");
+				passwordField.setText("");
 				return;
 			}
 			if(registrazione){
@@ -285,6 +289,8 @@ public class LoginDialog extends JDialog implements ActionListener {
 					this.repaint();
 					lblIlNicknameDeve.setText(nick+" is already in use");
 					lblIlNicknameDeve.setVisible(true);
+					nickField.setText("");
+					passwordField.setText("");
 					return;
 				}//user CHeck
 				else if(nick.equals("guest")){
@@ -292,17 +298,23 @@ public class LoginDialog extends JDialog implements ActionListener {
 					if(nick.equals("guest")){
 						lblIlNicknameDeve.setText("You can't use 'guest' as nickname");
 						lblIlNicknameDeve.setVisible(true);
+						nickField.setText("");
+						passwordField.setText("");
 					}
 					return;
 				}
 				else if(nick.equals("admin")){
 					lblIlNicknameDeve.setText("You can't use 'admin' as nickname");
 					lblIlNicknameDeve.setVisible(true);
+					nickField.setText("");
+					passwordField.setText("");
 					return;	
 				}//guest & admin Check
 				else if(!StringAnalyzer.verificaStringa(nick)){
 						lblIlNicknameDeve.setText("You can't use characters as ',\\,?,(,),\"");
 						lblIlNicknameDeve.setVisible(true);
+						nickField.setText("");
+						passwordField.setText("");
 						return;
 				}
 			}//solo se registrazione
@@ -321,6 +333,8 @@ public class LoginDialog extends JDialog implements ActionListener {
 					this.repaint();
 					lblIlNicknameDeve.setText("User "+nick+" does not exist");
 					lblIlNicknameDeve.setVisible(true);
+					passwordField.setText("");
+					nickField.setText("");
 					return;
 				}//check del nickname
 			}
@@ -328,17 +342,20 @@ public class LoginDialog extends JDialog implements ActionListener {
 				this.repaint();
 				lblAlmenoCaratteri.setText("Password must have at least 4 characters");
 				lblAlmenoCaratteri.setVisible(true);
+				passwordField.setText("");
 				return;
 			}
 			else if(pass.length()>16){
 				this.repaint();
 				lblAlmenoCaratteri.setText("Password can't be longer than 16 characters");
 				lblAlmenoCaratteri.setVisible(true);
+				passwordField.setText("");
 				return;
 			}
-			else if(!StringAnalyzer.verificaStringa(pass)){		//verifichiamo che il nome non contenga caratteri proibiti
+			else if(!StringAnalyzer.verificaStringa(pass)){		//verifichiamo che la password non contenga caratteri proibiti
 					lblAlmenoCaratteri.setText("You can't use characters as ',\\,?,(,),\"");
 					lblAlmenoCaratteri.setVisible(true);
+					passwordField.setText("");
 					return;
 			}
 			if(!registrazione){
@@ -347,6 +364,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 					this.repaint();
 					lblAlmenoCaratteri.setText("Password is wrong");
 					lblAlmenoCaratteri.setVisible(true);
+					passwordField.setText("");
 					return;
 				}
 			}//check della password

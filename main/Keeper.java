@@ -191,6 +191,21 @@ public class Keeper{
 			DBManager.eliminaImpegni(user);
 		}
 	}
+	
+	public MemoList getActiveList(){
+		
+		String query="SELECT * FROM memodatanew WHERE user='"+user+"' ORDER BY prior, end";
+		MemoList ml=DBManager.processQuery(user, query, false);
+		for(Memo m: nuovi)
+			ml.add(m);
+		for(Memo m: removenda)
+			ml.remove(m);
+		for(String id:mutanda.keySet()){
+			ml.remove(id);
+			ml.add(mutanda.get(id),false);
+		}
+		return ml;
+	}
 	/**
 	 * Ritorna la lista corrente di memo (utile se invocata immediatamente dopo una query personalizzata
 	 * @return
@@ -216,7 +231,6 @@ public class Keeper{
 			formaQuery("pending", "attivi", p);
 		ml=new MemoList(getDBList());
 		for(Memo m:today){
-			System.out.println("DENTRO TODAY"+m);
 			if(!ml.contains(m) && m.isScaduto())
 				ml.add(m);
 		}
@@ -318,26 +332,27 @@ public class Keeper{
 			return true;
 		//ABBIAMO CONTROLLATO LE PRIORITA'
 		Data now=new Data();
+		int tempo=Data.diff(d, now);
 		if(dF[0]){ 			//entro oggi
-			if(Data.diff(d,now)>1)
+			if(tempo>1)
 				return true;
 		}
 		else if(dF[1]){	//entro settimana
-			int tempo=Data.diff(d, now);
-			System.out.println(tempo);
-			if(Data.diff(d,now)>7)
+			//int tempo=Data.diff(d, now);
+			//System.out.println(tempo);
+			if(tempo>7)
 				return true;
 		}
 		else if(dF[2]){	//entro un mese
-			if(Data.diff(d,now)>Data.daysOfMonth(now.anno(),now.mese()))
+			if(tempo>Data.daysOfMonth(now.anno(),now.mese()))
 				return true;
 		}
 		else if(dF[3]){ //entro un anno
-			if(Data.diff(d,now)>Data.daysOfYear(now.anno()))
+			if(tempo>Data.daysOfYear(now.anno()))
 				return true;
 		}
 		else if(dF[4]){	//già scaduto
-			System.out.println("wewe");
+			//System.out.println("wewe");
 			if(d.compareTo(now)>0)
 				return true;
 		}
@@ -360,22 +375,59 @@ public class Keeper{
 		for(int i=0;i<pF.length;i++)
 			pF[i]=true;
 		if(data.equals("standard")){
-			query=query+"memodatanew WHERE user='"+user.getNickname()+"' AND end<date_add(curdate(), interval 7 day) ORDER BY prior DESC, end";
+			query=query+"memodatanew WHERE user='"+user.getNickname()+"' AND end<date_add(curdate(), interval 7 day) ";
 			dF[1]=true;
-			DBMemos=DBManager.processQuery(user,query,false);
-			for(Memo m: removenda)
-				if(!filtriViolati(pF,dF,m))
-					DBMemos.remove(m);
-			for(Memo m: nuovi){
-				System.out.println("dentro forma:"+nuovi.toString());
-				if(!filtriViolati(pF,dF,m))
-					DBMemos.add(m);
+			if(prior.size()==0){
+				DBMemos=new MemoList();
+				return DBMemos;
 			}
-			for(Memo m: mutanda.values())
+			if(prior.size()==1){
+				if(prior.get(0).equals("Alta")){
+					pF[1]=false;
+					pF[2]=false;
+					query=query+" AND prior='2'";
+				}
+				else if(prior.get(0).equals("Bassa")){
+					pF[0]=false;
+					pF[1]=false;
+					query=query+" AND prior='0'";
+				}
+				else{
+					pF[0]=false;
+					pF[2]=false;
+					query=query+" AND prior='1'";
+				}
+			}
+			else if(prior.size()==2){
+				if(!prior.contains("Alta")){
+					pF[0]=false;
+					query=query+" AND prior NOT LIKE '2'";
+				}
+				else if(!prior.contains("Bassa")){
+					pF[2]=false;
+					query=query+" AND prior NOT LIKE '0'";
+				}
+				else{
+					pF[1]=false;
+					query=query+" AND prior NOT LIKE '1'";
+				}
+			}
+			query=query+" ORDER BY prior DESC, end";
+			DBMemos=DBManager.processQuery(user,query,false);
+			MemoList questa=new MemoList(DBMemos);
+			for(Memo m: removenda)
+					questa.remove(m);
+			for(Memo m: nuovi){
 				if(!filtriViolati(pF,dF,m))
-					DBMemos.add(m);
-			return DBMemos;
-		}
+					questa.add(m);
+			}
+			for(String id:mutanda.keySet()){
+				questa.remove(id);
+				if(!filtriViolati(pF, dF,mutanda.get(id)))
+					questa.add(mutanda.get(id),false);
+			}
+			return questa;
+		}//non è standard
 		switch(visual){
 		case "attivi": query=query+"memodatanew"; break;
 		default: query=query+"memodataold"; break;
@@ -386,51 +438,51 @@ public class Keeper{
 				switch(data){
 				case "pending":
 				dF[4]=true;
-				System.out.println("pending");
-				query=query+"AND end<now()";
+				//System.out.println("pending");
+				query=query+"AND end<now() ";
 				break;
 				
 				case "oggi":
 				dF[0]=true;
-				query=query+"AND date_add(curdate() , interval 0 day)>=end";	
+				query=query+"AND date_add(curdate() , interval 0 day)>=end ";	
 				break;
 				
 				case "week":
 				dF[1]=true;
-				query=query+"AND date_add(curdate(), interval 7 day)>=end";
+				query=query+"AND date_add(curdate(), interval 7 day)>=end ";
 				break;
 				
 				case "month":
 				dF[2]=true;
-				query=query+"AND month(end)=month(curdate())";
+				query=query+"AND month(end)=month(curdate()) ";
 				break;
 				
 				case "year":
 				dF[3]=true;
-				query=query+"AND year(end)=year(curdate())";
+				query=query+"AND year(end)=year(curdate()) ";
 				break;
 				
 				default: break;		//nel caso di always
 				}
 				if(!data.equals("pending"))
-					query=query+" AND end>curdate()";
+					query=query+" AND end>curdate() ";
 			}
 			else{						//visualizzare da oggi verso il passato
 				switch(data){
 				case "oggi":
-				query=query+"AND date_sub(curdate() , interval 0 day)<=end";
+				query=query+"AND date_sub(curdate() , interval 0 day)<=end ";
 				break;
 				
 				case "week":
-				query=query+"AND date_sub(curdate() , interval 7 day)<=end";
+				query=query+"AND date_sub(curdate() , interval 7 day)<=end ";
 				break;
 				
 				case "month":
-				query=query+"AND month(curdate())=month(end)";
+				query=query+"AND month(curdate())=month(end) ";
 				break;
 				
 				case "year":
-				query=query+"AND year(end)=year(curdate())";
+				query=query+"AND year(end)=year(curdate()) ";
 				break;
 				
 				default: break;
@@ -445,47 +497,52 @@ public class Keeper{
 			if(prior.get(0).equals("Alta")){
 				pF[1]=false;
 				pF[2]=false;
-				query=query+" AND prior='2'";
+				query=query+"AND prior='2' ";
 			}
 			else if(prior.get(0).equals("Bassa")){
 				pF[0]=false;
 				pF[1]=false;
-				query=query+" AND prior='0'";
+				query=query+"AND prior='0' ";
 			}
 			else{
 				pF[0]=false;
 				pF[2]=false;
-				query=query+" AND prior='1'";
+				query=query+"AND prior='1' ";
 			}
 		}
 		else if(prior.size()==2){
 			if(!prior.contains("Alta")){
 				pF[0]=false;
-				query=query+" AND prior NOT LIKE '2'";
+				query=query+"AND prior NOT LIKE '2' ";
 			}
 			else if(!prior.contains("Bassa")){
 				pF[2]=false;
-				query=query+" AND prior NOT LIKE '0'";
+				query=query+"AND prior NOT LIKE '0' ";
 			}
 			else{
 				pF[1]=false;
-				query=query+" AND prior NOT LIKE '1'";
+				query=query+"AND prior NOT LIKE '1' ";
 			}
 		}
-		query+=" ORDER BY prior DESC, end";
+		query+="ORDER BY prior DESC, end";
 		boolean scaduti=(visual!="attivi");
 		DBMemos=DBManager.processQuery(user,query,scaduti);
 		MemoList questa=new MemoList(DBMemos);
-		for(Memo m: removenda)
-			questa.remove(m);
-		for(String id:mutanda.keySet()){
-			questa.remove(id);
-			if(!filtriViolati(pF, dF,mutanda.get(id)))
-				questa.add(mutanda.get(id),false);
+		if(!visual.equals("scaduti")){	
+			/*i memo rimossi, quelli modificati e quelli nuovi hanno 
+			 * senso solo se vogliamo visualizzare i memo attivi
+			 */
+			for(Memo m: removenda)
+				questa.remove(m);
+			for(String id:mutanda.keySet()){
+				questa.remove(id);
+				if(!filtriViolati(pF, dF,mutanda.get(id)))
+					questa.add(mutanda.get(id),false);
+			}
+			for(Memo m:nuovi)
+				if(!filtriViolati(pF, dF,m))
+					questa.add(m,false);
 		}
-		for(Memo m:nuovi)
-			if(!filtriViolati(pF, dF,m))
-				questa.add(m,false);
 		return questa;
 	}
 
@@ -696,7 +753,7 @@ public class Keeper{
 	 * @param cognome
 	 * @param genere
 	 * @param login: se true ci si connette al nuovo utente
-	 * @return
+	 * @return 0 se l'utente è stato aggiunto, 1 se esiste già, 2 per eventuali altri errori.
 	 */
 	public int signUp(String user,String password,String nome,String cognome,char genere,String lingua,boolean login){
 		
@@ -776,7 +833,7 @@ public class Keeper{
 	
 	public int updateMemos(){
 		
-		System.out.println("Update di: "+today.size());
+		//System.out.println("Update di: "+today.size());
 		Iterator<Memo> it=today.iterator();
 		int cont=0;
 		while(it.hasNext()){

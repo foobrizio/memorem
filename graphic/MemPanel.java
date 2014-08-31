@@ -194,56 +194,40 @@ public class MemPanel extends JPanel implements ActionListener{
 	}
 	
 	
-	public Memo getMemo(){
+	/**
+	 * gestisce i vari tasti
+	 */
+	public void actionPerformed(ActionEvent evt){
 		
-		return memo;
-	}
-	
-	public void setBridges(Popup p,JFileChooser jfc,JButton ok){
+		if(evt.getSource()==elimina || evt.getSource()==completa || evt.getSource()==archivia){
+			
+			MemPanel.this.setVisible(false);
+			MemPanel.this.setEnabled(false);
+			MemPanel.this.completa();
+		}//elimina,completa,oneDay,oneWeek,threeDays
 		
-		this.p=p;
-		this.jfc=jfc;
-		this.iconButton=ok;
+		else if(evt.getSource()==modifica || evt.getSource()==personalizza){
+			
+			p.modifica(memo);
+			
+		}//modifica & personalizza
+		else if(evt.getSource()==tipo){
+			
+			if(!tipoB){
+				tipoB=true;
+				orario.setVisible(false);
+				orario.setText(memo.countDown());
+				orario.setVisible(true);
+			}
+			else{
+				tipoB=false;
+				orario.setVisible(false);
+				orario.setText(memo.endDate());
+				orario.setVisible(true);
+			}
+		}//tipo
 	}
-	
-	public JMenuItem getModifica(){
-		
-		return modifica;
-	}
-	
-	public MyMenuItem getElimina(){
-		
-		return elimina;
-	}
-	
-	public MyMenuItem getCompleta(){
-		
-		return completa;
-	}
-	public MyMenuItem getArchivia() {
-		
-		return archivia;
-	}
-	
-	public MyMenuItem getOneDay(){
-		
-		return oneDay;
-	}
-	
-	public MyMenuItem getThreeDays(){
-		
-		return threeDays;
-	}
-	
-	public MyMenuItem getOneWeek(){
-		
-		return oneWeek;
-	}
-	
-	public MyMenuItem getOneMonth(){
-		
-		return oneMonth;
-	}
+
 	/**
 	 * Segna un MemPanel come completato. Da allora non sarà più possibile modificarlo
 	 */
@@ -255,12 +239,209 @@ public class MemPanel extends JPanel implements ActionListener{
 		archivia.setVisible(false);
 		completa.setVisible(false);
 	}
+
+	/**
+	 * Questo metodo esegue automaticamente delle funzionalità in base allo stato del memo
+	 * (se è attivo o scaduto).
+	 * @return true se il memo è appena scaduto e non era stato già notificato. False se è ancora attivo
+	 * o se la sua scadenza era già stata notificata
+	 */
+	public boolean checkMemo(){
+		
+		/*
+		 * se il memo è scaduto cambiano i tasti
+		 */
+		if(this.memo.isScaduto()){
+			if(!memo.isNotificato()){
+				memo.setScadenzaNotificata();
+				modifica.setVisible(false);
+				rinvia.setVisible(true);
+				archivia.setVisible(true);
+				tipoB=false;
+				tipo.doClick();
+				return true;
+			}
+			return false;
+		}
+		else{
+			modifica.setVisible(true);
+			rinvia.setVisible(false);
+			archivia.setVisible(false);
+			if(tipoB)
+				orario.setText(memo.countDown());
+			return false;
+		}
+	}
+
+	public MyMenuItem getArchivia() {
+		
+		return archivia;
+	}
+
+	public MyMenuItem getCompleta(){
+		
+		return completa;
+	}
+
+	public MyMenuItem getElimina(){
+		
+		return elimina;
+	}
+
+	public Memo getMemo(){
+		
+		return memo;
+	}
 	
+	public JMenuItem getModifica(){
+		
+		return modifica;
+	}
+	
+	public MyMenuItem getOneDay(){
+		
+		return oneDay;
+	}
+	
+	public MyMenuItem getOneMonth(){
+		
+		return oneMonth;
+	}
+
+	public MyMenuItem getOneWeek(){
+		
+		return oneWeek;
+	}
+
+	public MyMenuItem getThreeDays(){
+		
+		return threeDays;
+	}
+	
+	public boolean iconaCambiata(){
+		
+		return iconaCambiata;
+	}
+
+	public boolean isTrashed(){
+		
+		if(memo.isScaduto())
+			return true;
+		else return !isVisible();
+	}
+
+	/**
+	 * Trasferisce i bottoni da mp al nuovo MemPanel,in modo da avere gli ascoltatori dei vecchi memo 
+	 * già configurati
+	 * @param mp
+	 */
+	public void passaTestimone(MemPanel mp){
+		
+		this.completa=mp.completa;
+		this.archivia=mp.archivia;
+		this.modifica=mp.modifica;
+		this.elimina=mp.elimina;
+		this.rinvia=mp.rinvia;
+		this.oneDay=mp.oneDay;
+		this.oneMonth=mp.oneMonth;
+		this.oneWeek=mp.oneWeek;
+		this.threeDays=mp.threeDays;
+		this.personalizza=mp.personalizza;
+	}
+
 	public MyMenuItem personalizza(){
 		
 		return personalizza;
 	}
 	
+	public void setBridges(Popup p,JFileChooser jfc,JButton ok){
+		
+		this.p=p;
+		this.jfc=jfc;
+		this.iconButton=ok;
+	}
+
+	public void setDefaultSize(){
+		
+		setSize(getParent().getWidth(), 9);
+	}
+
+	public void setLanguage(Lang lang){
+		
+		if(this.language==lang)
+			return;
+		if(lang==Lang.IT){
+			combo.setText("Opzioni");
+			modifica.setText("modifica");
+			rinvia.setText("rinvia");
+			elimina.setText("elimina");
+			completa.setText("completa");
+			archivia.setText("archivia");
+			tipo.setText("cambia visualizzazione");
+			oneDay.setText("1 giorno");
+			threeDays.setText("3 giorni");
+			oneWeek.setText("1 settimana");
+			oneMonth.setText("1 mese");
+			personalizza.setText("personalizza");
+		}
+		else if(lang==Lang.DE){
+			combo.setText("Optionen");
+			modifica.setText("Ändern");
+			rinvia.setText("Verzögerung");
+			elimina.setText("Löschen");
+			completa.setText("Absolvieren");
+			archivia.setText("Speicher");
+			tipo.setText("Ansicht wechseln");
+			oneDay.setText("1 Tag");
+			threeDays.setText("3 Tage");
+			oneWeek.setText("1 Woche");
+			oneMonth.setText("1 Monat");
+			personalizza.setText("Anpassen");
+		}
+		else if(lang==Lang.ES){
+			combo.setText("Opciones");
+			modifica.setText("modifica");
+			rinvia.setText("pospone");
+			elimina.setText("elimina");
+			completa.setText("completa");
+			archivia.setText("tienda");
+			tipo.setText("cambia las vistas");
+			oneDay.setText("1 día");
+			threeDays.setText("3 días");
+			oneWeek.setText("1 semana");
+			oneMonth.setText("1 mes");
+			personalizza.setText("personaliza");
+		}
+		else{
+			combo.setText("Options");
+			modifica.setText("modify");
+			rinvia.setText("postpone");
+			elimina.setText("delete");
+			completa.setText("complete");
+			archivia.setText("store");
+			tipo.setText("change view");
+			oneDay.setText("1 day");
+			threeDays.setText("3 days");
+			oneWeek.setText("1 week");
+			oneMonth.setText("1 month");
+			personalizza.setText("custom");
+		}
+		Data end=this.memo.getEnd();
+		end.setLanguage(lang);
+		this.memo.setEnd(end);
+		this.language=lang;
+		repaint();
+	}
+
+	public void setMemo(Memo m){
+		
+		this.memo=m;
+		setColour(m.priority());
+		this.descrizione.setText(m.description());
+		this.orario.setText(m.getEnd().toString());
+		tipoB=false;
+	}
+
 	/**
 	 * Inserisce l'icona scelta all'interno del MemPanel. Fornire il metodo di un icon-chooser
 	 */
@@ -333,184 +514,6 @@ public class MemPanel extends JPanel implements ActionListener{
 		setBorder(new LineBorder(coloreSfondo.darker()));			//definisce il bordo del memo
 	}
 	
-	public void setLanguage(Lang lang){
-		
-		if(this.language==lang)
-			return;
-		if(lang==Lang.IT){
-			combo.setText("Opzioni");
-			modifica.setText("modifica");
-			rinvia.setText("rinvia");
-			elimina.setText("elimina");
-			completa.setText("completa");
-			archivia.setText("archivia");
-			tipo.setText("cambia visualizzazione");
-			oneDay.setText("1 giorno");
-			threeDays.setText("3 giorni");
-			oneWeek.setText("1 settimana");
-			oneMonth.setText("1 mese");
-			personalizza.setText("personalizza");
-		}
-		else if(lang==Lang.DE){
-			combo.setText("Optionen");
-			modifica.setText("Ändern");
-			rinvia.setText("Verzögerung");
-			elimina.setText("Löschen");
-			completa.setText("Absolvieren");
-			archivia.setText("Speicher");
-			tipo.setText("Ansicht wechseln");
-			oneDay.setText("1 Tag");
-			threeDays.setText("3 Tage");
-			oneWeek.setText("1 Woche");
-			oneMonth.setText("1 Monat");
-			personalizza.setText("Anpassen");
-		}
-		else if(lang==Lang.ES){
-			combo.setText("Opciones");
-			modifica.setText("modifica");
-			rinvia.setText("pospone");
-			elimina.setText("elimina");
-			completa.setText("completa");
-			archivia.setText("tienda");
-			tipo.setText("cambia las vistas");
-			oneDay.setText("1 día");
-			threeDays.setText("3 días");
-			oneWeek.setText("1 semana");
-			oneMonth.setText("1 mes");
-			personalizza.setText("personaliza");
-		}
-		else{
-			combo.setText("Options");
-			modifica.setText("modify");
-			rinvia.setText("postpone");
-			elimina.setText("delete");
-			completa.setText("complete");
-			archivia.setText("store");
-			tipo.setText("change view");
-			oneDay.setText("1 day");
-			threeDays.setText("3 days");
-			oneWeek.setText("1 week");
-			oneMonth.setText("1 month");
-			personalizza.setText("custom");
-		}
-		repaint();
-		Data end=this.memo.getEnd();
-		end.setLanguage(lang);
-		this.memo.setEnd(end);
-		this.language=lang;
-	}
-	
-	public void setMemo(Memo m){
-		
-		this.memo=m;
-		setColour(m.priority());
-		this.descrizione.setText(m.description());
-		this.orario.setText(m.getEnd().toString());
-		tipoB=false;
-	}
-	
-	/**
-	 * Trasferisce i bottoni da mp al nuovo MemPanel,in modo da avere gli ascoltatori dei vecchi memo 
-	 * già configurati
-	 * @param mp
-	 */
-	public void passaTestimone(MemPanel mp){
-		
-		this.completa=mp.completa;
-		this.archivia=mp.archivia;
-		this.modifica=mp.modifica;
-		this.elimina=mp.elimina;
-		this.rinvia=mp.rinvia;
-		this.oneDay=mp.oneDay;
-		this.oneMonth=mp.oneMonth;
-		this.oneWeek=mp.oneWeek;
-		this.threeDays=mp.threeDays;
-		this.personalizza=mp.personalizza;
-	}
-	
-	/**
-	 * Questo metodo esegue automaticamente delle funzionalità in base allo stato del memo
-	 * (se è attivo o scaduto).
-	 * @return true se il memo è appena scaduto e non era stato già notificato. False se è ancora attivo
-	 * o se la sua scadenza era già stata notificata
-	 */
-	public boolean checkMemo(){
-		
-		/*
-		 * se il memo è scaduto cambiano i tasti
-		 */
-		if(this.memo.isScaduto()){
-			if(!memo.isNotificato()){
-				memo.setScadenzaNotificata();
-				modifica.setVisible(false);
-				rinvia.setVisible(true);
-				archivia.setVisible(true);
-				tipoB=false;
-				tipo.doClick();
-				return true;
-			}
-			return false;
-		}
-		else{
-			modifica.setVisible(true);
-			rinvia.setVisible(false);
-			archivia.setVisible(false);
-			if(tipoB)
-				orario.setText(memo.countDown());
-			return false;
-		}
-	}
-	
-	/**
-	 * gestisce i vari tasti
-	 */
-	public void actionPerformed(ActionEvent evt){
-		
-		if(evt.getSource()==elimina || evt.getSource()==completa || evt.getSource()==archivia){
-			
-			MemPanel.this.setVisible(false);
-			MemPanel.this.setEnabled(false);
-			MemPanel.this.completa();
-		}//elimina,completa,oneDay,oneWeek,threeDays
-		
-		else if(evt.getSource()==modifica || evt.getSource()==personalizza){
-			
-			p.modifica(memo);
-			
-		}//modifica & personalizza
-		else if(evt.getSource()==tipo){
-			
-			if(!tipoB){
-				tipoB=true;
-				orario.setVisible(false);
-				orario.setText(memo.countDown());
-				orario.setVisible(true);
-			}
-			else{
-				tipoB=false;
-				orario.setVisible(false);
-				orario.setText(memo.endDate());
-				orario.setVisible(true);
-			}
-		}//tipo
-	}
-
-	public void setDefaultSize(){
-		
-		setSize(getParent().getWidth(), 9);
-	}
-	
-	public boolean iconaCambiata(){
-		
-		return iconaCambiata;
-	}
-	
-	public boolean isTrashed(){
-		
-		if(memo.isScaduto())
-			return true;
-		else return !isVisible();
-	}
 	class MouseTrap extends MouseAdapter{
 
 		@Override

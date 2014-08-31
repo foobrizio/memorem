@@ -158,6 +158,8 @@ public class CalendarFrame extends JInternalFrame{
 	    	riccardino.setMonth(curYear, curMonth);
 	    	renderer.refresh();
 	    	table.repaint();
+	    	System.out.println("Quanti memo abbiamo? "+ml.size());
+	    	CalendarFrame.this.coloraMese();
 	    }
 	}
 	/**
@@ -554,6 +556,58 @@ public class CalendarFrame extends JInternalFrame{
 		setVisible(true);
 	}
 	
+	private void coloraMese(){
+		
+		MemoList mensile=new MemoList();
+		for(Memo m:ml){
+			Data d=m.getEnd();
+			if(d.mese()==(comboMonth.getSelectedIndex()+1) && d.anno()==(Integer.parseInt((String)comboBox.getSelectedItem())))
+					mensile.add(m);
+		}
+		//ora abbiamo raccolto tutti i memo del mese visualizzato, ergo li coloriamo uno ad uno
+		for(Memo m:mensile){
+			Color c=null;
+			switch(m.priority()){
+			case 0: c=myBlue; 	break;
+			case 2: c=myRed; 	break;
+			default: c=myYellow;
+			}
+			int riga=1;		//nella riga 0 ci sono i nomi dei giorni, la riga 1 invece non è quasi mai piena
+			int colonna=0;
+			int maximum=0;
+			while(maximum<50){	//finchè non viene trovata la posizione giusta
+				int giorno=0;
+				String value=(String)table.getValueAt(riga, colonna);
+				if(value.trim().length()!=0){	//qui abbiamo una cella contenente un giorno
+					giorno=Integer.parseInt(value);
+					int memDay=m.getEnd().giorno();
+					if(memDay==giorno){	//abbiamo trovato la posizione giusta
+						int x=riga;
+						int y=colonna;
+						this.renderer.colorizeCell(c, x, y);
+						break;
+					}
+					else{
+						if(colonna==6){
+							colonna=0;
+							riga++;
+						}
+						else colonna++;
+					}
+				}//se abbiamo selezionato un giorno
+				else{
+					if(colonna==6){
+						colonna=0;
+						riga++;
+					}
+					else colonna++;
+				}//se non abbiamo selezionato un giorno			
+			}//while
+		}
+		
+		
+	}
+
 	private void colorizeTable(){
 		
 		for(int i=0;i<7;i++)
@@ -567,15 +621,10 @@ public class CalendarFrame extends JInternalFrame{
 	public void add(Memo m){
 		
 		ml.add(m,false);
-		Color c=null;
-		switch(m.priority()){
-		case 0: c=myBlue;break;
-		case 1: c=myYellow;break;
-		default: c=myRed;
-		}
-		//System.out.println("celleSelezionate:"+cellaSelezionata[0]+","+cellaSelezionata[1]);
-		this.renderer.colorizeCell(c, cellaSelezionata[0], cellaSelezionata[1]);
-		repaint();
+		Data d=m.getEnd();
+		if(d.mese()==(comboMonth.getSelectedIndex()+1) && d.anno()==Integer.parseInt((String)comboBox.getSelectedItem()))
+			coloraMese();
+		//repaint();
 	}
 	
 	/**

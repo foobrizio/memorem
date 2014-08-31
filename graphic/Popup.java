@@ -434,17 +434,19 @@ public class Popup extends JDialog implements ActionListener{
 			this.giorno.setSelectedIndex(this.data.giorno()-1);
 		}
 		else{
-			int x=giorno.getSelectedIndex();
+			int x=giorno.getSelectedIndex()+1;
 			contentPanel.remove(giorno);
 			this.giorno = new JComboBox<Integer>(giorni);
 			//giorno=new JComboBox<Ihis.data.giorno()nteger>();
 			int durata=Data.daysOfMonth((Integer)anno.getSelectedItem(), mese.getSelectedIndex()+1);
 			//System.out.println(anno.getSelectedItem());
 			//System.out.println(durata);
+			//System.out.println("Durata di "+mese.getSelectedItem()+": "+durata);
+			//System.out.println("Giorno selezionato:"+x);
 			if(durata<x)
 				this.giorno.setSelectedIndex(durata-1);
 			else
-				this.giorno.setSelectedIndex(x);
+				this.giorno.setSelectedIndex(x-1);
 			GridBagConstraints gbc_comboBox_1 = new GridBagConstraints();
 			gbc_comboBox_1.gridwidth = 2;
 			gbc_comboBox_1.insets = new Insets(0, 0, 5, 5);

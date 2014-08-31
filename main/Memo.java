@@ -357,7 +357,12 @@ public class Memo implements Comparable<Memo>, Serializable{
 		pure=t;
 	}
 	
-	
+	/**
+	 * Ritorna true se la data e la descrizione sono identiche, false altrimenti
+	 * N.B.: non tiene conto di altre caratteristiche, come la priorità 
+	 * @param m
+	 * @return
+	 */
 	public boolean identici(Memo m){
 		
 		if(!this.desc.trim().equals(m.desc.trim()))
