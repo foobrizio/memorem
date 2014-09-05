@@ -44,6 +44,15 @@ public class User {
 		isMaschio=true;
 	}
 
+	public static User createGuest(){
+		
+		User guest=new User("guest");
+		guest.setMale();
+		guest.setLingua(Lang.EN);
+		guest.setNome("---");
+		guest.setCognome("---");
+		return guest;
+	}
 	public String getCognome() {
 		return cognome;
 	}
@@ -133,6 +142,18 @@ public class User {
 		return nickname.equals("guest");
 	}
 	
+	public static boolean sonoDiversi(User uno, User due){
+		
+		if(!uno.getNome().equals(due.getNome()))
+			return true;
+		if(!uno.getCognome().equals(due.getCognome()))
+			return true;
+		if(uno.getLingua()!=due.getLingua())
+			return true;
+		if(uno.isMaschio!=due.isMaschio)
+			return true;
+		return false;
+	}
 	public boolean equals(User s){
 		
 		if(this.nickname.equals(s.nickname))

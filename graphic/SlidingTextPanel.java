@@ -58,7 +58,7 @@ public class SlidingTextPanel extends JPanel implements Runnable{
 		for(;;){
 			try{
 				repaint();
-				Thread.sleep(250);
+				Thread.sleep(300);
 				ch = cur.charAt(0);
 				cur = cur.substring(1, cur.length());
 				cur = cur + ch;

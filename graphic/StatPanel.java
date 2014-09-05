@@ -40,7 +40,7 @@ public class StatPanel extends JDialog {
 	 */
 	public StatPanel(Keeper k){
 		
-		panel=new ColoredPanel("./src/graphic/wallpapers/stats.jpg");
+		panel=new ColoredPanel("files//wallpapers//stats.jpg");
 		setBounds(100, 100, 400, 300);
 		getContentPane().add(panel,BorderLayout.CENTER);
 		setResizable(false);
@@ -222,7 +222,16 @@ public class StatPanel extends JDialog {
 			nome.setVisible(false);
 		}
 		else{
-			title.setText("Statistiche di "+k.getUser().getNickname());
+			String st="";
+			if(language==Lang.IT)
+				st="Statistiche di";
+			else if(language==Lang.EN)
+				st="Stats by";
+			else if(language==Lang.DE)
+				st="Estadisticas de";
+			else
+				st="Statistik von";
+			title.setText(st+" "+k.getUser().toString());
 			String name="";
 			String surname="";
 			if(!k.getUser().getNome().equals("---"))

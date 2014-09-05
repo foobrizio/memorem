@@ -14,7 +14,6 @@ import com.mysql.jdbc.exceptions.jdbc4.*; 			//eccezione MySQLIntegrityConstrain
 
 import main.Memo;
 
-
 /*
  * Cosa manca ancora:
  * 1) Metodi di ricerca all'interno della tabella (ad esempio contains(Memo m);)
@@ -28,8 +27,6 @@ public class DBManager{
 	private static final String mo="memodataold";
 	private static final String mn="memodatanew";
 	
-	
-	private static final String createDB="create database if not exists ";
 	//private String grant="grant usage on ";
 	private static String drivers;
 
@@ -50,20 +47,24 @@ public class DBManager{
 	 */
 	private static int executeUpdate(String sql){
 		
-		int x=0;
+		int x=-1;
 		//System.out.println(sql);
 		try{
 			conn=DriverManager.getConnection(DB_URL+DB, DBuser, DBpassword);
 			stmt=conn.createStatement();
 			x=stmt.executeUpdate(sql);
-		}catch(MySQLIntegrityConstraintViolationException e){
-			System.out.println("Impossibile continuare..");
-			e.printStackTrace();
 		}catch(SQLException e){
+			if(e instanceof MySQLIntegrityConstraintViolationException)
+				System.out.println("Impossibile continuare..");
+			else if(e.getMessage().substring(0,22).equals("Access denied for user")){
+				return -5;
+			}
+			else
+				System.out.println("Errore in apertura per query '"+sql+"'");
 			e.printStackTrace();
-			System.out.println("Errore in apertura per query "+sql);
+			System.out.println(e.getMessage().substring(0,22));
 		}finally{
-			System.out.println(sql);
+			//System.out.println(sql);
 			try{
 				if(stmt!=null)
 					stmt.close();
@@ -98,12 +99,11 @@ public class DBManager{
 		return rs;
 	}
 	
-	public static void prepareConnection(String dbName){
+	public static int prepareConnection(String dbName){
 		
 		try{
 			Properties props = new Properties();
-			String current=System.getProperty("user.dir");
-			FileInputStream in = new FileInputStream(current+"/src/database/.database.properties");
+			FileInputStream in = new FileInputStream("files//.database.properties");
 			props.load(in);
 			in.close();
 			drivers = props.getProperty("jdbc.drivers");
@@ -113,21 +113,38 @@ public class DBManager{
 
 			System.setProperty("jdbc.drivers", drivers);
 			System.setProperty("jdbc.username", DBuser);
-			conn = DriverManager.getConnection(DB_URL, DBuser,DBpassword);
+			//conn = DriverManager.getConnection(DB_URL, DBuser,DBpassword);
 
-			stmt= conn.createStatement();
-			DB=dbName;
+			//stmt= conn.createStatement();
 			//grant=grant+dbName+".* to "+DBuser+"@localhost";
 			//Class.forName(drivers);
-			stmt.executeUpdate(createDB+" "+DB);
+			//stmt.executeUpdate(createDB+" "+DB);
+			int x=createDatabase(dbName);
 			//stmt.executeUpdate(grant);
+			//int x=executeUpdate(createDB+DB);
+			if(x==-5)
+				return x;
 			createUsersTable();
 			createTables();
 			createHintsTable();
+			String sql="SELECT COUNT(*) as hei FROM memousers WHERE nickname='admin'";
+			ResultSet rs=executeQuery(sql);
+			while(rs.next()){
+				int esiste=rs.getInt("hei");
+				if(esiste==0)
+					return -4;
+			}
+			return 0;
+		}catch (FileNotFoundException e){
+			return -1;
 		} catch (IOException e){
+			System.out.println("Errore di input/output");
 			e.printStackTrace();
-		} catch( SQLException e){
-			System.out.println();
+			return -1;
+		} catch (SQLException e) {
+			System.out.println("Errore di sql");
+			e.printStackTrace();
+			return -2;
 		}finally{
 			try{
 				if(stmt!=null)
@@ -143,6 +160,41 @@ public class DBManager{
 			}
 		}
 	}
+	
+	private static int createDatabase(String name){
+		
+		DB=name;
+		int x=-1;
+		String sql="CREATE DATABASE IF NOT EXISTS "+name;
+		//System.out.println(sql);
+		try{
+			conn=DriverManager.getConnection(DB_URL, DBuser, DBpassword);
+			stmt=conn.createStatement();
+			x=stmt.executeUpdate(sql);
+		}catch(SQLException e){
+			if(e instanceof MySQLIntegrityConstraintViolationException)
+				System.out.println("Impossibile continuare..");
+			else if(e.getMessage().substring(0,22).equals("Access denied for user")){
+				return -5;
+			}
+			else
+				System.out.println("Errore in apertura per query '"+sql+"'");
+			e.printStackTrace();
+			System.out.println(e.getMessage().substring(0,22));
+		}finally{
+			//System.out.println(sql);
+			try{
+				if(stmt!=null)
+					stmt.close();
+				if(conn!=null)
+					conn.close();
+			}catch(SQLException e2){
+				e2.printStackTrace();
+				System.out.println("Errore in chiusura");
+			}
+		}
+		return x;
+	}
 	/**
 	 * Crea la tabella che conterrà i suggerimenti e i consigli per conoscere le potenzialità del
 	 * programma
@@ -154,9 +206,18 @@ public class DBManager{
 		"hint VARCHAR(256) NOT NULL,"+
 		"hash CHAR(40) PRIMARY KEY,"+
 		"language CHAR(2) DEFAULT 'en')";
-		int res=executeUpdate(sql);
-		//System.out.println(res);
-		if(res!=0)
+		executeUpdate(sql);
+		String sql2="SELECT COUNT(*) AS we FROM hints";
+		ResultSet rs=executeQuery(sql2);
+		int size=0;
+		try{
+			if(rs.next()){
+				size=rs.getInt("we");
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		if(size==0)
 			populateHints();
 	}
 
@@ -202,6 +263,7 @@ public class DBManager{
 		"password CHAR(40) NOT NULL,"+
 		"nome VARCHAR(16) DEFAULT '---',"+
 		"cognome VARCHAR(16) DEFAULT '---',"+
+		"genere BIT DEFAULT 1,"+
 		"lingua CHAR(2) DEFAULT 'en'"+
 		")";
 		int res=executeUpdate(sql);
@@ -444,7 +506,7 @@ public class DBManager{
 	 */
 	public static int addUser(User user){
 		
-		if(logged!=null && logged.equals("admin"));
+		//if(logged!=null && logged.equals("admin"));
 		String nome=user.getNome();
 		String cognome=user.getCognome();
 		String lingua;
@@ -796,7 +858,7 @@ public class DBManager{
 		if(logged.equals(vecchio.getNickname())){
 			logged=aggiornato.getNickname();
 			String sql="UPDATE memousers SET nome='"+aggiornato.getNome()+"', cognome='"+aggiornato.getCognome()+"', ";
-			sql+="b'"+(aggiornato.isMaschio()?"1":"0")+"', lingua='";
+			sql+="genere=b'"+(aggiornato.isMaschio()?"1":"0")+"', lingua='";
 			switch(aggiornato.getLingua()){
 			case IT: sql+="it' "; break;
 			case DE: sql+="de' "; break;
@@ -1113,8 +1175,7 @@ public class DBManager{
 				String password=rs.getString("password");
 				User nicko=new User(nick);
 				nicko.setPassword(password);
-				if(!nick.equals("admin"))
-					utenti.add(nicko);
+				utenti.add(nicko);
 			}
 		}catch(SQLException sqle){
 			sqle.printStackTrace();
@@ -1140,7 +1201,8 @@ public class DBManager{
 		//mdbm.addUser("fabrizio", "wewe");
 		User user=new User("fabrizio","Fabrizio","Gabriele",'m',"it");
 		user.setPassword(DigestUtils.shaHex("uprising"));
-		login(user.getNickname(),user.getPassword());
+		//System.out.println(user.getPassword());
+		login(user.getNickname(),"uprising");
 		//Memo patrick=new Memo("St Patrick's Day a Dublino",2015,3,17,0,0);
 		//mdbm.insertMemo(patrick);
 		//System.out.println(x)

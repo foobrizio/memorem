@@ -31,14 +31,19 @@ public class Keeper{
 	private TreeSet<Memo> nuovi;
 	private HashMap<String,Memo> mutanda;//che in latino significa "da modificare"..ma in italiano lol xD
 	private TreeSet<Memo> today;
+	private TreeSet<Memo> inScadenza;
 	private double completati;
 	private double scaduti;
+	private int erroreRiscontrato;
 	
 	public Keeper(){
 		
+		erroreRiscontrato=0;
 		this.user=new User("none");
 		user.setLingua("en");
-		DBManager.prepareConnection("memodatabase");
+		int res=DBManager.prepareConnection("memodatabase");
+		if(res!=0)
+			erroreRiscontrato=res*-1;
 	}
 	
 	public void start(){
@@ -49,6 +54,7 @@ public class Keeper{
 		this.nuovi=new TreeSet<Memo>();
 		this.mutanda=new HashMap<String,Memo>();
 		this.today=new TreeSet<Memo>();
+		this.inScadenza=new TreeSet<Memo>();
 	}
 	/**
 	 * Aggiunge un nuovo task nella lista, aggiornando l'archivio
@@ -59,14 +65,10 @@ public class Keeper{
 		if(!t.isScaduto()){
 			if(t.getEnd().isToday())
 				today.add(t);
-			System.out.println("Aggiunta di "+t.getId());
 			return nuovi.add(t);
-			
 		}
-		else{
-			System.out.println("Il task e' gia' scaduto, pertanto non verra' aggiunto");
+		else
 			return false;
-		}
 	}
 	
 	public void add(Memo... t){
@@ -95,6 +97,33 @@ public class Keeper{
 		return DBManager.getHelps(lang);
 	}
 
+	public int analyzeMemos(){
+		
+		Iterator<Memo> it=today.iterator();
+		int cont=0;
+		while(it.hasNext()){
+			Memo x=it.next();
+			if(!inScadenza.contains(x)){
+				Data d=x.getEnd();
+				if(Data.minuteCount(d, new Data())==5){
+					System.out.println("un memo scade tra 5 minuti");
+					inScadenza.add(x);
+					cont++;
+				}
+				else if(Data.minuteCount(d, new Data())==60){
+					System.out.println("un memo scade tra un'ora");
+					inScadenza.add(x);
+					cont++;
+				}
+			}
+			else{
+				Data d=x.getEnd();
+				if(Data.minuteCount(d, new Data())==59)
+					inScadenza.remove(x);
+			}
+		}
+		return cont;
+	}
 	
 	public void cancellaStorico(){
 		
@@ -174,6 +203,17 @@ public class Keeper{
 		return false;
 	}
 	
+	public boolean createAdmin(String pass){
+		
+		User admin=new User("admin");
+		admin.setMale();
+		admin.setNome("---");
+		admin.setCognome("---");
+		admin.setLingua(Lang.EN);
+		admin.setPassword(pass);
+		return DBManager.addUser(admin)==0;
+	}
+	
 	/**
 	 * Elimina tutti i memo attivi dal database e dalle liste temporanee
 	 */
@@ -192,127 +232,15 @@ public class Keeper{
 		}
 	}
 	
-	public MemoList getActiveList(){
-		
-		String query="SELECT * FROM memodatanew WHERE user='"+user+"' ORDER BY prior, end";
-		MemoList ml=DBManager.processQuery(user, query, false);
-		for(Memo m: nuovi)
-			ml.add(m);
-		for(Memo m: removenda)
-			ml.remove(m);
-		for(String id:mutanda.keySet()){
-			ml.remove(id);
-			ml.add(mutanda.get(id),false);
-		}
-		return ml;
-	}
-	/**
-	 * Ritorna la lista corrente di memo (utile se invocata immediatamente dopo una query personalizzata
-	 * @return
-	 */
-	public MemoList getDBList(){
-		
-		
-		return DBMemos;
-	}
-
-	/**
-	 * Ritorna la lista dei memo scaduti da gestire
-	 * @return
-	 */
-	public MemoList getPending(){
-		
-		LinkedList<String> p=new LinkedList<String>();
-		p.add("Alta");
-		p.add("Media");
-		p.add("Bassa");
-		MemoList ml=new MemoList();
-		if(!user.isGuest())
-			formaQuery("pending", "attivi", p);
-		ml=new MemoList(getDBList());
-		for(Memo m:today){
-			if(!ml.contains(m) && m.isScaduto())
-				ml.add(m);
-		}
-		return ml;
-	}
-
-	public MemoList getRealList(){
-		
-		MemoList questa=new MemoList(DBMemos);
-		for(Memo m: removenda)
-			questa.remove(m);
-		for(String id:mutanda.keySet()){
-			questa.remove(id);
-			questa.add(mutanda.get(id),false);
-		}
-		for(Memo m:nuovi)
-			questa.add(m,false);
-		return questa;
-	}
-
-	public MemoList getStandardMemos(){
-		
-		return DBManager.getStandardMemos(user);
-	}
-	public TreeSet<Memo> getTodayMemos(){
-		
-		return today;
-	}
-	/**
-	 * Ritorna la lista completa di memo contenuti nel Keeper
-	 * @return
-	 */
-	public MemoList getTotalList(){
-		
-		if(user.isGuest()){
-			MemoList ml=new MemoList(DBMemos);
-			for(Memo m: removenda) //controllata la removenda
-				if(ml.contains(m))
-					ml.remove(m);
-			for(Memo m: nuovi)	//controllati i nuovi
-				ml.add(m,false);
-			for(String id: mutanda.keySet()){
-				if(ml.contains(id)){
-					System.out.println("Ma questo memo non dovrebbe essere contenuto");
-					ml.remove(id);
-				}
-				ml.add(mutanda.get(id));
-			}//controllata la mutanda (spero fosse pulita)
-			return ml;
-		}
-		MemoList ml=DBManager.list(user,false);			//qui ci sono tutti i memo del database
-		for(String id: mutanda.keySet()){
-			if(ml.contains(id))
-				ml.remove(id);
-			ml.add(mutanda.get(id));	
-		}//mutanda controllata
-		for(Memo m: nuovi){
-			if(ml.contains(m))
-				System.out.println("Perchè c'è già????");
-			else
-				ml.add(m);
-		}//nuovi controllati
-		for(Memo m: removenda)
-			if(ml.contains(m))
-				ml.remove(m);
-		return ml;
-	}
-
-	public User getUser(){
-		
-		return user;
-	}
-
 	/*
 	 * Ritorna un iteratore per scandire i vari oggetti
-	 
+	
 	@Override
 	public Iterator<Memo> iterator() {
 		
 		return DBMemos.iterator();
 	}*/
-
+	
 	/**
 	 * Verifica che i filtri espressi nella GUI vengano rispettati (Funziona solo per l'interfaccia GUI)
 	 * @param pF
@@ -359,6 +287,15 @@ public class Keeper{
 		return false;
 	}
 
+	/*
+	 * Ritorna un iteratore per scandire i vari oggetti
+	
+	@Override
+	public Iterator<Memo> iterator() {
+		
+		return DBMemos.iterator();
+	}*/
+	
 	/**
 	 * Forma la query da inviare al database per ricevere soltanto i dati che si vogliono visualizzare
 	 * @param data
@@ -546,6 +483,131 @@ public class Keeper{
 		return questa;
 	}
 
+	public MemoList getActiveList(){
+		
+		String query="SELECT * FROM memodatanew WHERE user='"+user+"' ORDER BY prior, end";
+		MemoList ml=DBManager.processQuery(user, query, false);
+		for(Memo m: nuovi)
+			ml.add(m);
+		for(Memo m: removenda)
+			ml.remove(m);
+		for(String id:mutanda.keySet()){
+			ml.remove(id);
+			ml.add(mutanda.get(id),false);
+		}
+		return ml;
+	}
+	/**
+	 * Ritorna la lista corrente di memo (utile se invocata immediatamente dopo una query personalizzata
+	 * @return
+	 */
+	public MemoList getDBList(){
+		
+		
+		return DBMemos;
+	}
+
+	/**
+	 * Ritorna la lista dei memo scaduti da gestire
+	 * @return
+	 */
+	public MemoList getPending(){
+		
+		LinkedList<String> p=new LinkedList<String>();
+		p.add("Alta");
+		p.add("Media");
+		p.add("Bassa");
+		MemoList ml=new MemoList();
+		if(!user.isGuest())
+			formaQuery("pending", "attivi", p);
+		ml=new MemoList(getDBList());
+		for(Memo m:today){
+			if(!ml.contains(m) && m.isScaduto())
+				ml.add(m);
+		}
+		return ml;
+	}
+
+	public MemoList getRealList(){
+		
+		MemoList questa=new MemoList(DBMemos);
+		for(Memo m: removenda)
+			questa.remove(m);
+		for(String id:mutanda.keySet()){
+			questa.remove(id);
+			questa.add(mutanda.get(id),false);
+		}
+		for(Memo m:nuovi)
+			questa.add(m,false);
+		return questa;
+	}
+
+	public MemoList getStandardMemos(){
+		
+		return DBManager.getStandardMemos(user);
+	}
+	public TreeSet<Memo> getTodayMemos(){
+		
+		return today;
+	}
+	/**
+	 * Ritorna la lista completa di memo contenuti nel Keeper
+	 * @return
+	 */
+	public MemoList getTotalList(){
+		
+		if(user.isGuest()){
+			MemoList ml=new MemoList();
+			for(Memo m: removenda) //controllata la removenda
+				if(ml.contains(m))
+					ml.remove(m);
+			for(Memo m: nuovi)	//controllati i nuovi
+				ml.add(m,false);
+			for(String id: mutanda.keySet()){
+				if(ml.contains(id)){
+					System.out.println("Ma questo memo non dovrebbe essere contenuto");
+					ml.remove(id);
+				}
+				ml.add(mutanda.get(id));
+			}//controllata la mutanda (spero fosse pulita)
+			return ml;
+		}
+		MemoList ml=DBManager.list(user,false);			//qui ci sono tutti i memo del database
+		for(String id: mutanda.keySet()){
+			if(ml.contains(id))
+				ml.remove(id);
+			ml.add(mutanda.get(id));	
+		}//mutanda controllata
+		for(Memo m: nuovi){
+			if(ml.contains(m))
+				System.out.println("Perchè c'è già????");
+			else
+				ml.add(m);
+		}//nuovi controllati
+		for(Memo m: removenda)
+			if(ml.contains(m))
+				ml.remove(m);
+		return ml;
+	}
+
+	public User getUser(){
+		
+		return user;
+	}
+
+	/*
+	 * Ritorna un iteratore per scandire i vari oggetti
+	 
+	@Override
+	public Iterator<Memo> iterator() {
+		
+		return DBMemos.iterator();
+	}*/
+
+	public int getErrore(){
+		
+		return erroreRiscontrato;
+	}
 	/**
 	 * Connette un utente registrato al database
 	 * @param user
@@ -555,7 +617,7 @@ public class Keeper{
 	public boolean login(String user,String password){
 		
 		if(user.equals("guest")){
-			this.user=new User("guest");
+			this.user=User.createGuest();
 			return true;
 		}
 		User connesso=DBManager.login(user,password);
@@ -565,6 +627,7 @@ public class Keeper{
 			this.nuovi=new TreeSet<Memo>();
 			this.mutanda=new HashMap<String,Memo>();
 			this.today=new TreeSet<Memo>();
+			this.inScadenza=new TreeSet<Memo>();
 			DBMemos=new MemoList(DBManager.getStandardMemos(connesso));
 			today();
 		}
@@ -586,6 +649,7 @@ public class Keeper{
 			mutanda=new HashMap<String,Memo>();
 			nuovi=new TreeSet<Memo>();
 			today=new TreeSet<Memo>();
+			inScadenza=new TreeSet<Memo>();
 			this.user=new User("none");
 			return true;
 		}
@@ -595,6 +659,8 @@ public class Keeper{
 			mutanda=new HashMap<String,Memo>();
 			nuovi=new TreeSet<Memo>();
 			today=new TreeSet<Memo>();
+			inScadenza=new TreeSet<Memo>();
+			DBManager.logout(user);
 			this.user=new User("none");
 			return true;
 		}
@@ -638,8 +704,10 @@ public class Keeper{
 		
 		if(DBMemos.contains(vecchio))
 			DBMemos.remove(vecchio);
-		if(nuovi.contains(vecchio))	
+		if(nuovi.contains(vecchio)){
 			nuovi.remove(vecchio); //il memo non è più considerato nuovo, ma modificato
+			nuovi.add(nuovo);
+		}
 		if(today.contains(vecchio)){
 			today.remove(vecchio);
 			if(nuovo.getEnd().isToday())

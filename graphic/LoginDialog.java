@@ -67,7 +67,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		this.userList=new HashSet<User>();
 		this.generale=new GenHandler();
 		
-		setContentPane(new ColoredPanel("./src/graphic/wallpapers/man.png"));
+		setContentPane(new ColoredPanel("files//wallpapers//man.png"));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -389,6 +389,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 	public void setUserList(HashSet<User> users){
 		
 		this.userList=users;
+		System.out.println(userList);
 	}
 	public boolean isOk(){
 		
@@ -397,6 +398,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 	
 	public void login(boolean autologin){
 		
+		oki=false;
 		lblIlNicknameDeve.setVisible(false);
 		lblAlmenoCaratteri.setVisible(false);
 		nickField.setText("");
@@ -404,7 +406,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		nickField.requestFocusInWindow();
 		this.registrazione=false;
 		this.autologin=autologin;
-		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/man.jpg");
+		((ColoredPanel)getContentPane()).setSfondo("files//wallpapers//man.jpg");
 		variableLabel.setText("Sign in");
 		setBounds(100, 100, 350, 160);
 		nameLabel.setVisible(false);
@@ -421,6 +423,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 	}
 	public void registrati(boolean autologin){
 		
+		oki=false;
 		lblIlNicknameDeve.setVisible(false);
 		lblAlmenoCaratteri.setVisible(false);
 		nickField.setText("");
@@ -428,7 +431,7 @@ public class LoginDialog extends JDialog implements ActionListener {
 		nickField.requestFocusInWindow();
 		this.registrazione=true;
 		this.autologin=autologin;
-		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/man.png");
+		((ColoredPanel)getContentPane()).setSfondo("files//wallpapers//man.png");
 		variableLabel.setText("Register");
 		setBounds(100,100,450,230);
 		nameLabel.setVisible(true);

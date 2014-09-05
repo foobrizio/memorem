@@ -67,7 +67,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 		setBounds(100, 100, 550, 350);
 		setResizable(false);
 		this.lang=Lang.EN;
-		setContentPane(new ColoredPanel("./src/graphic/wallpapers/desk.jpg"));
+		setContentPane(new ColoredPanel("files//wallpapers//desk.jpg"));
 		UIManager.getLookAndFeelDefaults().put("Label.font", comic );
 		handled=new MemoList();
 		mouse=new Mouse();

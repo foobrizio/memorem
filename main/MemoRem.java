@@ -10,8 +10,7 @@ public class MemoRem {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					MemoremGUI frame=new MemoremGUI();
-					frame.setVisible(true);
+					new MemoremGUI();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

@@ -80,7 +80,7 @@ public class Popup extends JDialog implements ActionListener{
 		else
 			setBounds(100, 100, 425, 250);
 		
-		setContentPane(new ColoredPanel("./src/graphic/wallpapers/new.jpg"));
+		setContentPane(new ColoredPanel("files//wallpapers//new.jpg"));
 		setResizable(false);
 		titolo=new JLabel();
 		titolo.setFont(new Font("Comic Sans MS", Font.BOLD | Font.ITALIC, 14));
@@ -554,7 +554,7 @@ public class Popup extends JDialog implements ActionListener{
 		ora.setSelectedItem(data.ora());
 		minuto.setSelectedItem(data.minuto());
 		addToolTips(false);
-		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/new.jpg");
+		((ColoredPanel)getContentPane()).setSfondo("files//wallpapers//new.jpg");
 		//titolo.setForeground(new Color(255,255,150));
 		titolo.setForeground(myYellow);
 		nome.setForeground(Color.BLACK);
@@ -593,7 +593,7 @@ public class Popup extends JDialog implements ActionListener{
 		
 		modified=true;
 		this.old=m;
-		((ColoredPanel)getContentPane()).setSfondo("./src/graphic/wallpapers/shadow.jpg");
+		((ColoredPanel)getContentPane()).setSfondo("files//wallpapers//shadow.jpg");
 		if(language==Lang.IT || language==Lang.ES)
 			titolo.setText("Modifica memo");
 		else if(language==Lang.DE)

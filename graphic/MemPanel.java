@@ -11,7 +11,6 @@ import main.Memo;
 
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.border.LineBorder;
 
@@ -143,14 +142,15 @@ public class MemPanel extends JPanel implements ActionListener{
 		paneleft.setPreferredSize(new Dimension(190,30));
 		add(paneleft, BorderLayout.WEST);
 		
-		String currentDir="";
+		/*String currentDir="";
 		try{
 			currentDir=new java.io.File(".").getCanonicalPath();
 		}catch(IOException eee){
 			eee.printStackTrace();
 			System.out.println("eee nenta catanzarì");
 		}
-		File icona=new File(currentDir+"/src/graphic/icons/"+memo.getIcon());
+		File icona=new File(currentDir+"files//icons//"+memo.getIcon());*/
+		File icona=new File("files//icons//"+memo.getIcon());
 		if(!icona.exists())
 			memo.setIcon(".error.png");
 		iconPath=icona.getAbsolutePath();
@@ -453,15 +453,15 @@ public class MemPanel extends JPanel implements ActionListener{
 		try{
 			bim=new BufferedImage(im.getWidth(null), im.getHeight(null),BufferedImage.TYPE_INT_ARGB);
 		}catch( IllegalArgumentException iae){
-			if(iconPath.equals("home/fabrizio/workspace/MemoRem/src/graphic/icons/.error.png")){
-				iconPath="home/fabrizio/workspace/MemoRem/src/graphic/icons/note.png";
+			if(iconPath.equals("files//icons//.error.png")){
+				iconPath="files//icons//note.png";
 				icon=new ImageIcon(iconPath);
 				return putIcon();
 			}
-			else if(iconPath.equals("home/fabrizio/workspace/MemoRem/src/graphic/icons/note.png")){
+			else if(iconPath.equals("files//icons//note.png")){
 				return false;
 			}
-			iconPath="home/fabrizio/workspace/MemoRem/src/graphic/icons/.error.png";
+			iconPath="files//icons//.error.png";
 			icon=new ImageIcon(iconPath);
 			return putIcon();
 		}
@@ -522,7 +522,7 @@ public class MemPanel extends JPanel implements ActionListener{
 			if(e.getSource()==iconTainer){
 				if(e.getButton()==MouseEvent.BUTTON1 && e.getClickCount()==2){
 					//System.out.println("MemPanel doppio Click");
-					jfc.setCurrentDirectory(new File("/home/fabrizio/workspace/MemoRem/src/graphic/icons/"));
+					jfc.setCurrentDirectory(new File("files//icons//"));
 					jfc.setDialogTitle("Scegli icona");
 					jfc.setVisible(true);
 					jfc.setAccessory(new MemPanel(MemPanel.this));

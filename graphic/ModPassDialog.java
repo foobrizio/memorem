@@ -42,7 +42,7 @@ public class ModPassDialog extends JDialog implements ActionListener{
 		this.fakeButton=fake;
 		this.user=user;
 		this.language=Lang.EN;
-		setContentPane(new ColoredPanel("./src/graphic/wallpapers/password.jpg"));
+		setContentPane(new ColoredPanel("files//wallpapers//password.jpg"));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);

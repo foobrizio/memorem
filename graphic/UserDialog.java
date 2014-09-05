@@ -32,7 +32,7 @@ public class UserDialog extends JDialog{
 	private JRadioButton maleButton,femaleButton;
 	private JButton okButton,cancelButton;
 	private User modified;
-	private boolean modification;
+	private boolean modification,isModified;
 	private JComboBox<String> langBox;
 	private Lang lang;
 	private JLabel adviceLabel;
@@ -43,19 +43,7 @@ public class UserDialog extends JDialog{
 			
 			if(evt.getSource()==modifica){
 				
-				if(!modification){
-					modification=true;
-					modifica.setForeground(Color.RED);
-				}
-				else if(modification){
-					modification=false;
-					modifica.setForeground(myRed.darker());
-				}
-				langBox.setEnabled(modification);
-				maleButton.setEnabled(modification);
-				femaleButton.setEnabled(modification);
-				nomeField.setEditable(modification);
-				cognomeField.setEditable(modification);
+				abilitaModifiche();
 			}
 			
 			/*
@@ -72,24 +60,41 @@ public class UserDialog extends JDialog{
 					adviceLabel.setVisible(true);
 					return;
 				}
-				modified.setNickname(userField.getText());
-				modified.setNome(nomeField.getText());
-				modified.setCognome(cognomeField.getText());
-				if(maleButton.isSelected())
-					modified.setMale();
-				else
-					modified.setFemale();
-				switch((String)langBox.getSelectedItem()){
-				case "Italiano": modified.setLingua(Lang.IT); break;
-				case "Deutsch" : modified.setLingua(Lang.DE); break;
-				case "Español" : modified.setLingua(Lang.ES); break;
-				default: modified.setLingua(Lang.EN);
+				if(!modified.getNome().equals(nomeField.getText().trim())){
+					isModified=true;
+					modified.setNome(nomeField.getText());
 				}
+				if(!modified.getCognome().equals(cognomeField.getText().trim())){
+					isModified=true;
+					modified.setCognome(cognomeField.getText());
+				}
+				if(modified.isMaschio()!=maleButton.isSelected()){
+					isModified=true;
+					if(maleButton.isSelected())
+						modified.setMale();
+					else
+						modified.setFemale();
+				}
+				Lang sel=null;
+				switch((String)langBox.getSelectedItem()){
+				case "Italiano": sel=Lang.IT; break;
+				case "Deutsch" : sel=Lang.DE; break;
+				case "Español" : sel=Lang.ES; break;
+				default: sel=Lang.EN;
+				}
+				if(sel!=modified.getLingua()){
+					isModified=true;
+					modified.setLingua(sel);
+				}
+				if(modification)
+					abilitaModifiche();	
 				UserDialog.this.dispose();
 			}
 			else if(evt.getSource()==cancelButton){
 				
 				adviceLabel.setVisible(false);
+				if(modification)
+					abilitaModifiche();
 				UserDialog.this.dispose();
 			}
 			else if(evt.getSource()==maleButton){
@@ -160,7 +165,7 @@ public class UserDialog extends JDialog{
 	public UserDialog( JFrame owner){
 		super(owner,true);
 		setBounds(100, 100, 400, 250);
-		setContentPane(new ColoredPanel("./src/graphic/wallpapers/blue-yellow.jpg"));
+		setContentPane(new ColoredPanel("files//wallpapers//blue-yellow.jpg"));
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().setBackground(new Color(0,0,0,0));
 		setResizable(false);
@@ -301,9 +306,29 @@ public class UserDialog extends JDialog{
 		setColors();
 	}
 	
+	public void abilitaModifiche(){
+		if(!modification){
+			modification=true;
+			modifica.setForeground(Color.RED);
+		}
+		else if(modification){
+			modification=false;
+			modifica.setForeground(myRed.darker());
+		}
+		langBox.setEnabled(modification);
+		maleButton.setEnabled(modification);
+		femaleButton.setEnabled(modification);
+		nomeField.setEditable(modification);
+		cognomeField.setEditable(modification);
+	}
 	public User getUser(){
 		
 		return modified;
+	}
+	
+	public boolean isModified(){
+		
+		return isModified;
 	}
 	private void setColors(){
 		
@@ -326,6 +351,7 @@ public class UserDialog extends JDialog{
 		if(lang==Lang.EN){
 			adviceLabel = new JLabel("You can't insert characters like ',\\,?,(,),\"");
 			titleLabel.setText("Profile");
+			modifica.setText("modify");
 			maleButton.setText("Male");
 			femaleButton.setText("Female");
 			langLabel.setText("Language");
@@ -337,6 +363,7 @@ public class UserDialog extends JDialog{
 			adviceLabel = new JLabel("Non puoi inserire caratteri come ',\\,?,(,),\"");
 			titleLabel.setText("Profilo");
 			maleButton.setText("Maschio");
+			modifica.setText("modifica");
 			femaleButton.setText("Femmina");
 			langLabel.setText("Lingua");
 			nameLabel.setText("Nome");
@@ -347,6 +374,7 @@ public class UserDialog extends JDialog{
 			adviceLabel = new JLabel("Sie können keine Zeichen wie einfügen ',\\,?,(,),\"");
 			titleLabel.setText("Profilbild");
 			maleButton.setText("Mann");
+			modifica.setText("Änderung");
 			femaleButton.setText("Weib");
 			langLabel.setText("Sprache");
 			nameLabel.setText("Name");
@@ -357,6 +385,7 @@ public class UserDialog extends JDialog{
 			adviceLabel = new JLabel("No se puede insertar caracteres como ',\\,?,(,),\"");
 			titleLabel.setText("Perfil");
 			maleButton.setText("Macho");
+			modifica.setText("modifica");
 			femaleButton.setText("Hembra");
 			langLabel.setText("Idioma");
 			nameLabel.setText("Nombre");
@@ -367,6 +396,8 @@ public class UserDialog extends JDialog{
 	
 	public void visualizza(User user){
 		
+		//modification=false;
+		isModified=false;
 		userField.setText(user.getNickname());
 		nomeField.setText(user.getNome());
 		cognomeField.setText(user.getCognome());

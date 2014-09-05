@@ -11,11 +11,11 @@ import java.io.*;
 public class ColoredPanel extends JPanel {
 
 	private BufferedImage sfondo;
-	private final static String directory="/home/"+System.getProperty("user.name")+"/workspace/MemoRem/src/graphic/wallpapers/";
+	private final static String directory="files//wallpapers//";
 	
 	public ColoredPanel(){
 		
-		this(directory+"wall3.png");
+		this(directory+"wall5.jpg");
 	}
 	
 	public ColoredPanel(String pathImmagine){

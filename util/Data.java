@@ -84,6 +84,16 @@ public class Data implements Comparable<Data>, Serializable{
 		language=Lang.EN;
 	}
 	
+	public Data(Data d){
+		
+		this.anno=d.anno;
+		this.mese=d.mese;
+		this.giorno=d.giorno;
+		this.minuto=d.minuto;
+		this.ora=d.ora;
+		this.language=d.language;
+	}
+	
 	public int anno(){return anno;}
 	
 	/**
@@ -322,12 +332,12 @@ public class Data implements Comparable<Data>, Serializable{
 		int giorni=0;
 		Data prima,dopo;
 		if(uno.compareTo(due)<0){
-			prima=uno;
-			dopo=due;
+			prima=new Data(uno);
+			dopo=new Data(due);
 		}
 		else{
-			prima=due;
-			dopo=uno;
+			prima=new Data(due);
+			dopo=new Data(uno);
 		}	//ora sappiamo quale data precede l'altra nel calendario
 		int i=prima.anno;
 		for(;i<dopo.anno;i++){
@@ -478,6 +488,63 @@ public class Data implements Comparable<Data>, Serializable{
 	}
 
 	public int mese(){return mese;}
+	
+	public static int minuteCount(Data uno, Data due){
+		
+		Data prima, dopo;
+		int minuti=0;
+		if(uno.compareTo(due)<0){
+			prima=new Data(uno);
+			dopo=new Data(due);
+		}
+		else{
+			prima=new Data(due);
+			dopo=new Data(uno);
+		}
+		
+		int i=prima.anno;
+		for(;i<dopo.anno;i++){
+			if(dopo.anno-prima.anno==1){	//l'ultimo anno va controllato per bene
+				if(prima.mese>dopo.mese)
+					break;
+				else if(prima.mese==dopo.mese && prima.giorno>dopo.giorno)
+					break;	
+			}
+			minuti+=daysOfYear(i)*24*60;
+		}//arrivati qui abbiamo le due date ad una distanza minore di 12 mesi.
+		prima.anno=i;
+		if(prima.anno!=dopo.anno){
+			minuti+=(daysOfMonth(prima.anno,prima.mese)-prima.giorno)*24*60;
+			while(prima.mese<12){
+				prima.mese=prima.mese+1;
+				minuti+=daysOfMonth(prima.anno,prima.mese)*24*60;
+			}
+			int giorni=32-prima.giorno;
+			minuti+=giorni*24*60;
+			prima.giorno=1;
+			prima.mese=1;
+			prima.anno=prima.anno+1;
+		}//a questo punto le due date si trovano nello stesso anno, si procede con il conto dei mesi
+		//System.out.println(prima);
+		i=prima.mese;
+		for(;i<dopo.mese;i++){
+			if(dopo.mese-prima.mese==1){
+				if(prima.giorno>dopo.giorno)
+					break;
+			}
+			minuti+=daysOfMonth(prima.anno,prima.mese)*24*60;
+			prima.mese=prima.mese+1;
+		}//a questo punto la distanza è minore di un mese, aggiungiamo giorno per giorno
+		while(prima.giorno<dopo.giorno){
+			prima=prima.domani();
+			minuti+=24*60;
+		}//a questo punto la distanza è minore di un giorno
+		int differenzaOre=dopo.ora-prima.ora;
+		int differenzaMinuti=dopo.minuto-prima.minuto;
+		minuti+=differenzaOre*60+differenzaMinuti;
+		return minuti;
+	}
+	
 	public int minuto(){return minuto;}
 	
 	/**
@@ -647,29 +714,12 @@ public class Data implements Comparable<Data>, Serializable{
 		
 		Data fine=new Data(2014,5,31,16,0);
 		Data nuova=new Data(2014,7,30,0,0);
+		Data uno=new Data(2014,12,31,23,50);
+		Data due=new Data(2014,12,31,23,10);
 		System.out.println("Differenza date:"+Data.diff(new Data(), nuova));
+		System.out.println("Differenza minuti:"+Data.minuteCount(uno, due));
 		System.out.println(fine.dateInMillis());
 		System.out.println(dayOfWeek(fine.anno,fine.mese,fine.giorno));
-		/*for(int i=0;i<12;i++){
-			System.out.println(monthToString(i+1)+" 2014");
-			Data.dayOfWeek(2014,i+1,1);
-		}*/
-		/*System.out.println(fine.toString());
-		System.out.println(convertDateToString(fine));
-		fine=fine.domani();
-		System.out.println(fine.toString());
-		System.out.println("START");
-		for(int i=0;i<365;i++){
-			fine=fine.ieri();
-			System.out.println(fine.toString());
-		}
 		
-		System.out.println("\nORA SI FA AL CONTRARIO\n");
-		for(int i=0;i<365;i++){
-			fine=fine.domani();
-			System.out.println(fine.toString());
-		}*/
-		//System.out.println(Data.convertDateToString(fine));
-		//System.out.println(fine.compareTo(finepiuuno));
 	}
 }

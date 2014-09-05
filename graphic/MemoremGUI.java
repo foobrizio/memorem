@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.Timer;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 
 import javax.swing.*;
 
@@ -15,6 +16,7 @@ import main.*;
 import sound.Sound;
 import util.Data;
 import util.MemoList;
+import util.User;
 
 
 /*
@@ -34,7 +36,7 @@ public class MemoremGUI extends JFrame{
 	 * innerVisualHandler gestisce la scelta del tipo di memo da visualizzare (scaduti o attivi)
 	 */
 	private Abbottonatore visualHandler, dataHandler, innerVisualHandler;
-	private JMenuItem mntmEsci,mntmNuova,mntmGuest,mntmSalva,mntmLogin,mntmLogout,mntmAggiungi,mntmCancella,mntmModUser;
+	private JMenuItem mntmEsci,mntmNuova,mntmGuest,mntmSalva,mntmLogin,mntmLogout,mntmAggiungi,mntmCancella;
 	private JMenuItem mntmCancellaStorico,mntmEliminaImpegni,mntmReset,mntmRimuoviU,mntmAggiungiU,mntmModPass,mntmStatistiche;
 	private JMenu mnFile,mnStrumenti,mnVisualizza,mnUtente,mnRimuoviU;
 	private JCheckBox mntmHints;
@@ -49,6 +51,7 @@ public class MemoremGUI extends JFrame{
 	private PopItem completa,elimina,modifica,one,three,seven,custom;
 	private LoginDialog logD;
 	private DeferDialog rinviaD;
+	private ExpiryDialog expiry;
 	private UserDialog userD;
 	private ModPassDialog modPass;
 	private JProgressBar progressBar;
@@ -88,6 +91,7 @@ public class MemoremGUI extends JFrame{
 	private Lang language;
 	private StatPanel stats;
 	//private Image sfondo;
+	private JMenuItem mntmProfilo;
 	
 	//queste sono le lingue disponibili nel programma
 	public enum Lang{ IT, EN, ES, DE};
@@ -279,19 +283,19 @@ public class MemoremGUI extends JFrame{
 							surname=null;
 					}
 					MemoList mlGuest=new MemoList();								
-					if(k.getUser().getNickname().equals("guest")){			//	Qui ci prendiamo i dati dei memo che
+					if(k.getUser().isGuest()){			//	Qui ci prendiamo i dati dei memo che
 						mlGuest=new MemoList();								//  erano stati creati finora dal guest
-						for(Memo m: k.getDBList())
+						for(Memo m: k.getTotalList())
 							mlGuest.add(m,true);
 					}
 					if(logD.isForRegistration() && logD.autologin()){	//abbiamo premuto "Nuova Sessione"
 						
 						boolean guesty=false;
-						if(k.getUser().getNickname().equals("guest"))
+						if(k.getUser().isGuest())
 							guesty=true;
 						if(!guesty)
 							mntmLogout.doClick();
-						((ColoredPanel)panel).setSfondo("./src/graphic/wallpapers/wall5.jpg");
+						((ColoredPanel)panel).setSfondo("files//wallpapers//wall5.jpg");
 						panel_2.dispose();
 						panel.remove(panel_2);
 						panel_2=classic;
@@ -350,7 +354,7 @@ public class MemoremGUI extends JFrame{
 							mntmHints.doClick();
 						Lang lang=k.getUser().getLingua();
 						if(x){
-							((ColoredPanel)panel).setSfondo("./src/graphic/wallpapers/wall5.jpg");
+							((ColoredPanel)panel).setSfondo("files//wallpapers//wall5.jpg");
 							panel_2.dispose();
 							panel.remove(panel_2);
 							panel_2=classic;
@@ -396,10 +400,8 @@ public class MemoremGUI extends JFrame{
 									classic.setVisible(false);
 									System.out.println("Non hai memo");
 								}
-								else{
+								else
 									classic.setVisible(true);
-									System.out.println("hai memo che non si vedono");
-								}
 							}
 						}
 					}
@@ -433,8 +435,15 @@ public class MemoremGUI extends JFrame{
 				repaint();
 			}//rinviaD
 			else if(arg0.getSource()==userD){
-				if(!k.getUser().equals(userD.getUser()))
+				
+				if(userD.isModified() && User.sonoDiversi(k.getUser(), userD.getUser())){
+					boolean eheh=false;
+					if(k.getUser().getLingua()!=userD.getUser().getLingua())
+						eheh=true;
 					k.modificaUtente(k.getUser(),userD.getUser());
+					if(eheh)//il cambio lingua va fatto solo dopo il cambio delle informazioni utente
+						MemoremGUI.this.setLanguage(userD.getUser().getLingua());
+				}
 			}
 		}//windowDeactivated
 	}//DesmondMiles
@@ -461,7 +470,7 @@ public class MemoremGUI extends JFrame{
 				k.login("guest", null);
 				classic.setVisible(false);
 				classic.setGuestInterface(true);
-				((ColoredPanel)panel).setSfondo("./src/graphic/wallpapers/wall5.jpg");
+				((ColoredPanel)panel).setSfondo("files//wallpapers//wall5.jpg");
 				panel_2.dispose();
 				panel.remove(panel_2);
 				panel_2=classic;
@@ -513,6 +522,8 @@ public class MemoremGUI extends JFrame{
 				MemoremGUI.this.cancellaStorico();
 			else if(evt.getSource()==mntmEliminaImpegni)
 				MemoremGUI.this.eliminaImpegni();
+			else if(evt.getSource()==mntmProfilo)
+				userD.visualizza(k.getUser());
 			else if(evt.getSource()==mntmReset)				//resetta il database
 				MemoremGUI.this.reset();
 			else if(evt.getSource()==mntmRimuoviU)			//rimuove utente
@@ -614,7 +625,29 @@ public class MemoremGUI extends JFrame{
 		setUndecorated(true);									//rimuove la title bar di Windows
 		setTitle("MemoRem 1.0");								//titolo del frame
 		k=new Keeper();
+		int errore=k.getErrore();
+		ConfDialog cf= new ConfDialog(this);
+		while(errore!=0){
+			errore=k.getErrore();
+			boolean adm=false;
+			if(errore==1){
+				JOptionPane.showMessageDialog(this, "Il file di configurazione non è stato trovato");
+				this.dispose();
+			}
+			else if(errore==4){
+				cf.configuraAdmin();
+				adm=true;
+			}
+			else if(errore==5)
+				cf.configuraDatabase(new File("files//.database.properties"));
+			if(adm){
+				String pass=cf.getAdminPass();
+				k.createAdmin(pass);
+			}
+			k=new Keeper();
+		}
 		rinviaD=new DeferDialog(this);
+		expiry=new ExpiryDialog(this);
 		userD=new UserDialog(this);
 		setDefaultLookAndFeelDecorated(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -676,7 +709,7 @@ public class MemoremGUI extends JFrame{
 		okButton.setActionCommand("Ok");
 		setButtonsAtStart();
 		assegnaListeners();
-		
+		setVisible(true);
 		//sfondo=Toolkit.getDefaultToolkit().createImage("/home/fabrizio/workspace/MemoRem/src/graphic/wallpapers/wall3");
 		
 	}
@@ -714,7 +747,15 @@ public class MemoremGUI extends JFrame{
 		if(res>0){
 			classic.updateMemos();
 			MemoList ml=new MemoList(k.getPending());
+			Sound.playExpired();
 			rinviaD.gestisci(ml);
+		}
+		else{
+			int exp=k.analyzeMemos();
+			if(exp>0){
+				Sound.playAdvice();
+				expiry.visualizza(k.getTodayMemos(), language);
+			}
 		}
 	}
 
@@ -728,7 +769,6 @@ public class MemoremGUI extends JFrame{
 		if(innerVisualHandler.getSelected().getName().equals("radioScaduti"))
 			visual="scaduti";
 		String x=dataHandler.getSelected().getName();
-		System.out.println(x+"xdxdxdxd");
 		MemoList nuova=new MemoList();
 		if(x.equals("standard"))
 			data="standard";
@@ -802,7 +842,13 @@ public class MemoremGUI extends JFrame{
 			mnVisualizza.setEnabled(false);
 			mnRimuoviU.setVisible(true);
 			DefaultListModel<Object> dlm=new DefaultListModel<Object>();
-			Object[] ics=k.userList().toArray();
+			HashSet<User> users=k.userList();
+			for(User s:users)
+				if(s.getNickname().equals("admin")){
+					users.remove(s);
+					break;
+				}
+			Object[] ics=users.toArray();
 			for(int i=0 ; i<ics.length ; i++)
 				dlm.addElement(ics[i]);
 			utenti=new JList<Object>(dlm);
@@ -838,6 +884,7 @@ public class MemoremGUI extends JFrame{
 		mnUtente.setEnabled(false);
 		mntmSalva.setEnabled(false);
 		classic.setGuestInterface(true);
+		mntmNuova.setEnabled(false);
 		mntmGuest.setEnabled(false);
 		mnStrumenti.setEnabled(true);
 		mnVisualizza.setEnabled(true);
@@ -905,6 +952,10 @@ public class MemoremGUI extends JFrame{
 
 	private void manageUtenteButtons(){
 		
+		mntmProfilo= new JMenuItem("Profile");
+		mntmProfilo.addActionListener(listener);
+		mnUtente.add(mntmProfilo);
+		
 		mntmReset= new JMenuItem("Reset database");
 		mntmReset.addActionListener(listener);
 		mnUtente.add(mntmReset);
@@ -923,10 +974,6 @@ public class MemoremGUI extends JFrame{
 		mntmModPass= new JMenuItem("Modify password");
 		mntmModPass.addActionListener(listener);
 		mnUtente.add(mntmModPass);
-		
-		mntmModUser= new JMenuItem("Modify user");
-		mntmModUser.addActionListener(listener);
-		mnUtente.add(mntmModUser);
 		
 		mntmStatistiche= new JMenuItem("Stats");
 		mntmStatistiche.addActionListener(listener);
@@ -1031,6 +1078,46 @@ public class MemoremGUI extends JFrame{
 		vF[0]= radioAttivi; vF[1]= radioScaduti; //creiamo vF	
 	}
 	
+	private void setInternalFrameToolTips(){
+		
+		if(language==Lang.IT){
+			standard.setToolTipText("Visualizza i memo scaduti + quelli in scadenza entro una settimana");
+			scaduti.setToolTipText("Visualizza i memo scaduti");
+			today.setToolTipText("Visualizza i memo odierni");
+			week.setToolTipText("Visualizza i memo in scadenza entro una settimana");
+			month.setToolTipText("Visualizza i memo in scadenza nel mese corrente");
+			year.setToolTipText("visualizza i memo in scadenza entro un anno");
+			always.setToolTipText("Visualizza tutti i memo");
+		}
+		else if(language==Lang.EN){
+			standard.setToolTipText("Shows expired memos and those which will expire within a week");
+			scaduti.setToolTipText("Shows expired memos");
+			today.setToolTipText("Shows today memos");
+			week.setToolTipText("Shows memos which will expire within a week");
+			month.setToolTipText("Shows memos which will expire in the current month");
+			year.setToolTipText("Shows memos which will expire within a year");
+			always.setToolTipText("Shows all memos");
+		}
+		else if(language==Lang.DE){
+			standard.setToolTipText("Es zeigt abgelaufenen memos und solche, die innerhalb einer Woche ablaufen wird");
+			scaduti.setToolTipText("Zeigt abgelaufenen memos");
+			today.setToolTipText("Zeigt heute memos");
+			week.setToolTipText("Zeigt memos, die innerhalb einer woche ablaufen wird");
+			month.setToolTipText("Zeigt memos, die im aktuellen monat auslauf");
+			year.setToolTipText("zeigt memos, die innerhalb eines jahres auslaufen wird");
+			always.setToolTipText("zeigt alle memos");
+		}
+		else if(language==Lang.ES){
+			standard.setToolTipText("Muestra los memos caducados y que expiran en una semana");
+			scaduti.setToolTipText("Muestra los memos caducados");
+			today.setToolTipText("Muestra los memos de hoy");
+			week.setToolTipText("Muestra los memos que expiran en una semana");
+			month.setToolTipText("Muestra los memos que expiran en el mes actual");
+			year.setToolTipText("Muestra los memos que expirará en un año");
+			always.setToolTipText("Muestra todos los memos");
+		}
+	}
+
 	private void setLanguage(Lang language){
 		
 		if(this.language.equals(language))
@@ -1038,7 +1125,6 @@ public class MemoremGUI extends JFrame{
 		if(language==Lang.EN){
 			mnStrumenti.setText("Tools");
 			mnUtente.setText("User");
-			mntmModUser.setText("Modify User");
 			mnVisualizza.setText("View");
 			mntmEsci.setText("Exit");
 			mntmSalva.setText("Save");
@@ -1051,6 +1137,7 @@ public class MemoremGUI extends JFrame{
 			classicRadio.setText("Classic");	
 			calendarRadio.setText("Calendar");
 			mntmHints.setText("Hints");
+			mntmProfilo.setText("Profile");
 			mntmRimuoviU.setText("Remove user");
 			mntmModPass.setText("Modify password");
 			mntmStatistiche.setText("Stats");
@@ -1069,7 +1156,6 @@ public class MemoremGUI extends JFrame{
 		else if(language==Lang.IT){
 			mnStrumenti.setText("Strumenti");
 			mnUtente.setText("Utente");
-			mntmModUser.setText("Modifica Utente");
 			mnVisualizza.setText("Visualizzazione");
 			mntmEsci.setText("Esci");
 			mntmSalva.setText("Salva");
@@ -1082,6 +1168,7 @@ public class MemoremGUI extends JFrame{
 			classicRadio.setText("Classica");	
 			calendarRadio.setText("Calendario");
 			mntmHints.setText("Aiuti");
+			mntmProfilo.setText("Profilo");
 			mntmRimuoviU.setText("Rimuovi utente");
 			mntmModPass.setText("Modifica password");
 			mntmStatistiche.setText("Statistiche");
@@ -1100,7 +1187,6 @@ public class MemoremGUI extends JFrame{
 		else if(language==Lang.ES){
 			mnStrumenti.setText("Instrumentos");
 			mnUtente.setText("Usuario");
-			mntmModUser.setText("Modificar usuario");
 			mnVisualizza.setText("Vista");
 			mntmEsci.setText("Salte");
 			mntmSalva.setText("Salva");
@@ -1113,6 +1199,7 @@ public class MemoremGUI extends JFrame{
 			classicRadio.setText("Clàsica");	
 			calendarRadio.setText("Calendario");
 			mntmHints.setText("Consejos");
+			mntmProfilo.setText("Perfil");
 			mntmRimuoviU.setText("Elimina usuario");
 			mntmModPass.setText("Cambiar password");
 			mntmStatistiche.setText("Estadística");
@@ -1131,7 +1218,6 @@ public class MemoremGUI extends JFrame{
 		else if(language==Lang.DE){
 			mnStrumenti.setText("Werkzeuge");
 			mnUtente.setText("Nutzer");
-			mntmModUser.setText("Ändern von nutzer");
 			mnVisualizza.setText("Ansicht");
 			mntmEsci.setText("Beenden");
 			mntmSalva.setText("Rette");
@@ -1143,6 +1229,7 @@ public class MemoremGUI extends JFrame{
 			mntmEliminaImpegni.setText("Löschen verpflichtungen");
 			classicRadio.setText("Klassische");	
 			calendarRadio.setText("Kalender");
+			mntmProfilo.setText("Profil");
 			mntmHints.setText("Hinweise");
 			mntmRimuoviU.setText("Benutzer entfernen");
 			mntmModPass.setText("Password ändern");
@@ -1163,8 +1250,9 @@ public class MemoremGUI extends JFrame{
 		p.setLanguage(language);		//tradotto
 		rinviaD.setLanguage(language);	//tradotto
 		userD.setLanguage(language);	//tradotto
-		classic.setLanguage(language);	//tradottobg
+		classic.setLanguage(language);	//tradotto
 		calendar.setLanguage(language);	//tradotto
+		setInternalFrameToolTips();
 		attivaHints();
 
 	}
@@ -1228,7 +1316,7 @@ public class MemoremGUI extends JFrame{
 				progressBar.setToolTipText("Sie haben nichts verpasst!!! Sie können sogar einige Zeit für sich selbst einsetzen???");
 		}//tedesco
 	}
-
+	
 	/**
 	 * Cambia la visualizzazione del Memorem dalla modalità classica alla modalità calendario
 	 * e viceversa
@@ -1269,7 +1357,7 @@ public class MemoremGUI extends JFrame{
 	 * Aggiunge un nuovo Memo
 	 */
 	public void aggiungi(Memo m){
-		if(k.containsEqualInDB(m)){
+		if(!k.getUser().getNickname().equals("guest") && k.containsEqualInDB(m)){
 			if(language==Lang.IT)
 				JOptionPane.showMessageDialog(MemoremGUI.this, "Il memo esiste già");
 			else if(language==Lang.ES)
@@ -1283,6 +1371,7 @@ public class MemoremGUI extends JFrame{
 		k.add(m);							//il Keeper è stato aggiornato
 		calendar.add(m);					//il CalendarFrame è stato aggiornato
 		if(visualHandler.getSelected().equals(classicRadio)){	//se siamo nella visualizzazione classica
+			System.out.println("L'abbiamo aggiunto");
 			boolean[] prior=new boolean[3];
 			boolean[] data=new boolean[5];
 			for(int i=0;i<3;i++)
@@ -1296,7 +1385,7 @@ public class MemoremGUI extends JFrame{
 				case 4: data[i]=dF[0].isSelected(); break;										//scaduti
 				}
 			}
-			if(!Keeper.filtriViolati(prior, data, m)){
+			if(k.getUser().isGuest() || !Keeper.filtriViolati(prior, data, m)){
 				Data d=m.getEnd();
 				d.setLanguage(language);
 				m.setEnd(d);
@@ -1422,6 +1511,8 @@ public class MemoremGUI extends JFrame{
 			if(k.getTotalList().size()==0)
 				classic.setVisible(false);
 		}
+		if(k.getUser().isGuest() && k.getTotalList().size()==0)
+			mntmSalva.setEnabled(false);
 		Sound.playRemove();
 	}
 
@@ -1540,17 +1631,18 @@ public class MemoremGUI extends JFrame{
 		//nei filtri preposti
 		if(visualHandler.getSelected().equals(classicRadio)){
 			boolean[] priors=new boolean[3];
-			boolean[] data=new boolean[4];
+			boolean[] data=new boolean[5];
 			for(int i=0;i<3;i++)
 				priors[i]=pF[i].isSelected();
 			String d=dataHandler.getSelected().getName();
-			for(int i=0;i<4;i++)
+			for(int i=0;i<data.length;i++)
 				data[i]=false;
 			switch(d){
 			case "today" : data[0]=true;
 			case "week" : case"standard" : data[1]=true;
 			case "month": data[2]=true;
 			case "year" : data[3]=true;
+			case "expired": data[4]=true;
 			}
 			if(!Keeper.filtriViolati(priors, data, nuovo))
 				classic.modifica(vecchio, nuovo);

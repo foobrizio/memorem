@@ -56,7 +56,7 @@ public class WelcomeFrame extends JInternalFrame {
 		BasicInternalFrameTitlePane tp=(BasicInternalFrameTitlePane)ifui.getNorthPane();
 		remove(tp);
 		try{
-			File f=new File("./src/graphic/wallpapers/Welcome.jpg");
+			File f=new File("files/wallpapers/Welcome.jpg");
 			sfondo= ImageIO.read(f);
 		}catch(IOException e){
 			System.out.println("proprio niente :(");
