@@ -350,6 +350,7 @@ public class DeferDialog extends JDialog implements ActionListener{
 		
 		if(this.lang==lang)
 			return;	
+		this.lang=lang;
 		if(lang==Lang.IT){
 			lblScadutoIl.setText("scaduto il:");
 			lblAlle.setText("alle:");
@@ -403,7 +404,6 @@ public class DeferDialog extends JDialog implements ActionListener{
 			month.setText("Delay by one month");
 		}
 		addToolTips();
-		this.lang=lang;
 	}
 	
 	private class Mouse extends MouseAdapter{

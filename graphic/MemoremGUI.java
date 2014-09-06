@@ -1252,11 +1252,12 @@ public class MemoremGUI extends JFrame{
 		userD.setLanguage(language);	//tradotto
 		classic.setLanguage(language);	//tradotto
 		calendar.setLanguage(language);	//tradotto
-		setInternalFrameToolTips();
+		setInternalFrameToolTips();		//tradotto
+		setProgressBarToolTips();
 		attivaHints();
 
 	}
-	private void setProgressBarToolTip(){
+	private void setProgressBarToolTips(){
 		
 		int x=k.percentualeCompletati();
 		if(language==Lang.IT){
@@ -1371,7 +1372,8 @@ public class MemoremGUI extends JFrame{
 		k.add(m);							//il Keeper è stato aggiornato
 		calendar.add(m);					//il CalendarFrame è stato aggiornato
 		if(visualHandler.getSelected().equals(classicRadio)){	//se siamo nella visualizzazione classica
-			System.out.println("L'abbiamo aggiunto");
+			if(k.getTotalList().size()>0)
+				classic.setBarVisible(true);
 			boolean[] prior=new boolean[3];
 			boolean[] data=new boolean[5];
 			for(int i=0;i<3;i++)
@@ -1391,8 +1393,6 @@ public class MemoremGUI extends JFrame{
 				m.setEnd(d);
 				MemPanel mp=new MemPanel(m);
 				mp.setBridges(p, jfc, iconButton);
-				if(k.getTotalList().size()>0)
-					classic.setBarVisible(true);
 				if(m.isCompleted())
 					mp.completa();
 				else{
@@ -1492,7 +1492,7 @@ public class MemoremGUI extends JFrame{
 		calendar.remove(m);
 		classic.remove(m);
 		progressBar.setValue(k.percentualeCompletati());
-		setProgressBarToolTip();
+		setProgressBarToolTips();
 	}
 
 	public void elimina(Memo m){
@@ -1569,7 +1569,7 @@ public class MemoremGUI extends JFrame{
 		int x=k.percentualeCompletati();
 		progressBar.setValue(x);
 		setLanguage(k.getUser().getLingua());
-		setProgressBarToolTip();
+		setProgressBarToolTips();
 		mntmGuest.setEnabled(false);
 		mntmLogin.setEnabled(false);
 		mntmNuova.setEnabled(false);

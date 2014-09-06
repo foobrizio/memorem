@@ -1,5 +1,6 @@
 package main;
 import util.Data;
+import graphic.MemoremGUI.Lang;
 
 import java.io.*;
 
@@ -24,7 +25,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 	private String id;
 	private boolean scadenzanotificata;
 	private boolean pure;
-	private String language;
+	private Lang language;
 	
 	/*											*
 	 * 											*
@@ -40,7 +41,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		end=new Data(year,month,day,hour,minute);
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
-		language="it";
+		language=Lang.EN;
 	}
 	
 	/**
@@ -57,7 +58,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		scadenzanotificata=false;
 		this.id=id;
 		pure=true;
-		language="it";
+		language=Lang.EN;
 	}
 	
 	public Memo(String desc, String priority, int year, int month, int day, int hour, int minute){
@@ -70,7 +71,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
 		pure=false;
-		language="it";
+		language=Lang.EN;
 	}
 	
 	public Memo(String desc, Data end){
@@ -79,11 +80,12 @@ public class Memo implements Comparable<Memo>, Serializable{
 		priority=Priority.NORMAL;
 		completion=false;
 		scadenzanotificata=false;
+		end.setLanguage(Lang.EN);
 		this.end=end;
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
 		pure=false;
-		language="it";
+		language=Lang.EN;
 	}
 	
 	public Memo(String desc, int priority, Data end){
@@ -96,7 +98,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		icon="note.png";
 		id=DigestUtils.shaHex(desc+end.toString());
 		pure=false;
-		language="it";
+		language=Lang.EN;
 	}
 	
 	public Memo(String desc, int priority, Data end, String icon){
@@ -106,7 +108,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 		completion=false;
 		this.icon=icon;
 		pure=false;
-		language="it";
+		language=Lang.EN;
 	}
 	
 	/**
@@ -122,8 +124,8 @@ public class Memo implements Comparable<Memo>, Serializable{
 		this.scadenzanotificata=m.scadenzanotificata;
 		this.icon=m.icon;
 		this.id=m.id;
+		this.language=m.language;
 		pure=false;
-		language="it";
 	}
 	
 	
@@ -139,6 +141,10 @@ public class Memo implements Comparable<Memo>, Serializable{
 		scadenzanotificata=true;
 	}
 	
+	public void setLanguage(Lang language){
+		
+		this.language=language;
+	}
 	public void setScadenzaNotificata(){
 		
 		completion=false;
@@ -256,8 +262,10 @@ public class Memo implements Comparable<Memo>, Serializable{
 		
 		if(completion)
 			switch(language){
-			case "it": return "COMPLETATO";
-			case "en": return "COMPLETED";
+			case IT: return "COMPLETATO";
+			case DE: return "VOLLENTED";
+			case ES: return "COMPLETADO";
+			default: return "COMPLETED";
 			}
 		Data ora=new Data();
 		int dAn=end.anno()-ora.anno();
@@ -283,8 +291,10 @@ public class Memo implements Comparable<Memo>, Serializable{
 		}
 		if(dAn<0){
 			switch(language){
-			case "it": return "SCADUTO";
-			case "en": return "EXPIRED";
+			case IT: return "SCADUTO";
+			case DE: return "VERFALLEN";
+			case ES: return "EXPIRADO";
+			default: return "EXPIRED";
 			}
 		}
 		String finale="";

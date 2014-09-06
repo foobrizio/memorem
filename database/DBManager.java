@@ -405,6 +405,12 @@ public class DBManager{
 		aiuti.add("Möchten Sie überprüfen, wie viele Memos Sie bisher und ihre Eigenschaften erstellt haben? Klicken Sie auf die 'Statistik' im Menü in der 'User' ");
 		aiuti.add("Sie können alle Notizen (Memo) 'Hinzufügen' in dem Sie im Menü die Werkzeugliste gebrauchen.");
 		aiuti.add("Sie können Ihre Memo jederzeit löschen, indem Sie die Taste 'Löschen' in der Werkzeugliste benützen. Achtung dieser Vorgang ist nicht Rückgängig!!!" );
+		for(String s: aiuti){
+			String sql="INSERT INTO hints(hint,hash,language) VALUES(\""+s+"\",SHA(\""+s+"\"),'de')";
+			int result=executeUpdate(sql);
+			if(result!=0)
+				System.out.println("aiuto inserito");
+		}//tedesco
 	}
 
 	private static boolean removeMemo(User user, Memo m, String table){

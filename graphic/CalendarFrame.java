@@ -139,6 +139,9 @@ public class CalendarFrame extends JInternalFrame{
 	private Data oggi;
 	private final String[] monthsEN={"January","February","March","April","May","June","July","August","September","October","November","December"};
 	private final String[] monthsIT={"Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"};
+	private final String monthsES[]={ "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
+	private final String monthsDE[]={ "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
+	
 	private final static Color myYellow=new Color(255,255,150);
 	private final static Color myBlue=new Color(150,200,255);
 	private final static Color myRed=new Color(255,120,100);
@@ -706,12 +709,14 @@ public class CalendarFrame extends JInternalFrame{
 			return;
 		getContentPane().remove(comboMonth);
 		comboMonth=null;
-		if(language==Lang.IT){
+		if(language==Lang.IT)
 			comboMonth=new JComboBox<String>(monthsIT);
-		}
-		else if(language==Lang.EN){
+		else if(language==Lang.ES)
+			comboMonth=new JComboBox<String>(monthsES);
+		else if(language==Lang.DE)
+			comboMonth=new JComboBox<String>(monthsDE);
+		else 
 			comboMonth=new JComboBox<String>(monthsEN);
-		}
 		riccardino.setLanguage(language);
 		comboMonth.addActionListener(new ComboHandler());
 		comboMonth.setSelectedItem(comboMonth.getItemAt(oggi.mese()-1));

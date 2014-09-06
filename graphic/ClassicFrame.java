@@ -241,6 +241,7 @@ public class ClassicFrame extends JInternalFrame{
 		
 		if(this.language.equals(language))
 			return;
+		this.language=language;
 		if(language==Lang.IT){
 			visual.setText("Visualizza");
 			mnPriorit.setText("Filtra per priorità");
@@ -264,7 +265,13 @@ public class ClassicFrame extends JInternalFrame{
 			mnData.setText("Durchdringen für zeitpunkt");
 			
 		}
-		this.language=language;
+		Component[] mempanels=dynamic.getComponents();
+		for(int i=0;i<mempanels.length;i++){
+			if(mempanels[i] instanceof MemPanel){
+				MemPanel mp=(MemPanel)mempanels[i];
+				mp.setLanguage(language);
+			}
+		}
 	}
 	/**
 	 * Provvede all'aggiornamento dei memo, intuendo se alcuni sono scaduti.

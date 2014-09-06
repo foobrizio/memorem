@@ -628,6 +628,7 @@ public class Popup extends JDialog implements ActionListener{
 		
 		if(this.language.equals(language))
 			return;
+		this.language=language;
 		if(language==Lang.IT){
 			
 			prioritLabel.setText("Priorità");
@@ -637,7 +638,6 @@ public class Popup extends JDialog implements ActionListener{
 			dayLabel.setText("Giorno");
 			oraLabel.setText("Ora");
 			minutoLabel.setText("Minuto");
-			this.language=language;
 			contentPanel.remove(mese);
 			contentPanel.remove(prior);
 		}
@@ -650,7 +650,6 @@ public class Popup extends JDialog implements ActionListener{
 			dayLabel.setText("Tag");
 			oraLabel.setText("Stunde");
 			minutoLabel.setText("Minute");
-			this.language=language;
 			contentPanel.remove(mese);
 			contentPanel.remove(prior);	
 		}
@@ -663,7 +662,6 @@ public class Popup extends JDialog implements ActionListener{
 			dayLabel.setText("Día");
 			oraLabel.setText("Hora");
 			minutoLabel.setText("Minuto");
-			this.language=language;
 			contentPanel.remove(mese);
 			contentPanel.remove(prior);
 		}
@@ -675,7 +673,6 @@ public class Popup extends JDialog implements ActionListener{
 			dayLabel.setText("Day");
 			oraLabel.setText("Hour");
 			minutoLabel.setText("Minute");
-			this.language=language;
 			contentPanel.remove(mese);
 			contentPanel.remove(prior);
 		}

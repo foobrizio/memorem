@@ -370,6 +370,7 @@ public class MemPanel extends JPanel implements ActionListener{
 		
 		if(this.language==lang)
 			return;
+		this.language=lang;
 		if(lang==Lang.IT){
 			combo.setText("Opzioni");
 			modifica.setText("modifica");
@@ -429,8 +430,15 @@ public class MemPanel extends JPanel implements ActionListener{
 		Data end=this.memo.getEnd();
 		end.setLanguage(lang);
 		this.memo.setEnd(end);
-		this.language=lang;
-		repaint();
+		this.memo.setLanguage(lang);
+		if(tipoB){
+			orario.setText(MemPanel.this.memo.countDown());
+			orario.repaint();
+		}
+		else{
+			orario.setText(MemPanel.this.memo.endDate());
+			orario.repaint();
+		}
 	}
 
 	public void setMemo(Memo m){
