@@ -501,7 +501,7 @@ public class Popup extends JDialog implements ActionListener{
 				icon="note.png";
 			}
 			
-			System.out.println(end);
+			//System.out.println(end);
 			if(end.compareTo(new Data())>0){
 				avviso.setVisible(false);
 				okPressed=true;
@@ -553,6 +553,41 @@ public class Popup extends JDialog implements ActionListener{
 		giorno.setSelectedItem(data.giorno());
 		ora.setSelectedItem(data.ora());
 		minuto.setSelectedItem(data.minuto());
+		addToolTips(false);
+		((ColoredPanel)getContentPane()).setSfondo("files//wallpapers//new.jpg");
+		//titolo.setForeground(new Color(255,255,150));
+		titolo.setForeground(myYellow);
+		nome.setForeground(Color.BLACK);
+		okButton.setForeground(Color.BLACK);
+		cancelButton.setForeground(Color.BLACK);
+		prioritLabel.setForeground(Color.BLACK);
+		annoLabel.setForeground(Color.BLACK);
+		meseLabel.setForeground(Color.BLACK);
+		dayLabel.setForeground(Color.BLACK);
+		oraLabel.setForeground(Color.BLACK);
+		minutoLabel.setForeground(Color.BLACK);
+		setVisible(true);
+	}
+	
+	public void aggiungi(Data d){
+		
+		data=new Data();
+		modified=false;
+		if(language==Lang.IT)
+			titolo.setText("Aggiungi memo");
+		else if(language==Lang.ES)
+			titolo.setText("Añadir memo");
+		else if(language==Lang.DE)
+			titolo.setText("Memo hinzufügen");
+		else
+			titolo.setText("Add memo");
+		descrizione.setText("");
+		prior.setSelectedIndex(1);
+		anno.setSelectedItem(d.anno());
+		mese.setSelectedIndex(d.mese()-1);
+		giorno.setSelectedItem(d.giorno());
+		ora.setSelectedItem(d.ora());
+		minuto.setSelectedItem(d.minuto());
 		addToolTips(false);
 		((ColoredPanel)getContentPane()).setSfondo("files//wallpapers//new.jpg");
 		//titolo.setForeground(new Color(255,255,150));
@@ -630,7 +665,6 @@ public class Popup extends JDialog implements ActionListener{
 			return;
 		this.language=language;
 		if(language==Lang.IT){
-			
 			prioritLabel.setText("Priorità");
 			nome.setText("Nome");
 			annoLabel.setText("Anno");
@@ -641,7 +675,7 @@ public class Popup extends JDialog implements ActionListener{
 			contentPanel.remove(mese);
 			contentPanel.remove(prior);
 		}
-		else if(language==Lang.EN){
+		else if(language==Lang.DE){
 			
 			prioritLabel.setText("Priorität");
 			nome.setText("Vorname");

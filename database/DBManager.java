@@ -55,14 +55,14 @@ public class DBManager{
 			x=stmt.executeUpdate(sql);
 		}catch(SQLException e){
 			if(e instanceof MySQLIntegrityConstraintViolationException)
-				System.out.println("Impossibile continuare..");
+				System.out.println("Eccezione MySQLIntegrityContraintViolationException");
 			else if(e.getMessage().substring(0,22).equals("Access denied for user")){
 				return -5;
 			}
 			else
 				System.out.println("Errore in apertura per query '"+sql+"'");
-			e.printStackTrace();
-			System.out.println(e.getMessage().substring(0,22));
+			//e.printStackTrace();
+			//System.out.println(e.getMessage().substring(0,22));
 		}finally{
 			//System.out.println(sql);
 			try{
@@ -275,7 +275,7 @@ public class DBManager{
 	
 	private static void clearFromTable(User user,String table){	//funziona
 		
-		String sql="DELETE FROM "+table+" WHERE user='"+verificaStringa(user.getNickname())+"'";	//questo metodo è più veloce di DELETE FROM perchè cancella l'intera tabella e ne ricrea una nuova
+		String sql="DELETE FROM "+table+" WHERE user='"+user.getNickname()+"'";	//questo metodo è più veloce di DELETE FROM perchè cancella l'intera tabella e ne ricrea una nuova
 		executeUpdate(sql);
 	}
 	

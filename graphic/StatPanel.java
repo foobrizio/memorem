@@ -204,7 +204,27 @@ public class StatPanel extends JDialog {
 			textM.setToolTipText("Impegni a priorità standard");
 			textL.setToolTipText("Impegni a bassa priorità");
 		}
-		else if(language==Lang.EN){
+		else if(language==Lang.DE){
+			inAttesa.setToolTipText("Memos wartet auf Sie, um zu entscheiden, was mit ihnen zu tun");
+			textTotal.setToolTipText("Alle von Ihnen erstellten memos");
+			textActive.setToolTipText("Diese Aufgaben, die Sie noch nicht haben abgeschlossen");
+			textArch.setToolTipText("Aufgaben, die Sie nicht erreichen, um abzuschließen");
+			textH.setToolTipText("Hohe Priorität Memos");
+			textComp.setToolTipText("Aufgaben, die Sie abgeschlossen");
+			textM.setToolTipText("Durchschnittliche Priorität Memos");
+			textL.setToolTipText("Niedrige Priorität Memos");
+		}
+		else if(language==Lang.ES){
+			inAttesa.setToolTipText("Los memos de espera que seráns gestionados por usted");
+			textTotal.setToolTipText("El número total de memos que haya creado");
+			textActive.setToolTipText("Los compromisos pendientes de ser completados");
+			textArch.setToolTipText("Los compromisos que no fueron capaces de completar");
+			textH.setToolTipText("Compromisos de alta prioridad");
+			textComp.setToolTipText("Compromisos que se haya podido completar");
+			textM.setToolTipText("Compromisos con la prioridad standard");
+			textL.setToolTipText("Compromisos de baja prioridad");
+		}
+		else{
 			inAttesa.setToolTipText("Memos that are waiting for you to decide what to do with them");
 			textTotal.setToolTipText("All memos created by you");
 			textActive.setToolTipText("Tasks that you didn't completed yet");

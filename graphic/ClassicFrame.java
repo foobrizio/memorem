@@ -165,8 +165,22 @@ public class ClassicFrame extends JInternalFrame{
 		
 		Component[] panels=dynamic.getComponents();
 		boolean found=false;
-		MemPanel old=new MemPanel(vecchio);
+		//MemPanel old=new MemPanel(vecchio);
 		for(int i=0;i<panels.length;i++){
+			if(!found && panels[i] instanceof MemPanel && ((MemPanel)panels[i]).getMemo().equals(vecchio)){
+				((MemPanel)panels[i]).setMemo(nuovo);
+				System.out.println(nuovo.language);
+				found=true;
+				personal.remove(vecchio);
+				personal.add(nuovo);
+			}
+			if(found){
+				((MemPanel)panels[i]).setLanguage(language);
+				repaint();
+				return;
+			}
+		}
+		/*for(int i=0;i<panels.length;i++){
 			if(!found && panels[i] instanceof MemPanel && ((MemPanel)panels[i]).getMemo().equals(vecchio)){
 					((MemPanel)panels[i]).setMemo(nuovo);
 					found=true;
@@ -186,7 +200,7 @@ public class ClassicFrame extends JInternalFrame{
 				repaint();
 				return;
 			}
-		}
+		}*/
 	}
 	
 	/**

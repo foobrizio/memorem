@@ -348,6 +348,7 @@ public class UserDialog extends JDialog{
 		
 		if(lang.equals(this.lang))
 			return;
+		this.lang=lang;
 		if(lang==Lang.EN){
 			adviceLabel = new JLabel("You can't insert characters like ',\\,?,(,),\"");
 			titleLabel.setText("Profile");

@@ -25,7 +25,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 	private String id;
 	private boolean scadenzanotificata;
 	private boolean pure;
-	private Lang language;
+	public Lang language;
 	
 	/*											*
 	 * 											*
@@ -143,6 +143,7 @@ public class Memo implements Comparable<Memo>, Serializable{
 	
 	public void setLanguage(Lang language){
 		
+		this.end.setLanguage(language);
 		this.language=language;
 	}
 	public void setScadenzaNotificata(){

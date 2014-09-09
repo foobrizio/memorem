@@ -399,12 +399,15 @@ public class CalendarFrame extends JInternalFrame{
 				else if(click.getButton()==MouseEvent.BUTTON1 && click.getClickCount()==2){		//doppio click
 					Data cliccata=new Data(anno,mese,giorno,0,0);
 					giorno=Integer.parseInt((String)riccardino.getValueAt(cellaSelezionata[0], cellaSelezionata[1]));
+					System.out.println(giorno);
 					Memo x=null;
 					for(Memo m: ml)
 						if(m.getEnd().hasSameDay(cliccata))
 							x=m;
 					if(x!=null)
 						p.modifica(x);
+					else if(cliccata.compareTo(new Data())>0 || cliccata.isToday())
+							p.aggiungi(cliccata);
 				}
 			}	
 		}

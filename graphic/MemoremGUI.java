@@ -245,11 +245,14 @@ public class MemoremGUI extends JFrame{
 				if( p.isOk() && p.getModified()){	//e possiamo andare avanti solamente se è stato premuto il tasto ok
 					Memo memo=p.getCreated();
 					Memo old=p.getOld();
-					if(memo.identici(old))
-						if(memo.priority()!=old.priority()){
-							MemoremGUI.this.modifica(old,memo);
-							checkMemos();
-						}
+					if(!memo.identici(old)){
+						MemoremGUI.this.modifica(old,memo);
+						checkMemos();
+					}
+					else if(memo.priority()!=old.priority()){
+						MemoremGUI.this.modifica(old,memo);
+						checkMemos();
+					}
 					else{
 						if(language==Lang.IT)
 							JOptionPane.showMessageDialog(MemoremGUI.this, "La modifica è nulla");
@@ -1423,9 +1426,9 @@ public class MemoremGUI extends JFrame{
 		int choice=0;
 		if(language==Lang.IT)
 			choice=JOptionPane.showConfirmDialog(this, "I cambiamenti saranno irreversibili. Continuare?");
-		if(language==Lang.DE)
+		else if(language==Lang.DE)
 			choice=JOptionPane.showConfirmDialog(this, "Änderungen werden irreversibel sein. Weiter?");
-		if(language==Lang.ES)
+		else if(language==Lang.ES)
 			choice=JOptionPane.showConfirmDialog(this, "Los cambios serán irreversibles. ¿Desea continuar?");
 		else
 			choice=JOptionPane.showConfirmDialog(this, "Changes will be irreversible. Continue?");
@@ -1450,9 +1453,9 @@ public class MemoremGUI extends JFrame{
 		int choice=0;
 		if(language==Lang.IT)
 			choice=JOptionPane.showConfirmDialog(this, "I cambiamenti saranno irreversibili. Continuare?");
-		if(language==Lang.DE)
+		else if(language==Lang.DE)
 			choice=JOptionPane.showConfirmDialog(this, "Änderungen werden irreversibel sein. Weiter?");
-		if(language==Lang.ES)
+		else if(language==Lang.ES)
 			choice=JOptionPane.showConfirmDialog(this, "Los cambios serán irreversibles. ¿Desea continuar?");
 		else
 			choice=JOptionPane.showConfirmDialog(this, "Changes will be irreversible. Continue?");
@@ -1521,9 +1524,9 @@ public class MemoremGUI extends JFrame{
 		int choice=0;
 		if(language==Lang.IT)
 			choice=JOptionPane.showConfirmDialog(this, "I cambiamenti saranno irreversibili. Continuare?");
-		if(language==Lang.DE)
+		else if(language==Lang.DE)
 			choice=JOptionPane.showConfirmDialog(this, "Änderungen werden irreversibel sein. Weiter?");
-		if(language==Lang.ES)
+		else if(language==Lang.ES)
 			choice=JOptionPane.showConfirmDialog(this, "Los cambios serán irreversibles. ¿Desea continuar?");
 		else
 			choice=JOptionPane.showConfirmDialog(this, "Changes will be irreversible. Continue?");
@@ -1622,7 +1625,7 @@ public class MemoremGUI extends JFrame{
 			else
 				JOptionPane.showMessageDialog(MemoremGUI.this, "This memo already exists");
 		}
-		
+		nuovo.setLanguage(language);
 		mntmSalva.setEnabled(true);
 		k.modifica(vecchio, nuovo);							//il Keeper è stato aggiornato
 		calendar.remove(vecchio);

@@ -337,8 +337,10 @@ public class MemPanel extends JPanel implements ActionListener{
 	 */
 	public void passaTestimone(MemPanel mp){
 		
+		this.completa.addActionListener(mp.completa.getActionListeners()[0]);
 		this.completa=mp.completa;
 		this.archivia=mp.archivia;
+		this.modifica.addActionListener(mp.modifica.getActionListeners()[0]);
 		this.modifica=mp.modifica;
 		this.elimina=mp.elimina;
 		this.rinvia=mp.rinvia;
@@ -347,6 +349,7 @@ public class MemPanel extends JPanel implements ActionListener{
 		this.oneWeek=mp.oneWeek;
 		this.threeDays=mp.threeDays;
 		this.personalizza=mp.personalizza;
+		this.p=mp.p;
 	}
 
 	public MyMenuItem personalizza(){
