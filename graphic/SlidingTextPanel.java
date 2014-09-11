@@ -49,6 +49,15 @@ public class SlidingTextPanel extends JPanel implements Runnable{
 		t = new Thread(this);
 		t.start();
 	}
+	
+	/**
+	 * Stoppa il thread
+	 */
+	public void stop(){
+		
+		if(t!=null)
+			t.interrupt();
+	}
 
 	/**
 	 * Gestisce il comportamento del Thread durante l'esecuzione
@@ -63,7 +72,7 @@ public class SlidingTextPanel extends JPanel implements Runnable{
 				cur = cur.substring(1, cur.length());
 				cur = cur + ch;
 			}catch(InterruptedException e){
-				System.out.println("ops...si è interrotto");
+				//System.out.println("ops...si è interrotto");
 			}
 		}
 	}

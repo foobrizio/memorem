@@ -287,7 +287,6 @@ public class MemoremGUI extends JFrame{
 					}
 					MemoList mlGuest=new MemoList();								
 					if(k.getUser().isGuest()){			//	Qui ci prendiamo i dati dei memo che
-						mlGuest=new MemoList();								//  erano stati creati finora dal guest
 						for(Memo m: k.getTotalList())
 							mlGuest.add(m,true);
 					}
@@ -296,26 +295,43 @@ public class MemoremGUI extends JFrame{
 						boolean guesty=false;
 						if(k.getUser().isGuest())
 							guesty=true;
-						if(!guesty)
+						if(!guesty){
 							mntmLogout.doClick();
-						((ColoredPanel)panel).setSfondo("files//wallpapers//wall5.jpg");
-						panel_2.dispose();
-						panel.remove(panel_2);
-						panel_2=classic;
-						panel.setOpaque(false);
-						panel.setBackground(new Color(0,0,0,0));
-						panel.add(panel_2, "cell 0 0 7 26,grow");
-						panel.setVisible(false);
-						panel.setVisible(true);
+							((ColoredPanel)panel).setSfondo("files//wallpapers//wall5.jpg");
+							panel_2.dispose();
+							panel.remove(panel_2);
+							panel_2=classic;
+							panel.setOpaque(false);
+							panel.setBackground(new Color(0,0,0,0));
+							panel.add(panel_2, "cell 0 0 7 26,grow");
+							panel.setVisible(false);
+							panel.setVisible(true);
+						}
 						k.start();
 						int res=k.signUp(nick,pass,name,surname,genre, language,true);
 						if(res==0){
 							if(mlGuest.size()>0){
-								for(Memo m:mlGuest){
+								for(Memo m:mlGuest)
 									k.add(m);
-								}
 								k.salva();
 								login();
+								classic.clearMemos();
+								for(Memo m: k.getStandardMemos()){
+									System.out.println("ehiehiehi"+m);
+									m.setLanguage(MemoremGUI.this.language);
+									if(m.getEnd().compareTo(new Data())>0){
+										MemPanel mp=new MemPanel(m);
+										mp.setBridges(p, jfc, iconButton);
+										mp.getElimina().addActionListener(listener);
+										mp.getCompleta().addActionListener(listener);
+										mp.getArchivia().addActionListener(listener);
+										mp.getOneDay().addActionListener(listener);
+										mp.getThreeDays().addActionListener(listener);
+										mp.getOneWeek().addActionListener(listener);
+										mp.getOneMonth().addActionListener(listener);
+										classic.add(mp);
+									}
+								}
 								return;
 							}
 							if(language.equals("it"))
@@ -738,8 +754,10 @@ public class MemoremGUI extends JFrame{
 			scorrevole.setVisible(true);
 			scorrevole.start();
 		}
-		else
+		else{
+			scorrevole.stop();
 			scorrevole.setVisible(false);
+		}
 	}
 
 	private void checkMemos(){
@@ -870,6 +888,7 @@ public class MemoremGUI extends JFrame{
 			mntmRimuoviU.setVisible(false);
 			mntmReset.setVisible(true);
 			mntmAggiungiU.setVisible(true);
+			mntmProfilo.setVisible(false);
 		}
 		else{
 			mnRimuoviU.setVisible(false);
@@ -884,6 +903,7 @@ public class MemoremGUI extends JFrame{
 	 */
 	private void interfacciaGuest(){
 		
+		setLanguage(Lang.EN);				//l'utente guest è utilizzabile solo in inglese
 		mnUtente.setEnabled(false);
 		mntmSalva.setEnabled(false);
 		classic.setGuestInterface(true);
@@ -1375,7 +1395,7 @@ public class MemoremGUI extends JFrame{
 		k.add(m);							//il Keeper è stato aggiornato
 		calendar.add(m);					//il CalendarFrame è stato aggiornato
 		if(visualHandler.getSelected().equals(classicRadio)){	//se siamo nella visualizzazione classica
-			if(k.getTotalList().size()>0)
+			if(k.getTotalList().size()>0 && !(k.getUser().isGuest()))
 				classic.setBarVisible(true);
 			boolean[] prior=new boolean[3];
 			boolean[] data=new boolean[5];
@@ -1615,7 +1635,7 @@ public class MemoremGUI extends JFrame{
 	}
 	public void modifica(Memo vecchio,Memo nuovo){
 		
-		if(k.containsEqualInDB(nuovo)){
+		if(!k.getUser().isGuest() && k.containsEqualInDB(nuovo)){
 			if(language==Lang.IT)
 				JOptionPane.showMessageDialog(MemoremGUI.this, "Il memo esiste già");
 			else if(language==Lang.ES)

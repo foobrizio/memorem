@@ -244,6 +244,7 @@ public class ClassicFrame extends JInternalFrame{
 		else{
 			menuBar.setEnabled(true);
 			menuBar.setVisible(true);
+			repaint();
 		}
 	}
 	
